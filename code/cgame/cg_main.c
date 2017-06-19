@@ -14,6 +14,14 @@ int forceModelModificationCount = -1;
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
 void CG_Shutdown( void );
 
+// extension interface
+qboolean intShaderTime = qfalse;
+
+#ifdef Q3_VM
+qboolean (*trap_GetValue)( char *value, int valueSize, const char *key );
+void (*trap_R_AddRefEntityToScene2)( const refEntity_t *re );
+#endif
+
 
 /*
 ================
@@ -1836,6 +1844,7 @@ Will perform callbacks to make the loading info screen update.
 =================
 */
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
+	char  value[MAX_CVAR_VALUE_STRING];
 	const char	*s;
 
 	// clear everything
@@ -1849,6 +1858,23 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	cgs.processedSnapshotNum = serverMessageNum;
 	cgs.serverCommandSequence = serverCommandSequence;
+
+	trap_Cvar_VariableStringBuffer( "//trap_GetValue", value, sizeof( value ) );
+	if ( value[0] ) {
+#ifdef Q3_VM
+		trap_GetValue = (void*)~atoi( value );
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddRefEntityToScene2" ) ) {
+			trap_R_AddRefEntityToScene2 = (void*)~atoi( value );
+			intShaderTime = qtrue;
+		}
+#else
+		dll_com_trapGetValue = atoi( value );
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddRefEntityToScene2" ) ) {
+			dll_trap_R_AddRefEntityToScene2 = atoi( value );
+			intShaderTime = qtrue;
+		}
+#endif
+	}
 
 	// load a few needed things before we do any screen updates
 	cgs.media.charsetShader		= trap_R_RegisterShader( "gfx/2d/bigchars" );
@@ -1965,12 +1991,9 @@ CG_EventHandling
 void CG_EventHandling(int type) {
 }
 
-
-
 void CG_KeyEvent(int key, qboolean down) {
 }
 
 void CG_MouseEvent(int x, int y) {
 }
 #endif
-

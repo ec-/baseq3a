@@ -45,7 +45,10 @@ void CG_BubbleTrail( const vec3_t start, const vec3_t end, float spacing ) {
 		le->lifeRate = 1.0 / ( le->endTime - le->startTime );
 
 		re = &le->refEntity;
-		re->shaderTime = cg.time / 1000.0f;
+		if ( intShaderTime )
+			re->u.intShaderTime = cg.time;
+		else
+			re->u.shaderTime = cg.time / 1000.0f;
 
 		re->reType = RT_SPRITE;
 		re->rotation = 0;
@@ -96,7 +99,11 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 	re = &le->refEntity;
 	re->rotation = Q_random( &seed ) * 360;
 	re->radius = radius;
-	re->shaderTime = startTime / 1000.0f;
+
+	if ( intShaderTime )
+		re->u.intShaderTime = startTime;
+	else
+		re->u.shaderTime = startTime / 1000.0f;
 
 	le->leType = LE_MOVE_SCALE_FADE;
 	le->startTime = startTime;
@@ -165,7 +172,11 @@ void CG_SpawnEffect( const vec3_t origin ) {
 	re = &le->refEntity;
 
 	re->reType = RT_MODEL;
-	re->shaderTime = cg.time / 1000.0f;
+
+	if ( intShaderTime )
+		re->u.intShaderTime = cg.time;
+	else
+		re->u.shaderTime = cg.time / 1000.0f;
 
 #ifndef MISSIONPACK
 	re->customShader = cgs.media.teleportEffectShader;
@@ -233,7 +244,11 @@ void CG_KamikazeEffect( vec3_t org ) {
 	re = &le->refEntity;
 
 	re->reType = RT_MODEL;
-	re->shaderTime = cg.time / 1000.0f;
+
+	if ( intShaderTime )
+		re->intShaderTime = cg.time;
+	else
+		re->shaderTime = cg.time / 1000.0f;
 
 	re->hModel = cgs.media.kamikazeEffectModel;
 
@@ -308,7 +323,11 @@ void CG_InvulnerabilityImpact( vec3_t org, vec3_t angles ) {
 	re = &le->refEntity;
 
 	re->reType = RT_MODEL;
-	re->shaderTime = cg.time / 1000.0f;
+
+	if ( intShaderTime )
+		re->u.intShaderTime = cg.time;
+	else
+		re->u.shaderTime = cg.time / 1000.0f;
 
 	re->hModel = cgs.media.invulnerabilityImpactModel;
 
@@ -348,7 +367,11 @@ void CG_InvulnerabilityJuiced( vec3_t org ) {
 	re = &le->refEntity;
 
 	re->reType = RT_MODEL;
-	re->shaderTime = cg.time / 1000.0f;
+
+	if ( intShaderTime )
+		re->u.intShaderTime = cg.time;
+	else
+		re->u.shaderTime = cg.time / 1000.0f;
 
 	re->hModel = cgs.media.invulnerabilityJuicedModel;
 
@@ -452,7 +475,10 @@ localEntity_t *CG_MakeExplosion( const vec3_t origin, const vec3_t dir,
 	ex->endTime = ex->startTime + msec;
 
 	// bias the time so all shader effects start correctly
-	ex->refEntity.shaderTime = ex->startTime / 1000.0f;
+	if ( intShaderTime )
+		ex->refEntity.u.intShaderTime = ex->startTime;
+	else
+		ex->refEntity.u.shaderTime = ex->startTime / 1000.0f;
 
 	ex->refEntity.hModel = hModel;
 	ex->refEntity.customShader = shader;

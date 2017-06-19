@@ -4,6 +4,7 @@ Unofficial Quake III Arena gamecode patch
 # What is done:
  * new toolchain used (optimized q3lcc and q3asm)
  * upstream security fixes
+ * floatfix
  * fixed vote system
  * fixed spawn system
  * fixed in-game crosshair proportions
@@ -13,7 +14,6 @@ Unofficial Quake III Arena gamecode patch
  * updated serverinfo UI
 
 # TODO:
- * floatfix
  * improved prediction
  * unlagged hitscan weapons
  * map rotation system

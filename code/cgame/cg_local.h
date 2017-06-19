@@ -1669,3 +1669,16 @@ void	CG_ParticleMisc (qhandle_t pshader, vec3_t origin, int size, int duration, 
 void	CG_ParticleExplosion( const char *animStr, const vec3_t origin, const vec3_t vel, int duration, int sizeStart, int sizeEnd );
 extern qboolean		initparticles;
 int CG_NewParticleArea ( int num );
+
+// extension interface
+extern  qboolean intShaderTime;
+
+#ifdef Q3_VM
+extern void (*trap_R_AddRefEntityToScene2)( const refEntity_t *re );
+#else
+qboolean trap_GetValue( char *value, int valueSize, const char *key );
+void trap_R_AddRefEntityToScene2( const refEntity_t *re );
+int dll_com_trapGetValue;
+int dll_trap_R_AddRefEntityToScene2;
+#endif
+

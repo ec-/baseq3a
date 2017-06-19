@@ -321,7 +321,7 @@ void Bitmap_Draw( menubitmap_s *b )
 			}
 			else
 				color = pulse_color;
-			color[3] = 0.5+0.5*sin(uis.realtime/PULSE_DIVISOR);
+			color[3] = 0.5+0.5*sin( ( uis.realtime % TMOD_075) / PULSE_DIVISOR );
 
 			trap_R_SetColor( color );
 			UI_DrawHandlePic( x, y, w, h, b->focusshader );

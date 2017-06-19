@@ -451,7 +451,7 @@ Fixed fov at intermissions, otherwise account for fov variable and zooms.
 
 static int CG_CalcFov( void ) {
 	float	x;
-	float	phase;
+	//float	phase;
 	float	v;
 	int		contents;
 	float	fov_x, fov_y;
@@ -505,8 +505,9 @@ static int CG_CalcFov( void ) {
 	// warp if underwater
 	contents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( contents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
-		v = WAVE_AMPLITUDE * sin( phase );
+		//phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+		//v = WAVE_AMPLITUDE * sin( phase );
+		v = WAVE_AMPLITUDE * sin( (cg.time % 16419587) / 397.87735f ); // result is very close to original
 		fov_x += v;
 		fov_y -= v;
 		inwater = qtrue;

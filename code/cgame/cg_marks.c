@@ -282,8 +282,8 @@ typedef struct particle_s
 {
 	struct particle_s	*next;
 
-	float		time;
-	float		endtime;
+	int			time;
+	int			endtime;
 
 	vec3_t		org;
 	vec3_t		vel;
@@ -304,7 +304,7 @@ typedef struct particle_s
 	float		start;
 	float		end;
 
-	float		startfade;
+	int			startfade;
 	qboolean	rotate;
 	int			snum;
 	

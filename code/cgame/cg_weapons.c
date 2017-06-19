@@ -221,7 +221,11 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
 	le->endTime = cg.time + cg_railTrailTime.value;
 	le->lifeRate = 1.0 / (le->endTime - le->startTime);
  
-	re->shaderTime = cg.time / 1000.0f;
+	if ( intShaderTime )
+		re->u.intShaderTime = cg.time;
+	else
+		re->u.shaderTime = cg.time / 1000.0f;
+
 	re->reType = RT_RAIL_CORE;
 	re->customShader = cgs.media.railCoreShader;
  
@@ -264,7 +268,11 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end) {
             le->endTime = cg.time + (i>>1) + 600;
             le->lifeRate = 1.0 / (le->endTime - le->startTime);
 
-            re->shaderTime = cg.time / 1000.0f;
+			if ( intShaderTime )
+				re->u.intShaderTime = cg.time;
+			else
+				re->u.shaderTime = cg.time / 1000.0f;
+
             re->reType = RT_SPRITE;
             re->radius = 1.1f;
 			re->customShader = cgs.media.railRingsShader;
@@ -497,7 +505,12 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 	VectorScale( xvelocity, waterScale, le->pos.trDelta );
 
 	AxisCopy( axisDefault, re->axis );
-    re->shaderTime = cg.time / 1000.0f;
+	
+	if ( intShaderTime )
+		re->u.intShaderTime = cg.time;
+	else
+		re->u.shaderTime = cg.time / 1000.0f;
+
     re->reType = RT_SPRITE;
     re->radius = 0.25f;
 	re->customShader = cgs.media.railRingsShader;
@@ -521,8 +534,9 @@ static void CG_PlasmaTrail( centity_t *cent, const weaponInfo_t *wi ) {
 	le->angles.trDelta[0] = 1;
 	le->angles.trDelta[1] = 0.5;
 	le->angles.trDelta[2] = 0;
-
 }
+
+
 /*
 ==========================
 CG_GrappleTrail
@@ -925,7 +939,7 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	// idle drift
 	scale = cg.xyspeed + 40;
-	fracsin = sin( cg.time * 0.001 );
+	fracsin = sin( ( cg.time % TMOD_1000 ) * 0.001 );
 	angles[ROLL] += scale * fracsin * 0.01;
 	angles[YAW] += scale * fracsin * 0.01;
 	angles[PITCH] += scale * fracsin * 0.01;
