@@ -690,7 +690,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
 		weaponInfo->missileModel = trap_R_RegisterModel( "models/ammo/rocket/rocket.md3" );
 		weaponInfo->missileTrailFunc = CG_GrappleTrail;
-		weaponInfo->missileDlight = 200;
+		weaponInfo->missileDlight = HOOK_GLOW_RADIUS;
 		weaponInfo->wiTrailTime = 2000;
 		weaponInfo->trailRadius = 64;
 		MAKERGB( weaponInfo->missileDlightColor, 1, 0.75f, 0 );
@@ -732,7 +732,7 @@ void CG_RegisterWeapon( int weaponNum ) {
 		weaponInfo->missileModel = trap_R_RegisterModel( "models/ammo/rocket/rocket.md3" );
 		weaponInfo->missileSound = trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav", qfalse );
 		weaponInfo->missileTrailFunc = CG_RocketTrail;
-		weaponInfo->missileDlight = 200;
+		weaponInfo->missileDlight = MISSILE_GLOW_RADIUS;
 		weaponInfo->wiTrailTime = 2000;
 		weaponInfo->trailRadius = 64;
 		
@@ -782,6 +782,11 @@ void CG_RegisterWeapon( int weaponNum ) {
 //		weaponInfo->missileModel = cgs.media.invulnerabilityPowerupModel;
 		weaponInfo->missileTrailFunc = CG_PlasmaTrail;
 		weaponInfo->missileSound = trap_S_RegisterSound( "sound/weapons/plasma/lasfly.wav", qfalse );
+
+		// plasmagun dlight
+		weaponInfo->missileDlight = MISSILE_GLOW_RADIUS;
+		MAKERGB( weaponInfo->missileDlightColor, 0.2f, 0.2f, 1.0f );
+
 		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/plasma/hyprbf1a.wav", qfalse );
 		cgs.media.plasmaExplosionShader = trap_R_RegisterShader( "plasmaExplosion" );
@@ -799,7 +804,12 @@ void CG_RegisterWeapon( int weaponNum ) {
 
 	case WP_BFG:
 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/bfg/bfg_hum.wav", qfalse );
-		MAKERGB( weaponInfo->flashDlightColor, 1, 0.7f, 1 );
+
+		// bfg dlight
+		weaponInfo->missileDlight = MISSILE_GLOW_RADIUS;
+		MAKERGB( weaponInfo->missileDlightColor, 0.2f, 1.0f, 0.2f );
+
+		MAKERGB( weaponInfo->flashDlightColor, 1.0f, 0.7f, 1.0f );
 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/bfg/bfg_fire.wav", qfalse );
 		cgs.media.bfgExplosionShader = trap_R_RegisterShader( "bfgExplosion" );
 		weaponInfo->missileModel = trap_R_RegisterModel( "models/weaphits/bfg.md3" );
@@ -1343,24 +1353,33 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		flash.shaderRGBA[0] = 255 * ci->color1[0];
 		flash.shaderRGBA[1] = 255 * ci->color1[1];
 		flash.shaderRGBA[2] = 255 * ci->color1[2];
+		flash.shaderRGBA[3] = 255;
 	}
 
 	CG_PositionRotatedEntityOnTag( &flash, &gun, weapon->weaponModel, "tag_flash" );
 	trap_R_AddRefEntityToScene( &flash );
 
 	if ( ps || cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum ) {
+		int radius;
+
 		// add lightning bolt
 		CG_LightningBolt( nonPredictedCent, flash.origin );
 
 		// add rail trail
 		CG_SpawnRailTrail( cent, flash.origin );
 
+		if ( weaponNum == WP_MACHINEGUN ) // make it a bit less annoying
+			radius = MG_FLASH_RADIUS + (rand() & WEAPON_FLASH_RADIUS_MOD);
+		else
+			radius = WEAPON_FLASH_RADIUS + (rand() & WEAPON_FLASH_RADIUS_MOD);
+			
 		if ( weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2] ) {
-			trap_R_AddLightToScene( flash.origin, 300 + (rand()&31), weapon->flashDlightColor[0],
-				weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
+			trap_R_AddLightToScene( flash.origin, radius, 
+				weapon->flashDlightColor[0], weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
 		}
 	}
 }
+
 
 /*
 ==============
@@ -1411,8 +1430,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	// drop gun lower at higher fov
-	if ( cg_fov.integer > 90 ) {
-		fovOffset = -0.2 * ( cg_fov.integer - 90 );
+	if ( cgs.fov > 90.0 ) {
+		fovOffset = -0.2 * ( cgs.fov - 90.0 );
 	} else {
 		fovOffset = 0;
 	}
@@ -1825,7 +1844,7 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 		sfx = cgs.media.sfx_rockexp;
 		mark = cgs.media.burnMarkShader;
 		radius = 64;
-		light = 300;
+		light = GL_EXPLOSION_RADIUS;
 		isSprite = qtrue;
 		break;
 	case WP_ROCKET_LAUNCHER:
@@ -1834,10 +1853,10 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 		sfx = cgs.media.sfx_rockexp;
 		mark = cgs.media.burnMarkShader;
 		radius = 64;
-		light = 300;
+		light = RL_EXPLOSION_RADIUS;
 		isSprite = qtrue;
 		duration = 1000;
-		lightColor[0] = 1;
+		lightColor[0] = 1.0;
 		lightColor[1] = 0.75;
 		lightColor[2] = 0.0;
 		if (cg_oldRocket.integer == 0) {
@@ -1868,6 +1887,10 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 		sfx = cgs.media.sfx_rockexp;
 		mark = cgs.media.burnMarkShader;
 		radius = 32;
+		light = BFG_EXPLOSION_RADIUS;
+		lightColor[0] = 0.2f;
+		lightColor[1] = 1.0f;
+		lightColor[2] = 0.2f;
 		isSprite = qtrue;
 		break;
 	case WP_SHOTGUN:
@@ -1929,9 +1952,7 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 	// create the explosion
 	//
 	if ( mod ) {
-		le = CG_MakeExplosion( origin, dir, 
-							   mod,	shader,
-							   duration, isSprite );
+		le = CG_MakeExplosion( origin, dir, mod, shader, duration, isSprite );
 		le->light = light;
 		VectorCopy( lightColor, le->lightColor );
 		if ( weapon == WP_RAILGUN ) {
@@ -1954,9 +1975,9 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 		// colorize with client color
 		color = cgs.clientinfo[ clientNum ].color1; // was color2
 
-		CG_ImpactMark( mark, origin, dir, random()*360, color[0],color[1], color[2],1, alphaFade, radius, qfalse );
+		CG_ImpactMark( mark, origin, dir, random()*360, color[0], color[1], color[2], 1.0, alphaFade, radius, qfalse );
 	} else {
-		CG_ImpactMark( mark, origin, dir, random()*360, 1,1,1,1, alphaFade, radius, qfalse );
+		CG_ImpactMark( mark, origin, dir, random()*360, 1.0, 1.0, 1.0, 1.0, alphaFade, radius, qfalse );
 	}
 }
 

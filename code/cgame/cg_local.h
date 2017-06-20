@@ -75,6 +75,24 @@
 #define DEFAULT_REDTEAM_NAME		"Stroggs"
 #define DEFAULT_BLUETEAM_NAME		"Pagans"
 
+// dynamic lights definitions
+#define GL_EXPLOSION_RADIUS		300
+#define RL_EXPLOSION_RADIUS		300
+#define BFG_EXPLOSION_RADIUS	300
+
+// holdable powerups
+#define POWERUP_GLOW_RADIUS		200
+#define POWERUP_GLOW_RADIUS_MOD	31
+
+// running projectiles
+#define HOOK_GLOW_RADIUS		200
+#define MISSILE_GLOW_RADIUS		200
+
+// on-hand firing weapons
+#define MG_FLASH_RADIUS			200 // original: 300
+#define WEAPON_FLASH_RADIUS		300
+#define WEAPON_FLASH_RADIUS_MOD	31
+
 typedef enum {
 	FOOTSTEP_NORMAL,
 	FOOTSTEP_BOOT,
@@ -1319,9 +1337,9 @@ void CG_PainEvent( centity_t *cent, int health );
 //
 // cg_ents.c
 //
-void CG_SetEntitySoundPosition( centity_t *cent );
+void CG_SetEntitySoundPosition( const centity_t *cent );
 void CG_AddPacketEntities( void );
-void CG_Beam( centity_t *cent );
+void CG_Beam( const centity_t *cent );
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out, const vec3_t angles_in, vec3_t angles_out );
 
 void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 

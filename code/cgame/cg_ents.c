@@ -81,7 +81,7 @@ CG_SetEntitySoundPosition
 Also called by event processing code
 ======================
 */
-void CG_SetEntitySoundPosition( centity_t *cent ) {
+void CG_SetEntitySoundPosition( const centity_t *cent ) {
 	if ( cent->currentState.solid == SOLID_BMODEL ) {
 		vec3_t	origin;
 		float	*v;
@@ -594,9 +594,9 @@ CG_Beam
 Also called as an event
 ===============
 */
-void CG_Beam( centity_t *cent ) {
+void CG_Beam( const centity_t *cent ) {
 	refEntity_t			ent;
-	entityState_t		*s1;
+	const entityState_t	*s1;
 
 	s1 = &cent->currentState;
 
