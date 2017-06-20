@@ -460,7 +460,7 @@ Also called by playerstate transition
 ================
 */
 void CG_PainEvent( centity_t *cent, int health ) {
-	char	*snd;
+	const char *snd;
 
 	// don't do more than two pain sounds a second
 	if ( cg.time - cent->pe.painTime < 500 ) {
@@ -511,6 +511,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	const char		*s;
 	int				clientNum;
 	clientInfo_t	*ci;
+	vec3_t			vec;
+	float			fovOffset;
 
 	es = &cent->currentState;
 	event = es->event & ~EV_EVENT_BITS;
@@ -968,8 +970,23 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_RAILTRAIL:
 		DEBUGNAME("EV_RAILTRAIL");
 		cent->currentState.weapon = WP_RAILGUN;
+
+		if ( cent->currentState.clientNum == cg.snap->ps.clientNum && !cg_thirdPerson.integer ) 
+		{
+			VectorCopy( cg.refdef.vieworg, vec );
+			fovOffset = -0.2f * ( cgs.fov - 90.0f );
+
+			// 13.5, -5.5, -6.0
+			VectorMA( vec, cg_gun_x.value + 13.5f, cg.refdef.viewaxis[0], vec );
+			VectorMA( vec, cg_gun_y.value - 5.5f, cg.refdef.viewaxis[1], vec );
+			VectorMA( vec, cg_gun_z.value + fovOffset - 6.0f, cg.refdef.viewaxis[2], vec );
+		}
+		else
+			VectorCopy( es->origin2, vec );
+
 		// if the end was on a nomark surface, don't make an explosion
-		CG_RailTrail( ci, es->origin2, es->pos.trBase );
+		CG_RailTrail( ci, vec, es->pos.trBase );
+
 		if ( es->eventParm != 255 ) {
 			ByteToDir( es->eventParm, dir );
 			CG_MissileHitWall( es->weapon, es->clientNum, position, dir, IMPACTSOUND_DEFAULT );
