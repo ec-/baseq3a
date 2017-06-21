@@ -296,6 +296,7 @@ void BodySink( gentity_t *ent ) {
 	ent->s.pos.trBase[2] -= 1;
 }
 
+
 /*
 =============
 CopyToBodyQue
