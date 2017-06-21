@@ -167,6 +167,8 @@ static void PM_Friction( void ) {
 		vel[0] = 0;
 		vel[1] = 0;		// allow sinking underwater
 		// FIXME: still have z friction underwater?
+		if ( pm->ps->pm_type == PM_SPECTATOR || pm->ps->powerups[ PW_FLIGHT ] )
+			vel[2] = 0.0f; // no slow-sinking/raising movements
 		return;
 	}
 
@@ -1995,6 +1997,11 @@ void PmoveSingle (pmove_t *pmove) {
 
 	// entering / leaving water splashes
 	PM_WaterEvents();
+
+	if ( pm->ps->powerups[PW_FLIGHT] && !pml.groundPlane ) {
+		// don't snap velocity in free-fly or we will be not able to stop via flight friction
+		return;
+	}
 
 	// snap some parts of playerstate to save network bandwidth
 	trap_SnapVector( pm->ps->velocity );
