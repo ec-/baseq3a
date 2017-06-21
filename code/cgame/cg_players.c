@@ -384,12 +384,16 @@ static qboolean	CG_FindClientHeadFile( char *filename, int length, clientInfo_t 
 
 	if ( cgs.gametype >= GT_TEAM ) {
 		switch ( ci->team ) {
+			case TEAM_RED: {
+				team = "red";
+				break;
+			}
 			case TEAM_BLUE: {
 				team = "blue";
 				break;
 			}
 			default: {
-				team = "red";
+				team = "default";
 				break;
 			}
 		}
@@ -732,7 +736,7 @@ static void CG_LoadClientInfo( clientInfo_t *ci ) {
 CG_CopyClientInfoModel
 ======================
 */
-static void CG_CopyClientInfoModel( clientInfo_t *from, clientInfo_t *to ) {
+static void CG_CopyClientInfoModel( const clientInfo_t *from, clientInfo_t *to ) {
 	VectorCopy( from->headOffset, to->headOffset );
 	to->footsteps = from->footsteps;
 	to->gender = from->gender;
@@ -1612,7 +1616,7 @@ static void CG_DustTrail( centity_t *cent ) {
 CG_TrailItem
 ===============
 */
-static void CG_TrailItem( centity_t *cent, qhandle_t hModel ) {
+static void CG_TrailItem( const centity_t *cent, qhandle_t hModel ) {
 	refEntity_t		ent;
 	vec3_t			angles;
 	vec3_t			axis[3];

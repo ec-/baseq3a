@@ -203,11 +203,17 @@ static void CG_VoiceTellTarget_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "vtell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 
+
+/*
+==================
+CG_VoiceTellAttacker_f
+==================
+*/
 static void CG_VoiceTellAttacker_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -218,8 +224,8 @@ static void CG_VoiceTellAttacker_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "vtell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 

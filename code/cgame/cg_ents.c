@@ -14,7 +14,7 @@ tag location
 ======================
 */
 void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName ) {
+							qhandle_t parentModel, const char *tagName ) {
 	int				i;
 	orientation_t	lerped;
 	
@@ -43,7 +43,7 @@ tag location
 ======================
 */
 void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName ) {
+							qhandle_t parentModel, const char *tagName ) {
 	int				i;
 	orientation_t	lerped;
 	vec3_t			tempAxis[3];
@@ -101,7 +101,7 @@ CG_EntityEffects
 Add continuous entity effects, like local entity emission and lighting
 ==================
 */
-static void CG_EntityEffects( centity_t *cent ) {
+static void CG_EntityEffects( const centity_t *cent ) {
 
 	// update sound origins
 	CG_SetEntitySoundPosition( cent );
@@ -140,9 +140,9 @@ static void CG_EntityEffects( centity_t *cent ) {
 CG_General
 ==================
 */
-static void CG_General( centity_t *cent ) {
+static void CG_General( const centity_t *cent ) {
 	refEntity_t			ent;
-	entityState_t		*s1;
+	const entityState_t	*s1;
 
 	s1 = &cent->currentState;
 
@@ -397,7 +397,8 @@ CG_Missile
 static void CG_Missile( centity_t *cent ) {
 	refEntity_t			ent;
 	entityState_t		*s1;
-	const weaponInfo_t		*weapon;
+	const weaponInfo_t	*weapon;
+	const clientInfo_t	*ci;
 //	int	col;
 
 	s1 = &cent->currentState;
@@ -494,7 +495,15 @@ static void CG_Missile( centity_t *cent ) {
 	}
 
 	// add to refresh list, possibly with quad glow
-	CG_AddRefEntityWithPowerups( &ent, s1, TEAM_FREE );
+
+	s1->powerups &= ~( (1 << PW_INVIS) | (1 << PW_REGEN) );
+	ci = &cgs.clientinfo[ s1->clientNum & MAX_CLIENTS ];
+	if ( ci->infoValid ) {
+		CG_AddRefEntityWithPowerups( &ent, s1, ci->team );
+	} else {
+		CG_AddRefEntityWithPowerups( &ent, s1, TEAM_FREE );
+	}
+
 }
 
 /*
@@ -551,9 +560,9 @@ static void CG_Grapple( centity_t *cent ) {
 CG_Mover
 ===============
 */
-static void CG_Mover( centity_t *cent ) {
+static void CG_Mover( const centity_t *cent ) {
 	refEntity_t			ent;
-	entityState_t		*s1;
+	const entityState_t	*s1;
 
 	s1 = &cent->currentState;
 
@@ -619,9 +628,9 @@ void CG_Beam( const centity_t *cent ) {
 CG_Portal
 ===============
 */
-static void CG_Portal( centity_t *cent ) {
+static void CG_Portal( const centity_t *cent ) {
 	refEntity_t			ent;
-	entityState_t		*s1;
+	const entityState_t *s1;
 
 	s1 = &cent->currentState;
 
@@ -769,7 +778,7 @@ static void CG_CalcEntityLerpPositions( centity_t *cent ) {
 CG_TeamBase
 ===============
 */
-static void CG_TeamBase( centity_t *cent ) {
+static void CG_TeamBase( const centity_t *cent ) {
 	refEntity_t model;
 #ifdef MISSIONPACK
 	vec3_t angles;
