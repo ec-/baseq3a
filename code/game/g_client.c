@@ -857,7 +857,7 @@ to the server machine, but qfalse on map changes and tournement
 restarts.
 ============
 */
-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
+const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	char		*value;
 //	char		*areabits;
 	gclient_t	*client;
@@ -865,6 +865,12 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	gentity_t	*ent;
 
 	ent = &g_entities[ clientNum ];
+	ent->client = level.clients + clientNum;
+
+	// cleanup previous data manually
+	// because client may silently (re)connect without ClientDisconnect in case of crash for example
+	if ( level.clients[ clientNum ].pers.connected != CON_DISCONNECTED )
+		ClientDisconnect( clientNum );
 
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
@@ -890,7 +896,6 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 
 	// they can connect
-	ent->client = level.clients + clientNum;
 	client = ent->client;
 
 //	areabits = client->areabits;
@@ -937,6 +942,7 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 	return NULL;
 }
+
 
 /*
 ===========
@@ -997,6 +1003,7 @@ void ClientBegin( int clientNum ) {
 	// count current clients and rank for scoreboard
 	CalculateRanks();
 }
+
 
 /*
 ===========
@@ -1289,7 +1296,7 @@ void ClientDisconnect( int clientNum ) {
 	ent->client->ps.persistant[PERS_TEAM] = TEAM_FREE;
 	ent->client->sess.sessionTeam = TEAM_FREE;
 
-	trap_SetConfigstring( CS_PLAYERS + clientNum, "");
+	trap_SetConfigstring( CS_PLAYERS + clientNum, "" );
 
 	CalculateRanks();
 
@@ -1297,5 +1304,3 @@ void ClientDisconnect( int clientNum ) {
 		BotAIShutdownClient( clientNum, qfalse );
 	}
 }
-
-
