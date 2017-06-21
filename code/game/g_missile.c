@@ -420,6 +420,7 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 	trap_LinkEntity( ent );
 }
 
+
 /*
 ================
 G_RunMissile
@@ -524,6 +525,7 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
+	SnapVector( bolt->s.pos.trBase );			// save net bandwidth
 	VectorScale( dir, 2000, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
@@ -607,6 +609,7 @@ gentity_t *fire_bfg (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
+	SnapVector( bolt->s.pos.trBase );			// save net bandwidth
 	VectorScale( dir, 2000, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -647,6 +650,7 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
+	SnapVector( bolt->s.pos.trBase );			// save net bandwidth
 	VectorScale( dir, 900, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -681,6 +685,7 @@ gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir) {
 	hook->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	hook->s.otherEntityNum = self->s.number; // use to match beam in client
 	VectorCopy( start, hook->s.pos.trBase );
+	SnapVector( hook->s.pos.trBase );			// save net bandwidth
 	VectorScale( dir, 800, hook->s.pos.trDelta );
 	SnapVector( hook->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, hook->r.currentOrigin);
