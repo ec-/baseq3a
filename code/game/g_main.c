@@ -552,8 +552,6 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	if( g_gametype.integer == GT_SINGLE_PLAYER || trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {
 		G_ModelIndex( SP_PODIUM_MODEL );
-		G_SoundIndex( "sound/player/gurp1.wav" );
-		G_SoundIndex( "sound/player/gurp2.wav" );
 	}
 
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
@@ -684,6 +682,7 @@ void AddTournamentPlayer( void ) {
 	SetTeam( &g_entities[ nextInLine - level.clients ], "f" );
 }
 
+
 /*
 =======================
 RemoveTournamentLoser
@@ -707,6 +706,7 @@ void RemoveTournamentLoser( void ) {
 	// make them a spectator
 	SetTeam( &g_entities[ clientNum ], "s" );
 }
+
 
 /*
 =======================
@@ -977,7 +977,6 @@ void MoveClientToIntermission( gentity_t *ent ) {
 		StopFollowing( ent, qtrue );
 	}
 
-
 	// move to the spot
 	VectorCopy( level.intermission_origin, ent->s.origin );
 	VectorCopy( level.intermission_origin, client->ps.origin );
@@ -1058,6 +1057,20 @@ void BeginIntermission( void ) {
 	level.intermissiontime = level.time;
 	FindIntermissionPoint();
 
+	// move all clients to the intermission point
+	for ( i = 0 ; i< level.maxclients ; i++ ) {
+		client = g_entities + i;
+		if ( !client->inuse )
+			continue;
+
+		// respawn if dead
+		if ( client->health <= 0 ) {
+			respawn( client );
+		}
+
+		MoveClientToIntermission( client );
+	}
+
 #ifdef MISSIONPACK
 	if (g_singlePlayer.integer) {
 		trap_Cvar_Set("ui_singlePlayerActive", "0");
@@ -1071,21 +1084,8 @@ void BeginIntermission( void ) {
 	}
 #endif
 
-	// move all clients to the intermission point
-	for (i=0 ; i< level.maxclients ; i++) {
-		client = g_entities + i;
-		if (!client->inuse)
-			continue;
-		// respawn if dead
-		if (client->health <= 0) {
-			respawn(client);
-		}
-		MoveClientToIntermission( client );
-	}
-
 	// send the current scoring to all clients
 	SendScoreboardMessageToAllClients();
-
 }
 
 
@@ -1659,6 +1659,7 @@ void PrintTeam(int team, char *message) {
 	}
 }
 
+
 /*
 ==================
 SetLeader
@@ -1687,6 +1688,7 @@ void SetLeader(int team, int client) {
 	ClientUserinfoChanged( client );
 	PrintTeam(team, va("print \"%s is the new team leader\n\"", level.clients[client].pers.netname) );
 }
+
 
 /*
 ==================

@@ -489,7 +489,7 @@ void BroadcastTeamChange( gclient_t *client, int oldTeam )
 SetTeam
 =================
 */
-void SetTeam( gentity_t *ent, char *s ) {
+qboolean SetTeam( gentity_t *ent, const char *s ) {
 	team_t				team, oldTeam;
 	gclient_t			*client;
 	int					clientNum;
@@ -503,7 +503,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 	client = ent->client;
 
 	clientNum = client - level.clients;
-	specClient = 0;
+	specClient = clientNum;
 	specState = SPECTATOR_NOT;
 	if ( !Q_stricmp( s, "scoreboard" ) || !Q_stricmp( s, "score" )  ) {
 		team = TEAM_SPECTATOR;
@@ -541,12 +541,12 @@ void SetTeam( gentity_t *ent, char *s ) {
 			if ( team == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
 				trap_SendServerCommand( clientNum, 
 					"cp \"Red team has too many players.\n\"" );
-				return; // ignore the request
+				return qtrue; // ignore the request
 			}
 			if ( team == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
 				trap_SendServerCommand( clientNum, 
 					"cp \"Blue team has too many players.\n\"" );
-				return; // ignore the request
+				return qtrue; // ignore the request
 			}
 
 			// It's ok, the team we are switching to has less or same number of players
@@ -570,8 +570,24 @@ void SetTeam( gentity_t *ent, char *s ) {
 	// decide if we will allow the change
 	//
 	oldTeam = client->sess.sessionTeam;
-	if ( team == oldTeam && team != TEAM_SPECTATOR ) {
-		return;
+	if ( team == oldTeam ) {
+		if ( team != TEAM_SPECTATOR )
+			return qfalse;
+
+		// do soft release if possible
+		if ( ( client->ps.pm_flags & PMF_FOLLOW ) && client->sess.spectatorState == SPECTATOR_FOLLOW ) {
+			StopFollowing( ent, qtrue );
+			return qfalse;
+		}
+
+		// second spectator team request will move player to intermission point
+		if ( client->ps.persistant[ PERS_TEAM ] == TEAM_SPECTATOR && !( client->ps.pm_flags & PMF_FOLLOW )
+			&& client->sess.spectatorState == SPECTATOR_FREE ) {
+			VectorCopy( level.intermission_origin, ent->s.origin );
+			VectorCopy( level.intermission_origin, client->ps.origin );
+			SetClientViewAngle( ent, level.intermission_angle );
+			return qfalse;
+		}
 	}
 
 	//
@@ -579,8 +595,8 @@ void SetTeam( gentity_t *ent, char *s ) {
 	//
 
 	// if the player was dead leave the body
-	if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
-		CopyToBodyQue(ent);
+	if ( ent->health <= 0 ) {
+		CopyToBodyQue( ent );
 	}
 
 	// he starts at 'base'
@@ -615,6 +631,7 @@ void SetTeam( gentity_t *ent, char *s ) {
 			SetLeader( team, clientNum );
 		}
 	}
+
 	// make sure there is a team leader on the team the player came from
 	if ( oldTeam == TEAM_RED || oldTeam == TEAM_BLUE ) {
 		CheckTeamLeader( oldTeam );
@@ -626,6 +643,8 @@ void SetTeam( gentity_t *ent, char *s ) {
 	ClientUserinfoChanged( clientNum );
 
 	ClientBegin( clientNum );
+
+	return qtrue;
 }
 
 
@@ -647,10 +666,10 @@ void StopFollowing( gentity_t *ent, qboolean release ) {
 
 	client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
 	client->sess.sessionTeam = TEAM_SPECTATOR;	
-		if ( release ) {
-			client->ps.stats[STAT_HEALTH] = ent->health = 1;
-			memset( client->ps.powerups, 0, sizeof ( client->ps.powerups ) );
-		}
+	if ( release ) {
+		client->ps.stats[STAT_HEALTH] = ent->health = 1;
+		memset( client->ps.powerups, 0, sizeof ( client->ps.powerups ) );
+	}
 	SetClientViewAngle( ent, client->ps.viewangles );
 
 	client->sess.spectatorState = SPECTATOR_FREE;
@@ -660,18 +679,17 @@ void StopFollowing( gentity_t *ent, qboolean release ) {
 	client->ps.clientNum = ent - g_entities;
 }
 
+
 /*
 =================
 Cmd_Team_f
 =================
 */
 void Cmd_Team_f( gentity_t *ent ) {
-	int			oldTeam;
 	char		s[MAX_TOKEN_CHARS];
 
 	if ( trap_Argc() != 2 ) {
-		oldTeam = ent->client->sess.sessionTeam;
-		switch ( oldTeam ) {
+		switch ( ent->client->sess.sessionTeam ) {
 		case TEAM_BLUE:
 			trap_SendServerCommand( ent-g_entities, "print \"Blue team\n\"" );
 			break;
@@ -701,9 +719,9 @@ void Cmd_Team_f( gentity_t *ent ) {
 
 	trap_Argv( 1, s, sizeof( s ) );
 
-	SetTeam( ent, s );
-
-	ent->client->switchTeamTime = level.time + 5000;
+	if ( SetTeam( ent, s ) ) {
+		ent->client->switchTeamTime = level.time + 5000;
+	}
 }
 
 
@@ -770,7 +788,9 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 		&& ent->client->sess.sessionTeam == TEAM_FREE ) {
 		ent->client->sess.losses++;
 	}
+
 	client = ent->client;
+
 	// first set them to spectator
 	if ( client->sess.spectatorState == SPECTATOR_NOT ) {
 		SetTeam( ent, "spectator" );
