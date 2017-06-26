@@ -389,7 +389,6 @@ typedef struct {
 										// frag can be watched.  Disable future
 										// kills during this delay
 	int			intermissiontime;		// time the intermission was started
-	char		*changemap;
 	qboolean	readyToExit;			// at least one client wants to exit
 	int			exitTime;
 	
@@ -410,6 +409,8 @@ typedef struct {
 	int			numSpawnSpots;
 	int			numSpawnSpotsTeam;
 	int			numSpawnSpotsFFA;
+
+	qboolean	denyMapRestart;
 
 } level_locals_t;
 
@@ -693,8 +694,14 @@ int BotAIShutdownClient( int client, qboolean restart );
 int BotAIStartFrame( int time );
 void BotTestAAS(vec3_t origin);
 
-#include "g_team.h" // teamplay specific stuff
 
+// g_rotation.c
+#define SV_ROTATION "sessionMapIndex"
+qboolean ParseMapRotation( void );
+void G_LoadMap( const char *map );
+
+
+#include "g_team.h" // teamplay specific stuff
 
 extern	level_locals_t	level;
 extern	gentity_t		g_entities[MAX_GENTITIES];
@@ -702,6 +709,7 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
 #define	FOFS(x) ((intptr_t)&(((gentity_t *)0)->x))
 
 extern	vmCvar_t	g_gametype;
+extern	vmCvar_t	g_mapname;
 extern	vmCvar_t	g_dedicated;
 extern	vmCvar_t	g_cheats;
 extern	vmCvar_t	g_maxclients;			// allow this many total, including spectators
@@ -746,7 +754,7 @@ extern	vmCvar_t	g_blueteam;
 extern	vmCvar_t	g_smoothClients;
 extern	vmCvar_t	pmove_fixed;
 extern	vmCvar_t	pmove_msec;
-extern	vmCvar_t	g_rankings;
+extern	vmCvar_t	g_rotation;
 extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
@@ -958,4 +966,3 @@ void	trap_BotResetWeaponState(int weaponstate);
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
 
 void	trap_SnapVector( float *v );
-

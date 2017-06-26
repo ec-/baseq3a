@@ -462,6 +462,8 @@ static void CG_MapRestart( void ) {
 	trap_Cvar_Set("cg_thirdPerson", "0");
 }
 
+#ifdef MISSIONPACK
+
 #define MAX_VOICEFILESIZE	16384
 #define MAX_VOICEFILES		8
 #define MAX_VOICECHATS		64
@@ -538,7 +540,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 		voiceChats[i].id[0] = 0;
 	}
 	token = COM_ParseExt(p, qtrue);
-	if (!token || token[0] == 0) {
+	if (token[0] == '\0') {
 		return qtrue;
 	}
 	if (!Q_stricmp(token, "female")) {
@@ -558,7 +560,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 	voiceChatList->numVoiceChats = 0;
 	while ( 1 ) {
 		token = COM_ParseExt(p, qtrue);
-		if (!token || token[0] == 0) {
+		if (token[0] == '\0') {
 			return qtrue;
 		}
 		Com_sprintf(voiceChats[voiceChatList->numVoiceChats].id, sizeof( voiceChats[voiceChatList->numVoiceChats].id ), "%s", token);
@@ -570,7 +572,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 		voiceChats[voiceChatList->numVoiceChats].numSounds = 0;
 		while(1) {
 			token = COM_ParseExt(p, qtrue);
-			if (!token || token[0] == 0) {
+			if (token[0] == '\0') {
 				return qtrue;
 			}
 			if (!Q_stricmp(token, "}"))
@@ -578,7 +580,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 			sound = trap_S_RegisterSound( token, compress );
 			voiceChats[voiceChatList->numVoiceChats].sounds[voiceChats[voiceChatList->numVoiceChats].numSounds] = sound;
 			token = COM_ParseExt(p, qtrue);
-			if (!token || token[0] == 0) {
+			if (token[0] == '\0') {
 				return qtrue;
 			}
 			Com_sprintf(voiceChats[voiceChatList->numVoiceChats].chats[
@@ -680,6 +682,7 @@ int CG_GetVoiceChat( voiceChatList_t *voiceChatList, const char *id, sfxHandle_t
 	}
 	return qfalse;
 }
+
 
 /*
 =================
@@ -792,7 +795,7 @@ CG_PlayVoiceChat
 =================
 */
 void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
-#ifdef MISSIONPACK
+
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
 		return;
@@ -817,8 +820,8 @@ void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
 		CG_Printf( "%s\n", vchat->message );
 	}
 	voiceChatBuffer[cg.voiceChatBufferOut].snd = 0;
-#endif
 }
+
 
 /*
 =====================
@@ -826,7 +829,6 @@ CG_PlayBufferedVoieChats
 =====================
 */
 void CG_PlayBufferedVoiceChats( void ) {
-#ifdef MISSIONPACK
 	if ( cg.voiceChatTime < cg.time ) {
 		if (cg.voiceChatBufferOut != cg.voiceChatBufferIn && voiceChatBuffer[cg.voiceChatBufferOut].snd) {
 			//
@@ -836,8 +838,8 @@ void CG_PlayBufferedVoiceChats( void ) {
 			cg.voiceChatTime = cg.time + 1000;
 		}
 	}
-#endif
 }
+
 
 /*
 =====================
@@ -845,7 +847,7 @@ CG_AddBufferedVoiceChat
 =====================
 */
 void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
-#ifdef MISSIONPACK
+
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
 		return;
@@ -857,8 +859,8 @@ void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
 		CG_PlayVoiceChat( &voiceChatBuffer[cg.voiceChatBufferOut] );
 		cg.voiceChatBufferOut++;
 	}
-#endif
 }
+
 
 /*
 =================
@@ -866,7 +868,7 @@ CG_VoiceChatLocal
 =================
 */
 void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, const char *cmd ) {
-#ifdef MISSIONPACK
+
 	char *chat;
 	voiceChatList_t *voiceChatList;
 	clientInfo_t *ci;
@@ -906,8 +908,8 @@ void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, 
 			CG_AddBufferedVoiceChat(&vchat);
 		}
 	}
-#endif
 }
+
 
 /*
 =================
@@ -915,7 +917,6 @@ CG_VoiceChat
 =================
 */
 void CG_VoiceChat( int mode ) {
-#ifdef MISSIONPACK
 	const char *cmd;
 	int clientNum, color;
 	qboolean voiceOnly;
@@ -934,8 +935,9 @@ void CG_VoiceChat( int mode ) {
 	}
 
 	CG_VoiceChatLocal( mode, voiceOnly, clientNum, color, cmd );
-#endif
 }
+#endif // MISSIONPACK
+
 
 /*
 =================
@@ -953,6 +955,7 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 	}
 	text[l] = '\0';
 }
+
 
 /*
 =================

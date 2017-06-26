@@ -26,6 +26,7 @@ vmCvar_t	g_capturelimit;
 vmCvar_t	g_friendlyFire;
 vmCvar_t	g_password;
 vmCvar_t	g_needpass;
+vmCvar_t	g_mapname;
 vmCvar_t	g_maxclients;
 vmCvar_t	g_maxGameClients;
 vmCvar_t	g_dedicated;
@@ -57,9 +58,9 @@ vmCvar_t	g_teamForceBalance;
 vmCvar_t	g_banIPs;
 vmCvar_t	g_filterBan;
 vmCvar_t	g_smoothClients;
+vmCvar_t	g_rotation;
 vmCvar_t	pmove_fixed;
 vmCvar_t	pmove_msec;
-vmCvar_t	g_rankings;
 vmCvar_t	g_listEntity;
 #ifdef MISSIONPACK
 vmCvar_t	g_obeliskHealth;
@@ -84,7 +85,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ NULL, "gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
 	{ NULL, "gamedate", __DATE__ , CVAR_ROM, 0, qfalse  },
 	{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
-	{ NULL, "sv_mapname", "", CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
+	{ &g_mapname, "sv_mapname", "", CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
 
 	// latched vars
 	{ &g_gametype, "g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH, 0, qfalse  },
@@ -158,17 +159,17 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &pmove_fixed, "pmove_fixed", "0", CVAR_SYSTEMINFO, 0, qfalse},
 	{ &pmove_msec, "pmove_msec", "8", CVAR_SYSTEMINFO, 0, qfalse},
 
-	{ &g_rankings, "g_rankings", "0", 0, 0, qfalse}
+	{ &g_rotation, "g_rotation", "", CVAR_ARCHIVE, 0, qfalse }
 
 };
 
 static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
 
 
-void G_InitGame( int levelTime, int randomSeed, int restart );
-void G_RunFrame( int levelTime );
+static void G_InitGame( int levelTime, int randomSeed, int restart );
+static void G_RunFrame( int levelTime );
 static void G_ShutdownGame( int restart );
-void CheckExitRules( void );
+static void CheckExitRules( void );
 
 
 /*
@@ -219,13 +220,15 @@ intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) {
 
 void QDECL G_Printf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[BIG_INFO_STRING];
+	int			len;
 
 	va_start (argptr, fmt);
-	ED_vsprintf (text, fmt, argptr);
+	len = ED_vsprintf( text, fmt, argptr );
 	va_end (argptr);
 
-	trap_Print( text );
+	if ( len <= 4095 ) // 1.32b/c max print buffer size
+		trap_Print( text );
 }
 
 
@@ -455,7 +458,7 @@ G_InitGame
 
 ============
 */
-void G_InitGame( int levelTime, int randomSeed, int restart ) {
+static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	int					i;
 
 	G_Printf ("------- Game Initialization -------\n");
@@ -473,7 +476,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	// set some level globals
 	memset( &level, 0, sizeof( level ) );
 	level.time = levelTime;
+
 	level.startTime = levelTime;
+
 	level.previousTime = levelTime;
 	level.msec = FRAMETIME;
 
@@ -562,6 +567,17 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_RemapTeamShaders();
 
+	// don't forget to reset times
+	trap_SetConfigstring( CS_INTERMISSION, "" );
+
+	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {
+		// launch rotation system on first map load
+		if ( trap_Cvar_VariableIntegerValue( SV_ROTATION ) == 0 ) {
+			trap_Cvar_Set( SV_ROTATION, "1" );
+			level.denyMapRestart = qtrue;
+			ParseMapRotation();
+		}
+	}
 }
 
 
@@ -1112,15 +1128,11 @@ void ExitLevel (void) {
 			RemoveTournamentLoser();
 			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 			level.restarted = qtrue;
-			level.changemap = NULL;
 			level.intermissiontime = 0;
 		}
 		return;	
 	}
 
-
-	trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
-	level.changemap = NULL;
 	level.intermissiontime = 0;
 
 	// reset all the scores so we don't enter the intermission again
@@ -1145,7 +1157,18 @@ void ExitLevel (void) {
 		}
 	}
 
+	if ( !ParseMapRotation() ) {
+		char val[ MAX_CVAR_VALUE_STRING ];
+
+		trap_Cvar_VariableStringBuffer( "nextmap", val, sizeof( val ) );
+
+		if ( !val[0] || !Q_stricmpn( val, "map_restart ", 12 ) )
+			G_LoadMap( NULL );
+		else
+			trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
+	} 
 }
+
 
 /*
 =================
@@ -1378,13 +1401,14 @@ and the time everyone is moved to the intermission spot, so you
 can see the last frag.
 =================
 */
-void CheckExitRules( void ) {
+static void CheckExitRules( void ) {
  	int			i;
 	gclient_t	*cl;
+
 	// if at the intermission, wait for all non-bots to
 	// signal ready, then go to next level
 	if ( level.intermissiontime ) {
-		CheckIntermissionExit ();
+		CheckIntermissionExit();
 		return;
 	}
 
@@ -1488,6 +1512,7 @@ Once a frame, check for changes in tournement player state
 =============
 */
 void CheckTournament( void ) {
+
 	// check because we run 3 game frames before calling Connect and/or ClientBegin
 	// for clients on a map_restart
 	if ( level.numPlayingClients == 0 ) {
@@ -1669,11 +1694,11 @@ void SetLeader(int team, int client) {
 	int i;
 
 	if ( level.clients[client].pers.connected == CON_DISCONNECTED ) {
-		PrintTeam(team, va("print \"%s is not connected\n\"", level.clients[client].pers.netname) );
+		PrintTeam( team, va("print \"%s "S_COLOR_STRIP"is not connected\n\"", level.clients[client].pers.netname) );
 		return;
 	}
 	if (level.clients[client].sess.sessionTeam != team) {
-		PrintTeam(team, va("print \"%s is not on the team anymore\n\"", level.clients[client].pers.netname) );
+		PrintTeam( team, va("print \"%s "S_COLOR_STRIP"is not on the team anymore\n\"", level.clients[client].pers.netname) );
 		return;
 	}
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
@@ -1730,7 +1755,7 @@ void CheckTeamLeader( int team ) {
 CheckTeamVote
 ==================
 */
-void CheckTeamVote( int team ) {
+static void CheckTeamVote( team_t team ) {
 	int cs_offset;
 
 	if ( team == TEAM_RED )
@@ -1779,9 +1804,9 @@ CheckCvars
 void CheckCvars( void ) {
 	static int lastMod = -1;
 
-	if ( g_password.modificationCount != lastMod ) {
+	if ( lastMod != g_password.modificationCount ) {
 		lastMod = g_password.modificationCount;
-		if ( *g_password.string && Q_stricmp( g_password.string, "none" ) ) {
+		if ( g_password.string[0] && Q_stricmp( g_password.string, "none" ) != 0 ) {
 			trap_Cvar_Set( "g_needpass", "1" );
 		} else {
 			trap_Cvar_Set( "g_needpass", "0" );
@@ -1808,10 +1833,11 @@ void G_RunThink (gentity_t *ent) {
 	}
 	
 	ent->nextthink = 0;
-	if (!ent->think) {
+	if ( !ent->think ) {
 		G_Error ( "NULL ent->think");
+	} else {
+		ent->think (ent);
 	}
-	ent->think (ent);
 }
 
 /*
@@ -1821,7 +1847,7 @@ G_RunFrame
 Advances the non-player objects in the world
 ================
 */
-void G_RunFrame( int levelTime ) {
+static void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
 	gclient_t	*client;

@@ -420,6 +420,30 @@ void	Svcmd_ForceTeam_f( void ) {
 	SetTeam( &g_entities[cl - level.clients], str );
 }
 
+
+void Svcmd_Rotate_f( void ) {
+	char	str[MAX_TOKEN_CHARS];
+
+	if ( trap_Argc() >= 2 ) {
+		trap_Argv( 1, str, sizeof( str ) );
+		if ( atoi( str ) > 0 ) {
+			trap_Cvar_Set( SV_ROTATION, str );
+		}
+	}
+
+	if ( !ParseMapRotation() ) {
+		char val[ MAX_CVAR_VALUE_STRING ];
+
+		trap_Cvar_VariableStringBuffer( "nextmap", val, sizeof( val ) );
+
+		if ( !val[0] || !Q_stricmpn( val, "map_restart ", 12 ) )
+			G_LoadMap( NULL );
+		else
+			trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
+	}
+}
+
+
 char	*ConcatArgs( int start );
 
 /*
@@ -475,6 +499,11 @@ qboolean	ConsoleCommand( void ) {
 
 	if (Q_stricmp (cmd, "listip") == 0) {
 		trap_SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
+		return qtrue;
+	}
+
+	if (Q_stricmp (cmd, "rotate") == 0) {
+		Svcmd_Rotate_f();
 		return qtrue;
 	}
 

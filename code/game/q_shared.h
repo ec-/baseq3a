@@ -558,7 +558,10 @@ char	*COM_ParseExt( char **data_p, qboolean allowLineBreak );
 int		COM_Compress( char *data_p );
 void	COM_ParseError( char *format, ... );
 void	COM_ParseWarning( char *format, ... );
-//int		COM_ParseInfos( char *buf, int max, char infos[][MAX_INFO_STRING] );
+
+void	SkipTillSeparators( char **data );
+void	Com_InitSeparators( void );
+char	*COM_ParseSep( char **data_p, qboolean allowLineBreaks );
 
 #define MAX_TOKENLENGTH		1024
 
