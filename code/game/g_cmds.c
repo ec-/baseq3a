@@ -1239,15 +1239,109 @@ static const char *gameNames[] = {
 	"Harvester"
 };
 
+static const char *voteCommands[] = {
+	"map_restart",
+	"map",
+	"rotate",
+	"kick",
+	"clientkick",
+	"g_gametype",
+	"g_doWarmup",
+	"timelimit",
+	"fraglimit",
+	"capturelimit"
+};
+
+
+/*
+==================
+ValidVoteCommand
+
+Input string can be modified by overwriting gametype number instead of text value, for example
+==================
+*/
+static qboolean ValidVoteCommand( int clientNum, char *command ) 
+{
+	char buf[ MAX_CVAR_VALUE_STRING ];
+	char *base;
+	char *s;
+	int	i;
+
+	if ( strchr( command, ';' ) || strchr( command, '\n' ) || strchr( command, '\r' ) )
+	{
+		trap_SendServerCommand( clientNum, "print \"Invalid vote command.\n\"" );
+		return qfalse;
+	}
+
+	base = command;
+	
+	s = buf; // extract command name
+	while ( *command != '\0' && *command != ' ' ) {
+		*s = *command; s++; command++;
+	}
+	*s = '\0';
+	// point cmd on first argument
+	while ( *command == ' ' || *command == '\t' )
+		command++;
+
+	for ( i = 0; i < ARRAY_LEN( voteCommands ); i++ ) {
+		if ( !Q_stricmp( buf, voteCommands[i] ) ) {
+			break;
+		}
+	}
+
+	if ( i == ARRAY_LEN( voteCommands ) ) {
+		trap_SendServerCommand( clientNum, "print \"Invalid vote command.\nVote commands are: \n"
+			" g_gametype <n|ffa|duel|tdm|ctf>\n"
+			" map_restart, map <mapname>, rotate [round]\n"
+			" kick <player>, clientkick <clientnum>, g_doWarmup,\n"
+			" timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
+		return qfalse;
+	}
+
+	if ( Q_stricmp( buf, "g_gametype" ) == 0 )
+	{
+		if ( !Q_stricmp( command, "ffa" ) ) i = GT_FFA;
+		else if ( !Q_stricmp( command, "duel" ) ) i = GT_TOURNAMENT;
+		else if ( !Q_stricmp( command, "tdm" ) ) i = GT_TEAM;
+		else if ( !Q_stricmp( command, "ctf" ) ) i = GT_CTF;
+		else 
+		{
+			i = atoi( command );
+			if( i == GT_SINGLE_PLAYER || i < GT_FFA || i >= GT_MAX_GAME_TYPE ) {
+				trap_SendServerCommand( clientNum, va( "print \"Invalid gametype %i.\n\"", i ) );
+				return qfalse;
+			}
+			return qfalse;
+		}
+
+		// handle string values
+		BG_sprintf( base, "g_gametype %i", i );
+
+		return qtrue;
+	}
+
+	if ( Q_stricmp( buf, "map" ) == 0 ) {
+		if ( !G_MapExist( command ) ) {
+			trap_SendServerCommand( clientNum, va( "print \"No such map on server: %s.\n\"", command ) );
+			return qfalse;
+		} 
+		return qtrue;
+	}
+
+	return qtrue;
+}
+
+
 /*
 ==================
 Cmd_CallVote_f
 ==================
 */
 void Cmd_CallVote_f( gentity_t *ent ) {
-	int		i;
-	char	arg1[MAX_STRING_TOKENS];
-	char	arg2[MAX_STRING_TOKENS];
+	int		i, n;
+	char	arg[MAX_STRING_TOKENS], *argn[4];
+	char	cmd[MAX_STRING_TOKENS], *s;
 
 	if ( !g_allowVote.integer ) {
 		trap_SendServerCommand( ent-g_entities, "print \"Voting not allowed here.\n\"" );
@@ -1260,7 +1354,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	}
 
 	// if there is still a vote to be executed
-	if ( level.voteExecuteTime ) {
+	if ( level.voteExecuteTime || level.restarted ) {
 		trap_SendServerCommand( ent-g_entities, "print \"Previous vote command is waiting execution^1.^7\n\"" );
 		return;
 	}
@@ -1274,75 +1368,39 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 		return;
 	}
 
-	// make sure it is a valid command to vote on
-	trap_Argv( 1, arg1, sizeof( arg1 ) );
-	trap_Argv( 2, arg2, sizeof( arg2 ) );
-
-	if( strchr( arg1, ';' ) || strchr( arg2, ';' ) || strchr( arg2, '\n' ) || strchr( arg2, '\r' ) ) {
-		trap_SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		return;
+	// build command buffer
+	arg[ 0 ] = '\0'; s = arg;
+	for ( i = 1; i < trap_Argc(); i++ ) {
+		if ( arg[ 0 ] )
+			s = Q_stradd( s, " " );
+		trap_Argv( i, cmd, sizeof( cmd ) );
+		s = Q_stradd( s, cmd );
 	}
 
-	if ( !Q_stricmp( arg1, "map_restart" ) ) {
-	} else if ( !Q_stricmp( arg1, "nextmap" ) ) {
-	} else if ( !Q_stricmp( arg1, "map" ) ) {
-	} else if ( !Q_stricmp( arg1, "g_gametype" ) ) {
-	} else if ( !Q_stricmp( arg1, "kick" ) ) {
-	} else if ( !Q_stricmp( arg1, "clientkick" ) ) {
-	} else if ( !Q_stricmp( arg1, "g_doWarmup" ) ) {
-	} else if ( !Q_stricmp( arg1, "timelimit" ) ) {
-	} else if ( !Q_stricmp( arg1, "fraglimit" ) ) {
-	} else if ( !Q_stricmp( arg1, "rotate" ) ) {
-	} else {
-		trap_SendServerCommand( ent-g_entities, "print \"Invalid vote string.\n\"" );
-		trap_SendServerCommand( ent-g_entities, "print \"Vote commands are: map_restart, nextmap, map <mapname>, g_gametype <n>, kick <player>, clientkick <clientnum>, g_doWarmup, timelimit <time>, fraglimit <frags>.\n\"" );
-		return;
-	}
+	// split by ';' seperators
+	n = Com_Split( arg, argn, ARRAY_LEN( argn ), ';' );
+	if ( !n || argn[0] == '\0' ) 
+		return; // empty callvote command?
 
-	// if there is still a vote to be executed
-	if ( level.voteExecuteTime ) {
-		level.voteExecuteTime = 0;
-		trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", level.voteString ) );
-	}
-
-	// special case for g_gametype, check for bad values
-	if ( !Q_stricmp( arg1, "g_gametype" ) ) {
-		i = atoi( arg2 );
-		if( i == GT_SINGLE_PLAYER || i < GT_FFA || i >= GT_MAX_GAME_TYPE) {
-			trap_SendServerCommand( ent-g_entities, "print \"Invalid gametype.\n\"" );
+	// validate all split commands
+	for ( i = 0; i < n; i++ ) {
+		// make sure it is a valid command to vote on
+		if ( !ValidVoteCommand( ent - g_entities, argn[i] ) )
 			return;
-		}
-
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %d", arg1, i );
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s %s", arg1, gameNames[i] );
-	} else if ( !Q_stricmp( arg1, "map" ) ) {
-		// special case for map changes, we want to reset the nextmap setting
-		// this allows a player to change maps, but not upset the map rotation
-		char	s[MAX_STRING_CHARS];
-
-		trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
-		if (*s) {
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s; set nextmap \"%s\"", arg1, arg2, s );
-		} else {
-			Com_sprintf( level.voteString, sizeof( level.voteString ), "%s %s", arg1, arg2 );
-		}
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
-	} else if ( !Q_stricmp( arg1, "nextmap" ) ) {
-		char	s[MAX_STRING_CHARS];
-
-		trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
-		if (!*s) {
-			trap_SendServerCommand( ent-g_entities, "print \"nextmap not set.\n\"" );
-			return;
-		}
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "vstr nextmap");
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
-	} else {
-		Com_sprintf( level.voteString, sizeof( level.voteString ), "%s \"%s\"", arg1, arg2 );
-		Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
 	}
 
-	trap_SendServerCommand( -1, va("print \"%s called a vote.\n\"", ent->client->pers.netname ) );
+	// rebuild command buffer
+	cmd[0] = '\0';
+	for ( s = cmd, i = 0; i < n; i++ ) {
+		if ( cmd[0] )
+			s = Q_stradd( s, ";" );
+		s = Q_stradd( s, argn[ i ] );
+	}
+
+	Com_sprintf( level.voteString, sizeof( level.voteString ), cmd );
+	Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
+
+	trap_SendServerCommand( -1, va("print \"%s called a vote(%s).\n\"", ent->client->pers.netname, cmd ) );
 
 	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;
@@ -1476,6 +1534,11 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 		trap_SendServerCommand( ent-g_entities, "print \"You have called the maximum number of team votes.\n\"" );
 		return;
 	}
+
+	if ( level.voteExecuteTime || level.restarted ) {
+		return;
+	}
+
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		trap_SendServerCommand( ent-g_entities, "print \"Not allowed to call a vote as spectator.\n\"" );
 		return;
@@ -1682,6 +1745,7 @@ void Cmd_Stats_f( gentity_t *ent ) {
 	trap_SendServerCommand( ent-g_entities, va("print \"%d%% level coverage\n\"", n * 100 / max));
 */
 }
+
 
 /*
 =================

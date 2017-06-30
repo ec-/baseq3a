@@ -562,6 +562,7 @@ void	COM_ParseWarning( char *format, ... );
 void	SkipTillSeparators( char **data );
 void	Com_InitSeparators( void );
 char	*COM_ParseSep( char **data_p, qboolean allowLineBreaks );
+int		Com_Split( char *in, char **out, int outsz, int delim );
 
 #define MAX_TOKENLENGTH		1024
 

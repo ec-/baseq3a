@@ -699,6 +699,7 @@ void BotTestAAS(vec3_t origin);
 #define SV_ROTATION "sessionMapIndex"
 qboolean ParseMapRotation( void );
 void G_LoadMap( const char *map );
+qboolean G_MapExist( const char *map );
 
 
 #include "g_team.h" // teamplay specific stuff

@@ -593,6 +593,52 @@ char *COM_ParseSep( char **data_p, qboolean allowLineBreaks )
 }
 
 
+/*
+============
+Com_Split
+============
+*/
+int Com_Split( char *in, char **out, int outsz, int delim ) 
+{
+	int c;
+	char **o = out, **end = out + outsz;
+	// skip leading spaces
+	if ( delim >= ' ' ) {
+		while( (c = *in) != '\0' && c <= ' ' ) 
+			in++; 
+	}
+	*out = in; out++;
+	while( out < end ) {
+		while( (c = *in) != '\0' && c != delim ) 
+			in++; 
+		*in = '\0';
+		if ( !c ) {
+			// don't count last null value
+			if ( out[-1][0] == '\0' ) 
+				out--;
+			break;
+		}
+		in++;
+		// skip leading spaces
+		if ( delim >= ' ' ) {
+			while( (c = *in) != '\0' && c <= ' ' ) 
+				in++; 
+		}
+		*out = in; out++;
+	}
+	// sanitize last value
+	while( (c = *in) != '\0' && c != delim ) 
+		in++; 
+	*in = '\0';
+	c = out - o;
+	// set remaining out pointers
+	while( out < end ) {
+		*out = in; out++;
+	}
+	return c;
+}
+
+
 void Parse1DMatrix (char **buf_p, int x, float *m) {
 	char	*token;
 	int		i;
