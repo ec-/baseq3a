@@ -1243,6 +1243,7 @@ static const char *voteCommands[] = {
 	"map_restart",
 	"map",
 	"rotate",
+	"nextmap",
 	"kick",
 	"clientkick",
 	"g_gametype",
@@ -1293,7 +1294,7 @@ static qboolean ValidVoteCommand( int clientNum, char *command )
 	if ( i == ARRAY_LEN( voteCommands ) ) {
 		trap_SendServerCommand( clientNum, "print \"Invalid vote command.\nVote commands are: \n"
 			" g_gametype <n|ffa|duel|tdm|ctf>\n"
-			" map_restart, map <mapname>, rotate [round]\n"
+			" map_restart, map <mapname>, rotate [round], nextmap\n"
 			" kick <player>, clientkick <clientnum>, g_doWarmup,\n"
 			" timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
 		return qfalse;
@@ -1327,6 +1328,10 @@ static qboolean ValidVoteCommand( int clientNum, char *command )
 			return qfalse;
 		} 
 		return qtrue;
+	}
+
+	if ( Q_stricmp( buf, "nextmap" ) == 0 ) {
+		strcpy( base, "rotate" );
 	}
 
 	return qtrue;
