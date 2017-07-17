@@ -92,7 +92,7 @@ static void UI_DemosFillList( void );
 
 /*
 =================
-Demos_DrawName
+Demos_DrawFilter
 =================
 */
 static void Demos_DrawFilter( void *self ) {

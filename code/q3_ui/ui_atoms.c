@@ -1228,10 +1228,10 @@ void UI_Refresh( int realtime )
 	UI_DrawCursor( -16, -16, 32, 32 );
 
 #ifndef NDEBUG
-	if (uis.debug)
+	if ( uis.debug )
 	{
 		// cursor coordinates
-		UI_DrawString( 0, 0, va("(%d,%d)",uis.cursorx,uis.cursory), UI_LEFT|UI_SMALLFONT, colorRed );
+		UI_DrawString( 0, 0, va( "(%1.1f,%1.1f)", uis.cursorx, uis.cursory ), UI_LEFT|UI_SMALLFONT, colorRed );
 	}
 #endif
 
