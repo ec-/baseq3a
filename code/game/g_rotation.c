@@ -64,7 +64,7 @@ qboolean ParseMapRotation( void )
 	int curIndex = 0;
 	int scopeLevel = 0;
 
-	if ( g_gametype.integer == GT_SINGLE_PLAYER )
+	if ( g_gametype.integer == GT_SINGLE_PLAYER || !g_rotation.string[0] )
 		return qfalse;
 
 	len = trap_FS_FOpenFile( g_rotation.string, &fh, FS_READ );
