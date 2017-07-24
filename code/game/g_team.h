@@ -51,7 +51,6 @@ int OtherTeam(int team);
 const char *TeamName(int team);
 const char *OtherTeamName(int team);
 const char *TeamColorString(int team);
-void AddTeamScore(vec3_t origin, int team, int score);
 
 void Team_DroppedFlagThink(gentity_t *ent);
 void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker);

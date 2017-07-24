@@ -434,12 +434,11 @@ void Cmd_TeamTask_f( gentity_t *ent ) {
 	trap_Argv( 1, arg, sizeof( arg ) );
 	task = atoi( arg );
 
-	trap_GetUserinfo(client, userinfo, sizeof(userinfo));
-	Info_SetValueForKey(userinfo, "teamtask", va("%d", task));
-	trap_SetUserinfo(client, userinfo);
-	ClientUserinfoChanged(client);
+	trap_GetUserinfo( client, userinfo, sizeof( userinfo ) );
+	Info_SetValueForKey( userinfo, "teamtask", va( "%d", task ) );
+	trap_SetUserinfo( client, userinfo );
+	ClientUserinfoChanged( client );
 }
-
 
 
 /*
@@ -459,6 +458,7 @@ void Cmd_Kill_f( gentity_t *ent ) {
 	player_die (ent, ent, ent, 100000, MOD_SUICIDE);
 }
 
+
 /*
 =================
 BroadcastTeamChange
@@ -466,19 +466,21 @@ BroadcastTeamChange
 Let everyone know about a team change
 =================
 */
-void BroadcastTeamChange( gclient_t *client, int oldTeam )
+void BroadcastTeamChange( gclient_t *client, team_t oldTeam )
 {
+	int clientNum = client - level.clients;
+
 	if ( client->sess.sessionTeam == TEAM_RED ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
 			client->pers.netname) );
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_FREE ) {
-		trap_SendServerCommand( -1, va("cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the battle.\n\"",
 		client->pers.netname));
 	}
 }
@@ -648,7 +650,7 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 	// make sure there is a team leader on the team the player came from
 	if ( oldTeam == TEAM_RED || oldTeam == TEAM_BLUE ) {
 		if ( checkTeamLeader ) {
-			CheckTeamLeader( oldTeam, qtrue );
+			CheckTeamLeader( oldTeam );
 		}
 	}
 

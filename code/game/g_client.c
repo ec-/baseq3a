@@ -713,7 +713,7 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	if ( client->pers.connected == CON_CONNECTED ) {
 		if ( strcmp( oldname, client->pers.netname ) ) {
-			trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " renamed to %s\n\"", oldname, client->pers.netname) );
+			G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " renamed to %s\n\"", oldname, client->pers.netname) );
 		}
 	}
 
@@ -736,10 +736,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	}
 #endif
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
-
-	// set model
-	Q_strncpyz( model, Info_ValueForKey (userinfo, "model"), sizeof( model ) );
-	Q_strncpyz( headModel, Info_ValueForKey (userinfo, "headmodel"), sizeof( headModel ) );
 
 #ifdef MISSIONPACK
 	if (g_gametype.integer >= GT_TEAM) {
@@ -770,6 +766,10 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 		client->pers.pmoveFixed = qtrue;
 	}
 	*/
+
+	// set model
+	Q_strncpyz( model, Info_ValueForKey( userinfo, "model" ), sizeof( model ) );
+	Q_strncpyz( headModel, Info_ValueForKey( userinfo, "headmodel" ), sizeof( headModel ) );
 
 	team = client->sess.sessionTeam;
 
@@ -923,16 +923,11 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 
 	// don't do the "xxx connected" messages if they were caried over from previous level
 	if ( firstTime ) {
-		trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
+		G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
 	}
 
-	if ( g_gametype.integer >= GT_TEAM && client->sess.sessionTeam != TEAM_SPECTATOR ) {
-		BroadcastTeamChange( client, -1 );
-	}
-
-	if ( level.clients[ clientNum ].sess.sessionTeam == TEAM_RED || level.clients[ clientNum ].sess.sessionTeam == TEAM_BLUE ) {
-		CheckTeamLeader( level.clients[ clientNum ].sess.sessionTeam, qfalse );
-	}
+	// mute all prints until completely in game
+	client->pers.inGame = qfalse;
 
 	// count current clients and rank for scoreboard
 	CalculateRanks();
@@ -996,6 +991,13 @@ void ClientBegin( int clientNum ) {
 	// locate ent at a spawn point
 	ClientSpawn( ent );
 
+	if ( !client->pers.inGame ) {
+		client->pers.inGame = qtrue;
+		BroadcastTeamChange( client, -1 );
+		if ( client->sess.sessionTeam == TEAM_RED || client->sess.sessionTeam == TEAM_BLUE )
+			CheckTeamLeader( client->sess.sessionTeam );
+	}
+
 	if ( client->sess.sessionTeam != TEAM_SPECTATOR ) {
 		// send event
 		tent = G_TempEntity( client->ps.origin, EV_PLAYER_TELEPORT_IN );
@@ -1004,7 +1006,7 @@ void ClientBegin( int clientNum ) {
 		client->sess.spectatorTime = 0;
 
 		if ( g_gametype.integer != GT_TOURNAMENT ) {
-			trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname) );
+			G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname) );
 		}
 	}
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );

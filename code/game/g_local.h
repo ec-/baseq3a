@@ -237,6 +237,8 @@ typedef struct {
 	qboolean	teamInfo;			// send team overlay updates?
 	int			voted;
 	int			teamVoted;
+
+	qboolean	inGame;
 } clientPersistant_t;
 
 
@@ -431,7 +433,7 @@ char *G_NewString( const char *string );
 //
 void Cmd_Score_f (gentity_t *ent);
 void StopFollowing( gentity_t *ent, qboolean release );
-void BroadcastTeamChange( gclient_t *client, int oldTeam );
+void BroadcastTeamChange( gclient_t *client, team_t oldTeam );
 qboolean SetTeam( gentity_t *ent, const char *s );
 void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 void G_RevertVote( gclient_t *client );
@@ -609,12 +611,13 @@ void DeathmatchScoreboardMessage( gentity_t *ent );
 void MoveClientToIntermission( gentity_t *ent );
 void FindIntermissionPoint( void );
 void SetLeader( team_t team, int client );
-void CheckTeamLeader( team_t team, qboolean setLeader );
+void CheckTeamLeader( team_t team );
 void G_RunThink (gentity_t *ent);
 void QDECL G_LogPrintf( const char *fmt, ... );
 void SendScoreboardMessageToAllClients( void );
 void QDECL G_Printf( const char *fmt, ... );
 void QDECL G_Error( const char *fmt, ... );
+void G_BroadcastServerCommand( int ignoreClient, const char *command );
 
 //
 // g_client.c

@@ -99,6 +99,7 @@ void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
 	trap_SendServerCommand ( ( (ent == NULL) ? -1 : ent-g_entities ), va("print \"%s\"", msg ));
 }
 
+
 /*
 ==============
 AddTeamScore
@@ -107,7 +108,7 @@ AddTeamScore
  for gametype GT_TEAM the level.teamScores is updated in AddScore in g_combat.c
 ==============
 */
-void AddTeamScore(vec3_t origin, int team, int score) {
+static void AddTeamScore( vec3_t origin, team_t team, int score ) {
 	gentity_t	*te;
 
 	te = G_TempEntity(origin, EV_GLOBAL_TEAM_SOUND );

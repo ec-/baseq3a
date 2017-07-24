@@ -234,13 +234,25 @@ void QDECL G_Printf( const char *fmt, ... ) {
 }
 
 
+void G_BroadcastServerCommand( int ignoreClient, const char *command ) {
+	int i;
+	for ( i = 0; i < level.maxclients; i++ ) {
+		if ( i == ignoreClient )
+			continue;
+		if ( level.clients[ i ].pers.connected == CON_CONNECTED ) {
+			trap_SendServerCommand( i, command );
+		}
+	}
+}
+
+
 void QDECL G_Error( const char *fmt, ... ) {
 	va_list		argptr;
 	char		text[1024];
 
-	va_start (argptr, fmt);
-	ED_vsprintf (text, fmt, argptr);
-	va_end (argptr);
+	va_start( argptr, fmt );
+	ED_vsprintf( text, fmt, argptr );
+	va_end( argptr );
 
 	trap_Error( text );
 }
@@ -370,7 +382,7 @@ void G_UpdateCvars( void ) {
 				cv->modificationCount = cv->vmCvar->modificationCount;
 
 				if ( cv->trackChange ) {
-					trap_SendServerCommand( -1, va("print \"Server: %s changed to %s\n\"", 
+					G_BroadcastServerCommand( -1, va("print \"Server: %s changed to %s\n\"", 
 						cv->cvarName, cv->vmCvar->string ) );
 				}
 
@@ -1441,7 +1453,7 @@ static void CheckExitRules( void ) {
 
 	if ( g_timelimit.integer && !level.warmupTime ) {
 		if ( level.time - level.startTime >= g_timelimit.integer*60000 ) {
-			trap_SendServerCommand( -1, "print \"Timelimit hit.\n\"");
+			G_BroadcastServerCommand( -1, "print \"Timelimit hit.\n\"");
 			LogExit( "Timelimit hit." );
 			return;
 		}
@@ -1453,13 +1465,13 @@ static void CheckExitRules( void ) {
 
 	if ( g_gametype.integer < GT_CTF && g_fraglimit.integer ) {
 		if ( level.teamScores[TEAM_RED] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Red hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );
 			return;
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= g_fraglimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the fraglimit.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Blue hit the fraglimit.\n\"" );
 			LogExit( "Fraglimit hit." );
 			return;
 		}
@@ -1475,7 +1487,7 @@ static void CheckExitRules( void ) {
 
 			if ( cl->ps.persistant[PERS_SCORE] >= g_fraglimit.integer ) {
 				LogExit( "Fraglimit hit." );
-				trap_SendServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"",
+				G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " hit the fraglimit.\n\"",
 					cl->pers.netname ) );
 				return;
 			}
@@ -1485,13 +1497,13 @@ static void CheckExitRules( void ) {
 	if ( g_gametype.integer >= GT_CTF && g_capturelimit.integer ) {
 
 		if ( level.teamScores[TEAM_RED] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Red hit the capturelimit.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Red hit the capturelimit.\n\"" );
 			LogExit( "Capturelimit hit." );
 			return;
 		}
 
 		if ( level.teamScores[TEAM_BLUE] >= g_capturelimit.integer ) {
-			trap_SendServerCommand( -1, "print \"Blue hit the capturelimit.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Blue hit the capturelimit.\n\"" );
 			LogExit( "Capturelimit hit." );
 			return;
 		}
@@ -1653,16 +1665,16 @@ void CheckVote( void ) {
 	}
 
 	if ( level.time - level.voteTime >= VOTE_TIME ) {
-		trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+		G_BroadcastServerCommand( -1, "print \"Vote failed.\n\"" );
 	} else {
 		// ATVI Q3 1.32 Patch #9, WNF
 		if ( level.voteYes > level.numVotingClients/2 ) {
 			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Vote passed.\n\"" );
 			level.voteExecuteTime = level.time + 3000;
 		} else if ( level.voteNo >= level.numVotingClients/2 ) {
 			// same behavior as a timeout
-			trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Vote failed.\n\"" );
 		} else {
 			// still waiting for a majority
 			return;
@@ -1679,11 +1691,13 @@ void CheckVote( void ) {
 PrintTeam
 ==================
 */
-void PrintTeam(int team, char *message) {
+static void PrintTeam( team_t team, const char *message ) {
 	int i;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
+		if ( level.clients[i].sess.sessionTeam != team )
+			continue;
+		if ( level.clients[i].pers.connected != CON_CONNECTED )
 			continue;
 		trap_SendServerCommand( i, message );
 	}
@@ -1711,12 +1725,12 @@ void SetLeader( team_t team, int client ) {
 			continue;
 		if (level.clients[i].sess.teamLeader) {
 			level.clients[i].sess.teamLeader = qfalse;
-			ClientUserinfoChanged(i);
+			ClientUserinfoChanged( i );
 		}
 	}
 	level.clients[client].sess.teamLeader = qtrue;
 	ClientUserinfoChanged( client );
-	PrintTeam(team, va("print \"%s is the new team leader\n\"", level.clients[client].pers.netname) );
+	PrintTeam( team, va("print \"%s is the new team leader\n\"", level.clients[client].pers.netname) );
 }
 
 
@@ -1725,7 +1739,7 @@ void SetLeader( team_t team, int client ) {
 CheckTeamLeader
 ==================
 */
-void CheckTeamLeader( team_t team, qboolean setLeader ) {
+void CheckTeamLeader( team_t team ) {
 	int i;
 	int	max_score, max_id;
 	int	max_bot_score, max_bot_id;
@@ -1764,18 +1778,12 @@ void CheckTeamLeader( team_t team, qboolean setLeader ) {
 	}
 
 	if ( max_id != -1 ) {
-		if ( setLeader )
-			SetLeader( team, max_id ); 
-		else
-			level.clients[max_id].sess.teamLeader = qtrue;
+		SetLeader( team, max_id ); 
 		return;
 	}
 
 	if ( max_bot_id != -1 ) {
-		if ( setLeader )
-			SetLeader( team, max_bot_id );
-		else
-			level.clients[max_bot_id].sess.teamLeader = qtrue;
+		SetLeader( team, max_bot_id );
 		return;
 	}
 }
@@ -1800,11 +1808,11 @@ static void CheckTeamVote( team_t team ) {
 		return;
 	}
 	if ( level.time - level.teamVoteTime[cs_offset] >= VOTE_TIME ) {
-		trap_SendServerCommand( -1, "print \"Team vote failed.\n\"" );
+		G_BroadcastServerCommand( -1, "print \"Team vote failed.\n\"" );
 	} else {
 		if ( level.teamVoteYes[cs_offset] > level.numteamVotingClients[cs_offset]/2 ) {
 			// execute the command, then remove the vote
-			trap_SendServerCommand( -1, "print \"Team vote passed.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Team vote passed.\n\"" );
 			//
 			if ( !Q_strncmp( "leader", level.teamVoteString[cs_offset], 6) ) {
 				//set the team leader
@@ -1815,7 +1823,7 @@ static void CheckTeamVote( team_t team ) {
 			}
 		} else if ( level.teamVoteNo[cs_offset] >= level.numteamVotingClients[cs_offset]/2 ) {
 			// same behavior as a timeout
-			trap_SendServerCommand( -1, "print \"Team vote failed.\n\"" );
+			G_BroadcastServerCommand( -1, "print \"Team vote failed.\n\"" );
 		} else {
 			// still waiting for a majority
 			return;
