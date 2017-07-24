@@ -910,7 +910,7 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 			return "BotConnectfailed";
 		}
 		ent->r.svFlags |= SVF_BOT;
-		client->sess.spectatorClient = -1;
+		client->sess.spectatorClient = clientNum;
 	}
 	ent->inuse = qtrue;
 

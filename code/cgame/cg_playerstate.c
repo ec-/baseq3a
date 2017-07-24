@@ -290,7 +290,10 @@ CG_CheckLocalSounds
 ==================
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
-	int			highScore, health, armor, reward;
+#ifdef MISSIONPACK
+	int health, armor;
+#endif
+	int	highScore, reward;
 	sfxHandle_t sfx;
 
 	// don't play the sounds if the player just changed teams
@@ -323,7 +326,6 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			CG_PainEvent( &cg.predictedPlayerEntity, ps->stats[STAT_HEALTH] );
 		}
 	}
-
 
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {

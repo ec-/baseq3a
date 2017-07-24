@@ -615,24 +615,24 @@ static void G_ShutdownGame( int restart )
 #ifndef GAME_HARD_LINKED
 // this is only here so the functions in q_shared.c and bg_*.c can link
 
-void QDECL Com_Error ( int level, const char *error, ... ) {
+void QDECL Com_Error( int level, const char *fmt, ... ) {
 	va_list		argptr;
 	char		text[1024];
 
-	va_start (argptr, error);
-	ED_vsprintf (text, error, argptr);
-	va_end (argptr);
+	va_start( argptr, fmt );
+	ED_vsprintf( text, fmt, argptr );
+	va_end( argptr );
 
 	trap_Error( text );
 }
 
-void QDECL Com_Printf( const char *msg, ... ) {
+void QDECL Com_Printf( const char *fmt, ... ) {
 	va_list		argptr;
 	char		text[1024];
 
-	va_start (argptr, msg);
-	ED_vsprintf (text, msg, argptr);
-	va_end (argptr);
+	va_start( argptr, fmt );
+	ED_vsprintf( text, fmt, argptr );
+	va_end( argptr );
 
 	trap_Print( text );
 }
@@ -673,6 +673,9 @@ void AddTournamentPlayer( void ) {
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		client = &level.clients[i];
+		if ( !client ) {
+			continue;
+		}
 		if ( client->pers.connected != CON_CONNECTED ) {
 			continue;
 		}
@@ -902,7 +905,7 @@ void CalculateRanks( void ) {
 		}
 	} else {	
 		rank = -1;
-		score = 0;
+		score = MAX_QINT;
 		for ( i = 0;  i < level.numPlayingClients; i++ ) {
 			cl = &level.clients[ level.sortedClients[i] ];
 			newScore = cl->ps.persistant[PERS_SCORE];
