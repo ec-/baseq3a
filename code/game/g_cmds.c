@@ -484,6 +484,32 @@ void BroadcastTeamChange( gclient_t *client, int oldTeam )
 }
 
 
+static qboolean AllowTeamSwitch( int clientNum, team_t newTeam ) {
+
+	if ( g_teamForceBalance.integer  ) {
+		int		counts[TEAM_NUM_TEAMS];
+
+		counts[TEAM_BLUE] = TeamCount( clientNum, TEAM_BLUE );
+		counts[TEAM_RED] = TeamCount( clientNum, TEAM_RED );
+
+		// We allow a spread of two
+		if ( newTeam == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
+			trap_SendServerCommand( clientNum, "cp \"Red team has too many players.\n\"" );
+			return qfalse; // ignore the request
+		}
+
+		if ( newTeam == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
+			trap_SendServerCommand( clientNum, "cp \"Blue team has too many players.\n\"" );
+			return qfalse; // ignore the request
+		}
+
+		// It's ok, the team we are switching to has less or same number of players
+	}
+
+	return qtrue;
+}
+
+
 /*
 =================
 SetTeam
@@ -496,13 +522,15 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 	spectatorState_t	specState;
 	int					specClient;
 	int					teamLeader;
+	qboolean			checkTeamLeader;
 
 	//
 	// see what change is requested
 	//
-	client = ent->client;
 
-	clientNum = client - level.clients;
+	clientNum = ent - g_entities;
+	client = level.clients + clientNum;
+
 	specClient = clientNum;
 	specState = SPECTATOR_NOT;
 	if ( !Q_stricmp( s, "scoreboard" ) || !Q_stricmp( s, "score" )  ) {
@@ -531,25 +559,8 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 			team = PickTeam( clientNum );
 		}
 
-		if ( g_teamForceBalance.integer  ) {
-			int		counts[TEAM_NUM_TEAMS];
-
-			counts[TEAM_BLUE] = TeamCount( clientNum, TEAM_BLUE );
-			counts[TEAM_RED] = TeamCount( clientNum, TEAM_RED );
-
-			// We allow a spread of two
-			if ( team == TEAM_RED && counts[TEAM_RED] - counts[TEAM_BLUE] > 1 ) {
-				trap_SendServerCommand( clientNum, 
-					"cp \"Red team has too many players.\n\"" );
-				return qtrue; // ignore the request
-			}
-			if ( team == TEAM_BLUE && counts[TEAM_BLUE] - counts[TEAM_RED] > 1 ) {
-				trap_SendServerCommand( clientNum, 
-					"cp \"Blue team has too many players.\n\"" );
-				return qtrue; // ignore the request
-			}
-
-			// It's ok, the team we are switching to has less or same number of players
+		if ( !AllowTeamSwitch( clientNum, team ) ) {
+			return qtrue;
 		}
 
 	} else {
@@ -623,7 +634,9 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 	client->sess.spectatorState = specState;
 	client->sess.spectatorClient = specClient;
 
+	checkTeamLeader = client->sess.teamLeader;
 	client->sess.teamLeader = qfalse;
+
 	if ( team == TEAM_RED || team == TEAM_BLUE ) {
 		teamLeader = TeamLeader( team );
 		// if there is no team leader or the team leader is a bot and this client is not a bot
@@ -634,8 +647,12 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 
 	// make sure there is a team leader on the team the player came from
 	if ( oldTeam == TEAM_RED || oldTeam == TEAM_BLUE ) {
-		CheckTeamLeader( oldTeam );
+		if ( checkTeamLeader ) {
+			CheckTeamLeader( oldTeam, qtrue );
+		}
 	}
+
+	G_WriteClientSessionData( client );
 
 	BroadcastTeamChange( client, oldTeam );
 

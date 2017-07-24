@@ -569,7 +569,7 @@ void Weapon_HookThink (gentity_t *ent);
 // g_client.c
 //
 int TeamCount( int ignoreClientNum, team_t team );
-int TeamLeader( int team );
+int TeamLeader( team_t team );
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
 gentity_t *SelectSpawnPoint( gentity_t *ent, vec3_t avoidPoint, vec3_t origin, vec3_t angles );
@@ -608,8 +608,8 @@ void DeathmatchScoreboardMessage( gentity_t *ent );
 //
 void MoveClientToIntermission( gentity_t *ent );
 void FindIntermissionPoint( void );
-void SetLeader(int team, int client);
-void CheckTeamLeader( int team );
+void SetLeader( team_t team, int client );
+void CheckTeamLeader( team_t team, qboolean setLeader );
 void G_RunThink (gentity_t *ent);
 void QDECL G_LogPrintf( const char *fmt, ... );
 void SendScoreboardMessageToAllClients( void );
@@ -620,7 +620,7 @@ void QDECL G_Error( const char *fmt, ... );
 // g_client.c
 //
 const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
-void ClientUserinfoChanged( int clientNum );
+qboolean ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum );
 void ClientCommand( int clientNum );
@@ -649,11 +649,13 @@ void Svcmd_GameMem_f( void );
 //
 // g_session.c
 //
-void G_ReadSessionData( gclient_t *client );
-void G_InitSessionData( gclient_t *client, char *userinfo );
-
 void G_InitWorldSession( void );
 void G_WriteSessionData( void );
+
+void G_InitSessionData( gclient_t *client, const char *team, qboolean isBot );
+void G_ReadClientSessionData( gclient_t *client );
+void G_WriteClientSessionData( gclient_t *client );
+void G_ClearClientSessionData( gclient_t *client );
 
 //
 // g_arenas.c
@@ -711,6 +713,7 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
 
 extern	vmCvar_t	g_gametype;
 extern	vmCvar_t	g_mapname;
+extern	vmCvar_t	sv_fps;
 extern	vmCvar_t	g_dedicated;
 extern	vmCvar_t	g_cheats;
 extern	vmCvar_t	g_maxclients;			// allow this many total, including spectators
@@ -741,7 +744,7 @@ extern	vmCvar_t	g_warmup;
 extern	vmCvar_t	g_doWarmup;
 extern	vmCvar_t	g_blood;
 extern	vmCvar_t	g_allowVote;
-extern	vmCvar_t	g_teamAutoJoin;
+extern	vmCvar_t	g_autoJoin;
 extern	vmCvar_t	g_teamForceBalance;
 extern	vmCvar_t	g_banIPs;
 extern	vmCvar_t	g_filterBan;

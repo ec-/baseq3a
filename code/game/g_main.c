@@ -27,6 +27,7 @@ vmCvar_t	g_friendlyFire;
 vmCvar_t	g_password;
 vmCvar_t	g_needpass;
 vmCvar_t	g_mapname;
+vmCvar_t	sv_fps;
 vmCvar_t	g_maxclients;
 vmCvar_t	g_maxGameClients;
 vmCvar_t	g_dedicated;
@@ -53,7 +54,7 @@ vmCvar_t	g_blood;
 vmCvar_t	g_podiumDist;
 vmCvar_t	g_podiumDrop;
 vmCvar_t	g_allowVote;
-vmCvar_t	g_teamAutoJoin;
+vmCvar_t	g_autoJoin;
 vmCvar_t	g_teamForceBalance;
 vmCvar_t	g_banIPs;
 vmCvar_t	g_filterBan;
@@ -86,6 +87,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ NULL, "gamedate", __DATE__ , CVAR_ROM, 0, qfalse  },
 	{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
 	{ &g_mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
+	{ &sv_fps, "sv_fps", "30", CVAR_ARCHIVE, 0, qfalse  },
 
 	// latched vars
 	{ &g_gametype, "g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH, 0, qfalse  },
@@ -103,7 +105,7 @@ static cvarTable_t		gameCvarTable[] = {
 
 	{ &g_friendlyFire, "g_friendlyFire", "0", CVAR_ARCHIVE, 0, qtrue  },
 
-	{ &g_teamAutoJoin, "g_teamAutoJoin", "0", CVAR_ARCHIVE  },
+	{ &g_autoJoin, "g_autoJoin", "1", CVAR_ARCHIVE  },
 	{ &g_teamForceBalance, "g_teamForceBalance", "0", CVAR_ARCHIVE  },
 
 	{ &g_warmup, "g_warmup", "20", CVAR_ARCHIVE, 0, qtrue  },
@@ -1690,7 +1692,7 @@ void PrintTeam(int team, char *message) {
 SetLeader
 ==================
 */
-void SetLeader(int team, int client) {
+void SetLeader( team_t team, int client ) {
 	int i;
 
 	if ( level.clients[client].pers.connected == CON_DISCONNECTED ) {
@@ -1720,35 +1722,61 @@ void SetLeader(int team, int client) {
 CheckTeamLeader
 ==================
 */
-void CheckTeamLeader( int team ) {
+void CheckTeamLeader( team_t team, qboolean setLeader ) {
 	int i;
+	int	max_score, max_id;
+	int	max_bot_score, max_bot_id;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
-		if (level.clients[i].sess.sessionTeam != team)
+
+		if ( level.clients[i].sess.sessionTeam != team || level.clients[i].pers.connected == CON_DISCONNECTED )
 			continue;
-		if (level.clients[i].sess.teamLeader)
-			break;
+
+		if ( level.clients[i].sess.teamLeader )
+			return;
 	}
-	if (i >= level.maxclients) {
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			if (!(g_entities[i].r.svFlags & SVF_BOT)) {
-				level.clients[i].sess.teamLeader = qtrue;
-				break;
+
+	// no leaders? find player with highest score
+	max_score = SHRT_MIN;
+	max_id = -1;
+	max_bot_score = SHRT_MIN;
+	max_bot_id = -1;
+
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
+
+		if ( level.clients[i].sess.sessionTeam != team )
+			continue;
+
+		if ( g_entities[i].r.svFlags & SVF_BOT ) {
+			if ( level.clients[i].ps.persistant[PERS_SCORE] > max_bot_score ) {
+				max_bot_score = level.clients[i].ps.persistant[PERS_SCORE];
+				max_bot_id = i;
+			}
+		} else {
+			if ( level.clients[i].ps.persistant[PERS_SCORE] > max_score ) {
+				max_score = level.clients[i].ps.persistant[PERS_SCORE];
+				max_id = i;
 			}
 		}
+	}
 
-		if (i >= level.maxclients) {
-		for ( i = 0 ; i < level.maxclients ; i++ ) {
-			if (level.clients[i].sess.sessionTeam != team)
-				continue;
-			level.clients[i].sess.teamLeader = qtrue;
-			break;
-		}
+	if ( max_id != -1 ) {
+		if ( setLeader )
+			SetLeader( team, max_id ); 
+		else
+			level.clients[max_id].sess.teamLeader = qtrue;
+		return;
+	}
+
+	if ( max_bot_id != -1 ) {
+		if ( setLeader )
+			SetLeader( team, max_bot_id );
+		else
+			level.clients[max_bot_id].sess.teamLeader = qtrue;
+		return;
 	}
 }
-}
+
 
 /*
 ==================

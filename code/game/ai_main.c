@@ -155,26 +155,31 @@ int BotAI_GetClientState( int clientNum, playerState_t *state ) {
 	return qtrue;
 }
 
+
 /*
 ==================
 BotAI_GetEntityState
 ==================
 */
 qboolean BotAI_GetEntityState( int entityNum, entityState_t *state ) {
-	gentity_t	*ent;
+	const gentity_t *ent;
 
 	ent = g_entities + entityNum;
 
-	memset( state, 0, sizeof(entityState_t) );
-
 	if ( !ent->inuse || !ent->r.linked ) {
+		memset( state, 0, sizeof( entityState_t ) );
 		return qfalse;
 	}
 
-	if (ent->r.svFlags & SVF_NOCLIENT) return qfalse;
+	if ( ent->r.svFlags & SVF_NOCLIENT ) {
+		memset( state, 0, sizeof( entityState_t ) );
+		return qfalse;
+	}
+
 	memcpy( state, &ent->s, sizeof(entityState_t) );
 	return qtrue;
 }
+
 
 /*
 ==================
@@ -194,6 +199,7 @@ int BotAI_GetSnapshotEntity( int clientNum, int sequence, entityState_t *state )
 
 	return sequence + 1;
 }
+
 
 /*
 ==================

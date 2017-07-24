@@ -39,6 +39,7 @@ void G_WriteClientSessionData( gclient_t *client ) {
 	trap_Cvar_Set( var, s );
 }
 
+
 /*
 ================
 G_ReadSessionData
@@ -46,7 +47,7 @@ G_ReadSessionData
 Called on a reconnect
 ================
 */
-void G_ReadSessionData( gclient_t *client ) {
+void G_ReadClientSessionData( gclient_t *client ) {
 	char	s[MAX_STRING_CHARS];
 	const char	*var;
 	int teamLeader;
@@ -69,6 +70,24 @@ void G_ReadSessionData( gclient_t *client ) {
 	client->sess.sessionTeam = (team_t)sessionTeam;
 	client->sess.spectatorState = (spectatorState_t)spectatorState;
 	client->sess.teamLeader = (qboolean)teamLeader;
+
+	if ( (unsigned)client->sess.sessionTeam >= TEAM_NUM_TEAMS ) {
+		client->sess.sessionTeam = TEAM_SPECTATOR;
+	}
+}
+
+
+/*
+================
+G_ClearClientSessionData
+================
+*/
+void G_ClearClientSessionData( gclient_t *client )
+{
+	const char	*var;
+
+	var = va( "session%i", client - level.clients );
+	trap_Cvar_Set( var, "" );
 }
 
 
@@ -79,24 +98,40 @@ G_InitSessionData
 Called on a first-time connect
 ================
 */
-void G_InitSessionData( gclient_t *client, char *userinfo ) {
+void G_InitSessionData( gclient_t *client, const char *team, qboolean isBot ) {
 	clientSession_t	*sess;
-	const char		*value;
-
+	
 	sess = &client->sess;
 
 	// initial team determination
 	if ( g_gametype.integer >= GT_TEAM ) {
-		if ( g_teamAutoJoin.integer ) {
-			sess->sessionTeam = PickTeam( -1 );
-			BroadcastTeamChange( client, -1 );
+		if ( team[0] == 's' || team[0] == 'S' ) {
+			// a willing spectator, not a waiting-in-line
+			sess->sessionTeam = TEAM_SPECTATOR;
 		} else {
-			// always spawn as spectator in team games
-			sess->sessionTeam = TEAM_SPECTATOR;	
+			if ( g_autoJoin.integer & 2 ) {
+				sess->sessionTeam = PickTeam( -1 );
+				BroadcastTeamChange( client, -1 );
+			} else {
+				// always spawn as spectator in team games
+				if ( isBot == qfalse ) {
+					sess->sessionTeam = TEAM_SPECTATOR;	
+				} else  {
+					// bind player to specified team
+					if ( team[0] == 'r' || team[0] == 'R' ) {
+						sess->sessionTeam = TEAM_RED;
+					} else if ( team[0] == 'b' || team[0] == 'B' ) {
+						sess->sessionTeam = TEAM_BLUE;
+					} else {
+						// or choose new
+						sess->sessionTeam = PickTeam( -1 );
+						BroadcastTeamChange( client, -1 );
+					}
+				}
+			}
 		}
 	} else {
-		value = Info_ValueForKey( userinfo, "team" );
-		if ( value[0] == 's' ) {
+		if ( team[0] == 's' || team[0] == 'S' ) {
 			// a willing spectator, not a waiting-in-line
 			sess->sessionTeam = TEAM_SPECTATOR;
 		} else {
@@ -104,11 +139,13 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 			default:
 			case GT_FFA:
 			case GT_SINGLE_PLAYER:
-				if ( g_maxGameClients.integer > 0 && 
-					level.numNonSpectatorClients >= g_maxGameClients.integer ) {
+				if ( g_maxGameClients.integer > 0 && level.numNonSpectatorClients >= g_maxGameClients.integer ) {
 					sess->sessionTeam = TEAM_SPECTATOR;
 				} else {
-					sess->sessionTeam = TEAM_FREE;
+					if ( g_autoJoin.integer & 1 || isBot || g_gametype.integer == GT_SINGLE_PLAYER )
+						sess->sessionTeam = TEAM_FREE;
+					else
+						sess->sessionTeam = TEAM_SPECTATOR;
 				}
 				break;
 			case GT_TOURNAMENT:
@@ -116,7 +153,10 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 				if ( level.numNonSpectatorClients >= 2 ) {
 					sess->sessionTeam = TEAM_SPECTATOR;
 				} else {
-					sess->sessionTeam = TEAM_FREE;
+					if ( g_autoJoin.integer & 1 || isBot )
+						sess->sessionTeam = TEAM_FREE;
+					else
+						sess->sessionTeam = TEAM_SPECTATOR;
 				}
 				break;
 			}
@@ -125,8 +165,6 @@ void G_InitSessionData( gclient_t *client, char *userinfo ) {
 
 	sess->spectatorState = SPECTATOR_FREE;
 	sess->spectatorTime = 0;
-
-	G_WriteClientSessionData( client );
 }
 
 
@@ -150,6 +188,7 @@ void G_InitWorldSession( void ) {
 		G_Printf( "Gametype changed, clearing session data.\n" );
 	}
 }
+
 
 /*
 ==================
