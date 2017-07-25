@@ -72,22 +72,22 @@ MULTIPLAYER MENU (SERVER BROWSER)
 
 #define GAMES_ALL			0
 #define GAMES_FFA			1
-#define GAMES_TEAMPLAY		2
-#define GAMES_TOURNEY		3
+#define GAMES_TOURNEY		2
+#define GAMES_TEAMPLAY		3
 #define GAMES_CTF			4
 
 static const char *master_items[] = {
 	"Local",
 	"Internet",
 	"Favorites",
-	0
+	NULL
 };
 
 static const char *servertype_items[] = {
 	"All",
 	"Free For All",
-	"Team Deathmatch",
 	"Tournament",
+	"Team Deathmatch",
 	"Capture the Flag",
 	NULL
 };
@@ -115,7 +115,7 @@ static char* gamenames[] = {
 	"Urban Terror",		// Urban Terror
 	"OSP",						// Orange Smoothie Productions
 	"???",			// unknown
-	0
+	NULL
 };
 
 static char* netnames[] = {

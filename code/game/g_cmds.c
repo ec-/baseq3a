@@ -471,10 +471,10 @@ void BroadcastTeamChange( gclient_t *client, team_t oldTeam )
 	int clientNum = client - level.clients;
 
 	if ( client->sess.sessionTeam == TEAM_RED ) {
-		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the red team.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the " S_COLOR_RED "red" S_COLOR_WHITE " team.\n\"",
 			client->pers.netname) );
 	} else if ( client->sess.sessionTeam == TEAM_BLUE ) {
-		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the blue team.\n\"",
+		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the " S_COLOR_BLUE "blue" S_COLOR_WHITE " team.\n\"",
 		client->pers.netname));
 	} else if ( client->sess.sessionTeam == TEAM_SPECTATOR && oldTeam != TEAM_SPECTATOR ) {
 		G_BroadcastServerCommand( clientNum, va("cp \"%s" S_COLOR_WHITE " joined the spectators.\n\"",
@@ -532,6 +532,25 @@ qboolean SetTeam( gentity_t *ent, const char *s ) {
 
 	clientNum = ent - g_entities;
 	client = level.clients + clientNum;
+
+	// early team override
+	if ( client->pers.connected == CON_CONNECTING && g_gametype.integer >= GT_TEAM ) {
+		if ( !Q_stricmp( s, "red" ) || !Q_stricmp( s, "r" ) ) {
+			team = TEAM_RED;
+		} else if ( !Q_stricmp( s, "blue" ) || !Q_stricmp( s, "b" ) ) {
+			team = TEAM_BLUE; 
+		} else {
+			team = -1;
+		}
+		if ( team != -1 && AllowTeamSwitch( clientNum, team ) ) {
+			client->sess.sessionTeam = team;
+			client->pers.teamState.state = TEAM_BEGIN;
+			G_WriteClientSessionData( client );
+			// count current clients and rank for scoreboard
+			CalculateRanks();
+		}
+		return qfalse; // bypass flood protection
+	}
 
 	specClient = clientNum;
 	specState = SPECTATOR_NOT;
@@ -1781,12 +1800,19 @@ void ClientCommand( int clientNum ) {
 	char	cmd[MAX_TOKEN_CHARS];
 
 	ent = g_entities + clientNum;
-	if ( !ent->client || ent->client->pers.connected != CON_CONNECTED ) {
-		return;		// not fully in game yet
-	}
-
+	if ( !ent->client )
+		return;
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
+
+	if ( ent->client->pers.connected != CON_CONNECTED ) {
+		if ( ent->client->pers.connected == CON_CONNECTING && g_gametype.integer >= GT_TEAM ) {
+			if ( Q_stricmp( cmd, "team" ) == 0 && !level.restarted ) {
+				Cmd_Team_f( ent ); // early team override
+			}
+		}
+		return;	// not fully in game yet
+	}
 
 	if (Q_stricmp (cmd, "say") == 0) {
 		Cmd_Say_f (ent, SAY_ALL, qfalse);
