@@ -582,7 +582,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		botname = altname;
 	}
 
-	VQ3_CleanName( botname, nm, sizeof( nm ), "unnamed bot" );
+	BG_CleanName( botname, nm, sizeof( nm ), "unnamed bot" );
 	Info_SetValueForKey( userinfo, "name", nm );
 
 	Info_SetValueForKey( userinfo, "rate", "25000" );

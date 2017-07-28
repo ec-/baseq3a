@@ -412,6 +412,7 @@ typedef struct {
 	int			numSpawnSpotsTeam;
 	int			numSpawnSpotsFFA;
 
+	// map rotation
 	qboolean	denyMapRestart;
 
 } level_locals_t;

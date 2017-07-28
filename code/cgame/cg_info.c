@@ -115,8 +115,8 @@ void CG_LoadingClient( int clientNum ) {
 		}
 	}
 
-	VQ3_CleanName( Info_ValueForKey( info, "n" ), personality, sizeof( personality ), "unknown client" ); 
-	VQ3_StripColor( personality );
+	BG_CleanName( Info_ValueForKey( info, "n" ), personality, sizeof( personality ), "unknown client" );
+	BG_StripColor( personality );
 
 	if ( cgs.gametype == GT_SINGLE_PLAYER ) {
 		trap_S_RegisterSound( va( "sound/player/announce/%s.wav", personality ), qtrue );
@@ -250,7 +250,8 @@ void CG_DrawInformation( void ) {
 		break;
 #endif
 	default:
-		s = "Unknown Gametype";
+		BG_sprintf( buf, "Gametype #%i", cgs.gametype );
+		s = buf;
 		break;
 	}
 	UI_DrawProportionalString( 320, y, s,

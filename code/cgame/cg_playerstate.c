@@ -88,7 +88,7 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 		// dont do it when cg_draw2d = 0 ?
 		info = CG_ConfigString( CS_PLAYERS + attacker );
 		if ( *info ) {
-			VQ3_CleanName( Info_ValueForKey( info, "n" ), cg.attackerName, sizeof( cg.attackerName ), "???" );
+			BG_CleanName( Info_ValueForKey( info, "n" ), cg.attackerName, sizeof( cg.attackerName ), "???" );
 			cg.attackerClientNum = attacker;
 			cg.attackerTime = cg.time;
 		}

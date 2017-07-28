@@ -742,8 +742,9 @@ char *Q_stristr( const char * str1, const char * str2 );
 char *strtok( char *strToken, const char *strDelimit );
 char *EncodedString( const char *str );
 char *DecodedString( const char *str );
-void VQ3_CleanName( const char *in, char *out, int outSize, const char *blankString );
-char *VQ3_StripColor( char *string );
+
+void BG_CleanName( const char *in, char *out, int outSize, const char *blankString );
+char *BG_StripColor( char *string );
 
 void Q_strcpy( char *dst, const char *src );
 char *Q_stradd( char *dst, const char *src );
