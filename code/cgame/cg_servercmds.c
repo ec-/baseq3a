@@ -203,6 +203,7 @@ void CG_SetConfigValues( void ) {
 	cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
 }
 
+
 /*
 =====================
 CG_ShaderStateChanged
@@ -242,6 +243,7 @@ void CG_ShaderStateChanged(void) {
 		}
 	}
 }
+
 
 /*
 ================
