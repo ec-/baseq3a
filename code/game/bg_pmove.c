@@ -28,6 +28,9 @@ float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
 
+#define NO_RESPAWN_OVERBOUNCE 100
+
+static int pm_respawntimer = 0;
 
 /*
 ===============
@@ -506,7 +509,7 @@ static void PM_WaterMove( void ) {
 	if ( pml.groundPlane && DotProduct( pm->ps->velocity, pml.groundTrace.plane.normal ) < 0 ) {
 		vel = VectorLength(pm->ps->velocity);
 		// slide along the ground plane
-		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal, 
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
 			pm->ps->velocity, OVERCLIP );
 
 		VectorNormalize(pm->ps->velocity);
@@ -768,16 +771,22 @@ static void PM_WalkMove( void ) {
 		// don't reset the z velocity for slopes
 //		pm->ps->velocity[2] = 0;
 	}
+ 
+	if ( pm_respawntimer ) { // no more overbounce at respawn
+		// slide along the ground plane
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
+			pm->ps->velocity, OVERCLIP );
+	} else {
+		vel = VectorLength(pm->ps->velocity);
 
-	vel = VectorLength(pm->ps->velocity);
+		// slide along the ground plane
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
+			pm->ps->velocity, OVERCLIP );
 
-	// slide along the ground plane
-	PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal, 
-		pm->ps->velocity, OVERCLIP );
-
-	// don't decrease velocity when going up or down a slope
-	VectorNormalize(pm->ps->velocity);
-	VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+		// don't decrease velocity when going up or down a slope
+		VectorNormalize(pm->ps->velocity);
+		VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+	}
 
 	// don't do anything if standing still
 	if (!pm->ps->velocity[0] && !pm->ps->velocity[1]) {
@@ -1918,6 +1927,13 @@ void PmoveSingle (pmove_t *pmove) {
 		pm->cmd.upmove = 0;
 	}
 
+	if ( pm_respawntimer ) {
+		pm_respawntimer -= pml.msec;
+		if ( pm_respawntimer < 0 ) {
+			pm_respawntimer = 0;
+		}
+	}
+
 	if ( pm->ps->pm_type == PM_SPECTATOR ) {
 		PM_CheckDuck ();
 		PM_FlyMove ();
@@ -2030,6 +2046,10 @@ void Pmove (pmove_t *pmove) {
 
 	pmove->ps->pmove_framecount = (pmove->ps->pmove_framecount+1) & ((1<<PS_PMOVEFRAMECOUNTBITS)-1);
 
+	if ( pmove->ps->pm_flags & PMF_RESPAWNED && pm_respawntimer == 0 ) {
+		pm_respawntimer = NO_RESPAWN_OVERBOUNCE;
+	}
+
 	// chop the move up if it is too long, to prevent framerate
 	// dependent behavior
 	while ( pmove->ps->commandTime != finalTime ) {
@@ -2054,8 +2074,5 @@ void Pmove (pmove_t *pmove) {
 			pmove->cmd.upmove = 20;
 		}
 	}
-
 	//PM_CheckStuck();
-
 }
-
