@@ -127,7 +127,10 @@ void	CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec
 	trace_t	t;
 
 	trap_CM_BoxTrace ( &t, start, end, mins, maxs, 0, mask);
-	t.entityNum = t.fraction != 1.0 ? ENTITYNUM_WORLD : ENTITYNUM_NONE;
+	if ( t.fraction == 1.0 )
+		t.entityNum = ENTITYNUM_NONE;
+	else
+		t.entityNum = ENTITYNUM_WORLD;
 	// check all other solid models
 	CG_ClipMoveToEntities (start, mins, maxs, end, skipNumber, mask, &t);
 
@@ -532,7 +535,7 @@ void CG_PredictPlayerState( void ) {
 						f = ( cg_errorDecay.value - t ) / cg_errorDecay.value;
 						if ( f < 0 ) {
 							f = 0;
-						}
+						} else
 						if ( f > 0 && cg_showmiss.integer ) {
 							CG_Printf("Double prediction decay: %f\n", f);
 						}

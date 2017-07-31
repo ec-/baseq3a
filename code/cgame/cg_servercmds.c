@@ -177,12 +177,17 @@ static void CG_ParseWarmup( void ) {
 		} else
 #endif
 		{
-			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
+			if ( cg.soundPlaying != cgs.media.countPrepareSound ) {
+				CG_AddBufferedSound( -1 );
+				CG_AddBufferedSound( cgs.media.countPrepareSound );
+				cg.soundTime = cg.time + 1; // play in next frame
+			}
 		}
 	}
 
 	cg.warmup = warmup;
 }
+
 
 /*
 ================
@@ -208,7 +213,7 @@ void CG_SetConfigValues( void ) {
 		cgs.flagStatus = s[0] - '0';
 	}
 #endif
-	cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
+	CG_ParseWarmup();
 }
 
 

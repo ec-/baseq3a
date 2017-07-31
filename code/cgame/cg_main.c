@@ -184,12 +184,12 @@ vmCvar_t	cg_obeliskRespawnDelay;
 
 typedef struct {
 	vmCvar_t	*vmCvar;
-	char		*cvarName;
-	char		*defaultString;
-	int			cvarFlags;
+	const char	*cvarName;
+	const char	*defaultString;
+	const int	cvarFlags;
 } cvarTable_t;
 
-static cvarTable_t cvarTable[] = { // bk001129
+static const cvarTable_t cvarTable[] = {
 	{ &cg_ignore, "cg_ignore", "0", 0 },	// used for debugging
 	{ &cg_autoswitch, "cg_autoswitch", "1", CVAR_ARCHIVE },
 	{ &cg_drawGun, "cg_drawGun", "1", CVAR_ARCHIVE },
@@ -452,12 +452,15 @@ void QDECL Com_Printf( const char *msg, ... ) {
 CG_Argv
 ================
 */
-const char *CG_Argv( int arg ) {
-	static char	buffer[MAX_STRING_CHARS];
+const char *CG_Argv( int arg ) 
+{
+	static char	buffer[ 2 ][ MAX_STRING_CHARS ];
+	static int index = 0;
 
-	trap_Argv( arg, buffer, sizeof( buffer ) );
+	index ^= 1;
+	trap_Argv( arg, buffer[ index ], sizeof( buffer[ 0 ] ) );
 
-	return buffer;
+	return buffer[ index ];
 }
 
 
@@ -815,7 +818,7 @@ static void CG_RegisterGraphics( void ) {
 	// precache status bar pics
 	CG_LoadingString( "game media" );
 
-	for ( i=0 ; i<11 ; i++) {
+	for ( i = 0 ; i < ARRAY_LEN( sb_nums ) ; i++ ) {
 		cgs.media.numberShaders[i] = trap_R_RegisterShader( sb_nums[i] );
 	}
 
@@ -1148,6 +1151,7 @@ CG_ConfigString
 const char *CG_ConfigString( int index ) {
 	if ( index < 0 || index >= MAX_CONFIGSTRINGS ) {
 		CG_Error( "CG_ConfigString: bad index: %i", index );
+		return "";
 	}
 	return cgs.gameState.stringData + cgs.gameState.stringOffsets[ index ];
 }
@@ -1943,7 +1947,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	cg.infoScreenText[0] = 0;
 
 	// Make sure we have update values (scores)
-	CG_SetConfigValues();
+	// CG_SetConfigValues();
 
 	CG_StartMusic();
 
