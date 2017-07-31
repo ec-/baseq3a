@@ -46,7 +46,6 @@ vmCvar_t	g_weaponTeamRespawn;
 vmCvar_t	g_motd;
 vmCvar_t	g_synchronousClients;
 vmCvar_t	g_warmup;
-vmCvar_t	g_doWarmup;
 vmCvar_t	g_restarted;
 vmCvar_t	g_log;
 vmCvar_t	g_logSync;
@@ -110,7 +109,6 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_teamForceBalance, "g_teamForceBalance", "0", CVAR_ARCHIVE  },
 
 	{ &g_warmup, "g_warmup", "20", CVAR_ARCHIVE, 0, qtrue  },
-	{ &g_doWarmup, "g_doWarmup", "0", 0, 0, qtrue  },
 	{ &g_log, "g_log", "games.log", CVAR_ARCHIVE, 0, qfalse  },
 	{ &g_logSync, "g_logSync", "0", CVAR_ARCHIVE, 0, qfalse  },
 
@@ -365,7 +363,12 @@ void G_RegisterCvars( void ) {
 	}
 
 	level.warmupModificationCount = g_warmup.modificationCount;
+
+	// force g_doWarmup to 1
+	trap_Cvar_Register( NULL, "g_doWarmup", "1", CVAR_ROM );
+	trap_Cvar_Set( "g_doWarmup", "1" );
 }
+
 
 /*
 =================
@@ -1569,9 +1572,8 @@ void CheckTournament( void ) {
 		// if all players have arrived, start the countdown
 		if ( level.warmupTime < 0 ) {
 			if ( level.numPlayingClients == 2 ) {
-				// fudge by -1 to account for extra delays
-				if ( g_warmup.integer > 1 ) {
-				level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
+				if ( g_warmup.integer > 0 ) {
+					level.warmupTime = level.time + g_warmup.integer * 1000;
 				} else {
 					level.warmupTime = 0;
 				}
@@ -1583,7 +1585,7 @@ void CheckTournament( void ) {
 
 		// if the warmup time has counted down, restart
 		if ( level.time > level.warmupTime ) {
-			level.warmupTime += 10000;
+			level.warmupTime = level.time + 10000;
 			trap_Cvar_Set( "g_restarted", "1" );
 			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 			level.restarted = qtrue;
@@ -1593,9 +1595,9 @@ void CheckTournament( void ) {
 		int		counts[TEAM_NUM_TEAMS];
 		qboolean	notEnough = qfalse;
 
-		if ( g_gametype.integer > GT_TEAM ) {
-			counts[TEAM_BLUE] = TeamCount( -1, TEAM_BLUE );
-			counts[TEAM_RED] = TeamCount( -1, TEAM_RED );
+		if ( g_gametype.integer >= GT_TEAM ) {
+			counts[TEAM_BLUE] = TeamConnectedCount( -1, TEAM_BLUE );
+			counts[TEAM_RED] = TeamConnectedCount( -1, TEAM_RED );
 
 			if (counts[TEAM_RED] < 1 || counts[TEAM_BLUE] < 1) {
 				notEnough = qtrue;
@@ -1625,9 +1627,8 @@ void CheckTournament( void ) {
 
 		// if all players have arrived, start the countdown
 		if ( level.warmupTime < 0 ) {
-			// fudge by -1 to account for extra delays
-			if ( g_warmup.integer > 1 ) {
-			level.warmupTime = level.time + ( g_warmup.integer - 1 ) * 1000;
+			if ( g_warmup.integer > 0 ) {
+				level.warmupTime = level.time + g_warmup.integer * 1000;
 			} else {
 				level.warmupTime = 0;
 			}
@@ -1638,7 +1639,7 @@ void CheckTournament( void ) {
 
 		// if the warmup time has counted down, restart
 		if ( level.time > level.warmupTime ) {
-			level.warmupTime += 10000;
+			level.warmupTime = level.time + 10000;
 			trap_Cvar_Set( "g_restarted", "1" );
 			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
 			level.restarted = qtrue;

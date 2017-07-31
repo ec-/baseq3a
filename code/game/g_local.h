@@ -590,6 +590,7 @@ void Weapon_HookThink (gentity_t *ent);
 // g_client.c
 //
 int TeamCount( int ignoreClientNum, team_t team );
+int TeamConnectedCount( int ignoreClientNum, team_t team );
 int TeamLeader( team_t team );
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
@@ -775,7 +776,6 @@ extern	vmCvar_t	g_weaponTeamRespawn;
 extern	vmCvar_t	g_synchronousClients;
 extern	vmCvar_t	g_motd;
 extern	vmCvar_t	g_warmup;
-extern	vmCvar_t	g_doWarmup;
 extern	vmCvar_t	g_blood;
 extern	vmCvar_t	g_allowVote;
 extern	vmCvar_t	g_autoJoin;

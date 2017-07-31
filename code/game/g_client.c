@@ -490,6 +490,33 @@ int TeamCount( int ignoreClientNum, team_t team ) {
 
 /*
 ================
+TeamConnectedCount
+
+Returns number of active players on a team
+================
+*/
+int TeamConnectedCount( int ignoreClientNum, team_t team ) {
+	int		i;
+	int		count = 0;
+
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
+		if ( i == ignoreClientNum ) {
+			continue;
+		}
+		if ( level.clients[i].pers.connected != CON_CONNECTED ) {
+			continue;
+		}
+		if ( level.clients[i].sess.sessionTeam == team ) {
+			count++;
+		}
+	}
+
+	return count;
+}
+
+
+/*
+================
 TeamLeader
 
 Returns the client number of the team leader
