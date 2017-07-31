@@ -398,6 +398,7 @@ QAOBJ_ = \
   $(B)/$(MOD)/game/g_team.o \
   $(B)/$(MOD)/game/g_trigger.o \
   $(B)/$(MOD)/game/g_utils.o \
+  $(B)/$(MOD)/game/g_unlagged.o \
   $(B)/$(MOD)/game/g_weapon.o \
   \
   $(B)/$(MOD)/game/q_math.o \

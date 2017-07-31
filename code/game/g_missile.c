@@ -522,6 +522,11 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir) {
 	bolt->clipmask = MASK_SHOT;
 	bolt->target_ent = NULL;
 
+	// missile owner
+	bolt->s.clientNum = self->s.clientNum;
+	// unlagged
+	bolt->s.otherEntityNum = self->s.number;
+
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
@@ -568,6 +573,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir) {
 	if ( self->s.powerups & (1 << PW_QUAD) )
 		bolt->s.powerups |= (1 << PW_QUAD);
 
+	// missile owner
+	bolt->s.clientNum = self->s.clientNum;
+	// unlagged
+	bolt->s.otherEntityNum = self->s.number;
+
 	bolt->s.pos.trType = TR_GRAVITY;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
@@ -611,6 +621,11 @@ gentity_t *fire_bfg (gentity_t *self, vec3_t start, vec3_t dir) {
 
 	if ( self->s.powerups & (1 << PW_QUAD) )
 		bolt->s.powerups |= (1 << PW_QUAD);
+
+	// missile owner
+	bolt->s.clientNum = self->s.clientNum;
+	// unlagged
+	bolt->s.otherEntityNum = self->s.number;
 
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
@@ -656,6 +671,11 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	if ( self->s.powerups & (1 << PW_QUAD) )
 		bolt->s.powerups |= (1 << PW_QUAD);
 
+	// missile owner
+	bolt->s.clientNum = self->s.clientNum;
+	// unlagged
+	bolt->s.otherEntityNum = self->s.number;
+
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
@@ -667,6 +687,7 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir) {
 	return bolt;
 }
 
+
 /*
 =================
 fire_grapple
@@ -674,6 +695,8 @@ fire_grapple
 */
 gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir) {
 	gentity_t	*hook;
+	// unlagged
+	int			hooktime;
 
 	VectorNormalize (dir);
 
@@ -690,9 +713,19 @@ gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir) {
 	hook->parent = self;
 	hook->target_ent = NULL;
 
+	// missile owner
+	hook->s.clientNum = self->s.clientNum;
+	// unlagged
+	hook->s.otherEntityNum = self->s.number;
+
+	if ( self->client ) {
+		hooktime = self->client->pers.cmd.serverTime + MISSILE_PRESTEP_TIME;
+	} else {
+		hooktime = level.time - MISSILE_PRESTEP_TIME; // // move a bit on the very first frame
+	}
+
 	hook->s.pos.trType = TR_LINEAR;
-	hook->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
-	hook->s.otherEntityNum = self->s.number; // use to match beam in client
+	hook->s.pos.trTime = hooktime;
 	VectorCopy( start, hook->s.pos.trBase );
 	SnapVector( hook->s.pos.trBase );			// save net bandwidth
 	VectorScale( dir, 800, hook->s.pos.trDelta );

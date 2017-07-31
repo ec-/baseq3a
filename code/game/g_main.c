@@ -60,6 +60,7 @@ vmCvar_t	g_banIPs;
 vmCvar_t	g_filterBan;
 vmCvar_t	g_smoothClients;
 vmCvar_t	g_rotation;
+vmCvar_t	g_unlagged;
 vmCvar_t	pmove_fixed;
 vmCvar_t	pmove_msec;
 vmCvar_t	g_listEntity;
@@ -141,6 +142,8 @@ static cvarTable_t		gameCvarTable[] = {
 
 	{ &g_allowVote, "g_allowVote", "1", CVAR_ARCHIVE, 0, qfalse },
 	{ &g_listEntity, "g_listEntity", "0", 0, 0, qfalse },
+
+	{ &g_unlagged, "g_unlagged", "1", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
 
 #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },
@@ -1890,7 +1893,9 @@ static void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
 	gclient_t	*client;
-
+	static	gentity_t *missiles[ MAX_GENTITIES - MAX_CLIENTS ];
+	int		numMissiles;
+	
 	// if we are waiting for the level to restart, do nothing
 	if ( level.restarted ) {
 		return;
@@ -1903,6 +1908,8 @@ static void G_RunFrame( int levelTime ) {
 
 	// get any cvar changes
 	G_UpdateCvars();
+
+	numMissiles = 0;
 
 	//
 	// go through all allocated objects
@@ -1945,7 +1952,9 @@ static void G_RunFrame( int levelTime ) {
 		}
 
 		if ( ent->s.eType == ET_MISSILE ) {
-			G_RunMissile( ent );
+			// queue for unlagged pass
+			missiles[ numMissiles ] = ent;
+			numMissiles++;
 			continue;
 		}
 
@@ -1969,6 +1978,16 @@ static void G_RunFrame( int levelTime ) {
 
 		G_RunThink( ent );
 	}
+
+	// unlagged
+	G_TimeShiftAllClients( level.previousTime, NULL );
+
+	for ( i = 0; i < numMissiles; i++ ) {
+		G_RunMissile( missiles[ i ] );
+	}
+
+	// unlagged
+	G_UnTimeShiftAllClients( NULL );
 
 	// perform final fixups on the players
 	ent = &g_entities[0];
@@ -2003,4 +2022,7 @@ static void G_RunFrame( int levelTime ) {
 		}
 		trap_Cvar_Set("g_listEntity", "0");
 	}
+
+	// unlagged
+	level.frameStartTime = trap_Milliseconds();
 }

@@ -33,6 +33,8 @@
 #define CROUCH_VIEWHEIGHT	12
 #define	DEAD_VIEWHEIGHT		-16
 
+#define	PM_STEP_HEIGHT		18
+
 //
 // config strings are a general means of communicating variable length strings
 // from the server to all connected clients.

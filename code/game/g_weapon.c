@@ -186,10 +186,16 @@ static void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 	passent = ent->s.number;
 	for ( i = 0; i < 10; i++ ) {
 
+		// unlagged
+		G_DoTimeShiftFor( ent );
+
 		trap_Trace( &tr, muzzle_origin, NULL, NULL, end, passent, MASK_SHOT );
-		if ( tr.surfaceFlags & SURF_NOIMPACT ) {
+
+		// unlagged
+		G_UndoTimeShiftFor( ent );
+
+		if ( tr.surfaceFlags & SURF_NOIMPACT )
 			return;
-		}
 
 		traceEnt = &g_entities[ tr.entityNum ];
 
@@ -200,6 +206,10 @@ static void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 		if ( traceEnt->takedamage && traceEnt->client ) {
 			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_FLESH );
 			tent->s.eventParm = traceEnt->s.number;
+
+			// unlagged
+			tent->s.clientNum = ent->s.clientNum;
+
 			if( LogAccuracyHit( traceEnt, ent ) ) {
 				ent->client->accuracy_hits++;
 			}
@@ -339,6 +349,9 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 	PerpendicularVector( right, forward );
 	CrossProduct( forward, right, up );
 
+	// unlagged
+	G_DoTimeShiftFor( ent );
+
 	// generate the "random" spread pattern
 	for ( i = 0 ; i < DEFAULT_SHOTGUN_COUNT ; i++ ) {
 		r = Q_crandom( &seed ) * DEFAULT_SHOTGUN_SPREAD * 16;
@@ -351,6 +364,9 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 			ent->client->accuracy_hits++;
 		}
 	}
+
+	// unlagged
+	G_UndoTimeShiftFor( ent );
 }
 
 
@@ -443,7 +459,7 @@ weapon_railgun_fire
 =================
 */
 #define	MAX_RAIL_HITS	4
-void weapon_railgun_fire (gentity_t *ent) {
+void weapon_railgun_fire( gentity_t *ent ) {
 	vec3_t		end;
 #ifdef MISSIONPACK
 	vec3_t impactpoint, bouncedir;
@@ -461,6 +477,9 @@ void weapon_railgun_fire (gentity_t *ent) {
 	damage = 100 * s_quadFactor;
 
 	VectorMA( muzzle_origin, 8192.0, forward, end );
+
+	// unlagged
+	G_DoTimeShiftFor( ent );
 
 	// trace only against the solids, so the railgun will go through people
 	unlinked = 0;
@@ -515,6 +534,10 @@ void weapon_railgun_fire (gentity_t *ent) {
 		unlinkedEntities[unlinked] = traceEnt;
 		unlinked++;
 	} while ( unlinked < MAX_RAIL_HITS );
+
+	// unlagged
+	G_UndoTimeShiftFor( ent );
+
 
 	// link back in any entities we unlinked
 	for ( i = 0 ; i < unlinked ; i++ ) {
@@ -629,10 +652,17 @@ void Weapon_LightningFire( gentity_t *ent ) {
 	damage = 8 * s_quadFactor;
 
 	passent = ent->s.number;
+
 	for (i = 0; i < 10; i++) {
 		VectorMA( muzzle_origin, LIGHTNING_RANGE, forward, end );
 
+		// unlagged
+		G_DoTimeShiftFor( ent );
+
 		trap_Trace( &tr, muzzle_origin, NULL, NULL, end, passent, MASK_SHOT );
+
+		// unlagged
+		G_UndoTimeShiftFor( ent );
 
 #ifdef MISSIONPACK
 		// if not the first trace (the lightning bounced of an invulnerability sphere)

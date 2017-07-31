@@ -241,6 +241,14 @@ typedef struct {
 	qboolean	inGame;
 } clientPersistant_t;
 
+// unlagged
+#define NUM_CLIENT_HISTORY 18
+
+typedef struct {
+	vec3_t		mins, maxs;
+	vec3_t		currentOrigin;
+	int			leveltime;
+} clientHistory_t;
 
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
@@ -310,6 +318,14 @@ struct gclient_s {
 #endif
 
 	char		*areabits;
+
+	// unlagged
+	clientHistory_t	history[ NUM_CLIENT_HISTORY ];
+	clientHistory_t	saved;
+
+	int			historyHead;
+	int			frameOffset;
+	int			lastUpdateFrame;
 };
 
 
@@ -414,6 +430,9 @@ typedef struct {
 
 	// map rotation
 	qboolean	denyMapRestart;
+
+	// unlagged
+	int			frameStartTime;
 
 } level_locals_t;
 
@@ -669,6 +688,18 @@ void SpawnModelsOnVictoryPads( void );
 void Svcmd_AbortPodium_f( void );
 
 //
+// g_unlagged.c
+//
+void G_ResetHistory( gentity_t *ent );
+void G_StoreHistory( gentity_t *ent );
+void G_TimeShiftAllClients( int time, gentity_t *skip );
+void G_UnTimeShiftAllClients( gentity_t *skip );
+void G_DoTimeShiftFor( gentity_t *ent );
+void G_UndoTimeShiftFor( gentity_t *ent );
+void G_UnTimeShiftClient( gentity_t *client );
+void G_PredictPlayerMove( gentity_t *ent, float frametime );
+
+//
 // g_bot.c
 //
 void G_InitBots( qboolean restart );
@@ -763,6 +794,7 @@ extern	vmCvar_t	g_smoothClients;
 extern	vmCvar_t	pmove_fixed;
 extern	vmCvar_t	pmove_msec;
 extern	vmCvar_t	g_rotation;
+extern	vmCvar_t	g_unlagged;
 extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;

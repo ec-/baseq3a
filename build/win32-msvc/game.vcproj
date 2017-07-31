@@ -311,6 +311,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\game\g_unlagged.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\game\g_utils.c"
 				>
 			</File>

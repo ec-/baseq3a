@@ -142,6 +142,7 @@ void CG_DrawInformation( void ) {
 	qhandle_t	levelshot;
 	qhandle_t	detail;
 	char		buf[1024];
+	char		*ptr;
 
 	info = CG_ConfigString( CS_SERVERINFO );
 	sysInfo = CG_ConfigString( CS_SYSTEMINFO );
@@ -176,20 +177,37 @@ void CG_DrawInformation( void ) {
 	y = 180-32;
 
 	// don't print server lines if playing a local game
-	trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
-	if ( !atoi( buf ) ) {
+	//trap_Cvar_VariableStringBuffer( "sv_running", buf, sizeof( buf ) );
+	//if ( !atoi( buf ) ) 
+	{
 		// server hostname
-		Q_strncpyz(buf, Info_ValueForKey( info, "sv_hostname" ), 1024);
-		Q_CleanStr(buf);
+		Q_strncpyz( buf, Info_ValueForKey( info, "sv_hostname" ), sizeof( buf ) );
+		Q_CleanStr( buf );
 		UI_DrawProportionalString( 320, y, buf,
 			UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 		y += PROP_HEIGHT;
 
+		buf[0] = '\0';
+		ptr = buf;
+
+		// unlagged server
+		s = Info_ValueForKey( info, "g_unlagged" );
+		if ( s[0] == '1' ) {
+			ptr = Q_stradd( ptr, "Unlagged" );
+		}
+
 		// pure server
 		s = Info_ValueForKey( sysInfo, "sv_pure" );
 		if ( s[0] == '1' ) {
-			UI_DrawProportionalString( 320, y, "Pure Server",
-				UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
+			if ( buf[0] ) {
+				ptr = Q_stradd( ptr, ", " );
+			}
+			ptr = Q_stradd( ptr, "Pure" );
+		}
+
+		if ( buf[0] ) {
+			ptr = Q_stradd( ptr, " Server" );
+			UI_DrawProportionalString( 320, y, buf,	UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite );
 			y += PROP_HEIGHT;
 		}
 

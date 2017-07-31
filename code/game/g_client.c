@@ -990,6 +990,10 @@ void ClientSpawn(gentity_t *ent) {
 	flags = client->ps.eFlags & (EF_TELEPORT_BIT | EF_VOTED | EF_TEAMVOTED);
 	flags ^= EF_TELEPORT_BIT;
 
+	// unlagged
+	G_ResetHistory( ent );
+	client->saved.leveltime = 0;
+
 	// clear everything but the persistant data
 
 	saved = client->pers;

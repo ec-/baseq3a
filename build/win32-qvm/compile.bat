@@ -158,6 +158,8 @@ cd vm\game
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_trigger.c
 @if errorlevel 1 goto quit
+%cc2% %gamedir%\g_unlagged.c
+@if errorlevel 1 goto quit
 %cc2% %gamedir%\g_utils.c
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_weapon.c

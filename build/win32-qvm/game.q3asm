@@ -29,6 +29,7 @@ g_svcmds
 g_target
 g_team
 g_trigger
+g_unlagged
 g_utils
 g_weapon
 q_math
