@@ -759,20 +759,22 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	ent = &g_entities[ clientNum ];
 	ent->client = level.clients + clientNum;
 
-	// cleanup previous data manually
-	// because client may silently (re)connect without ClientDisconnect in case of crash for example
-	if ( level.clients[ clientNum ].pers.connected != CON_DISCONNECTED )
-		ClientDisconnect( clientNum );
+	if ( firstTime ) {
+		// cleanup previous data manually
+		// because client may silently (re)connect without ClientDisconnect in case of crash for example
+		if ( level.clients[ clientNum ].pers.connected != CON_DISCONNECTED )
+			ClientDisconnect( clientNum );
 
-	// remove entity from the world
-	trap_UnlinkEntity( ent );
-	ent->r.contents = 0;
-	ent->s.eType = ET_INVISIBLE;
-	ent->s.eFlags = 0;
-	ent->s.modelindex = 0;
-	ent->s.clientNum = clientNum;
-	ent->s.number = clientNum;
-	ent->takedamage = qfalse;
+		// remove old entity from the world
+		trap_UnlinkEntity( ent );
+		ent->r.contents = 0;
+		ent->s.eType = ET_INVISIBLE;
+		ent->s.eFlags = 0;
+		ent->s.modelindex = 0;
+		ent->s.clientNum = clientNum;
+		ent->s.number = clientNum;
+		ent->takedamage = qfalse;
+	}
 
 	ent->r.svFlags &= ~SVF_BOT;
 	ent->inuse = qfalse;
@@ -811,7 +813,6 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	client = ent->client;
 
 //	areabits = client->areabits;
-
 	memset( client, 0, sizeof( *client ) );
 
 	client->ps.clientNum = clientNum;
@@ -838,7 +839,7 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	}
 	ent->inuse = qtrue;
 
-	// get and distribute relevent paramters
+	// get and distribute relevant paramters
 	G_LogPrintf( "ClientConnect: %i\n", clientNum );
 
 	client->pers.connected = CON_CONNECTING;
@@ -848,10 +849,12 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	// don't do the "xxx connected" messages if they were caried over from previous level
 	if ( firstTime ) {
 		G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " connected\n\"", client->pers.netname) );
-	}
 
-	// mute all prints until completely in game
-	client->pers.inGame = qfalse;
+		// mute all prints until completely in game
+		client->pers.inGame = qfalse;
+	} else {
+		client->pers.inGame = qtrue; // FIXME: read from session data?
+	}
 
 	// count current clients and rank for scoreboard
 	CalculateRanks();
@@ -916,7 +919,6 @@ void ClientBegin( int clientNum ) {
 	ClientSpawn( ent );
 
 	if ( !client->pers.inGame ) {
-		client->pers.inGame = qtrue;
 		BroadcastTeamChange( client, -1 );
 		if ( client->sess.sessionTeam == TEAM_RED || client->sess.sessionTeam == TEAM_BLUE )
 			CheckTeamLeader( client->sess.sessionTeam );
@@ -929,10 +931,13 @@ void ClientBegin( int clientNum ) {
 
 		client->sess.spectatorTime = 0;
 
-		if ( g_gametype.integer != GT_TOURNAMENT ) {
+		if ( g_gametype.integer != GT_TOURNAMENT && !client->pers.inGame ) {
 			G_BroadcastServerCommand( -1, va("print \"%s" S_COLOR_WHITE " entered the game\n\"", client->pers.netname) );
 		}
 	}
+	
+	client->pers.inGame = qtrue;
+
 	G_LogPrintf( "ClientBegin: %i\n", clientNum );
 
 	// count current clients and rank for scoreboard
