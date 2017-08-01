@@ -70,6 +70,8 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	}
 	
 	ci = &cgs.clientinfo[score->client];
+	if ( !ci->infoValid )
+		return;
 
 	iconx = SB_BOTICON_X + (SB_RATING_WIDTH / 2);
 	headx = SB_HEAD_X + (SB_RATING_WIDTH / 2);
