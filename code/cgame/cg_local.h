@@ -311,7 +311,7 @@ typedef struct {
 typedef struct {
 	qboolean		infoValid;
 
-	char			name[MAX_QPATH];
+	char			name[MAX_NAME_LENGTH];
 	team_t			team;
 
 	int				botSkill;		// 0 = not bot, 1-5 = bot
@@ -595,10 +595,11 @@ typedef struct {
 	qhandle_t	soundPlaying;
 
 	// for voice chat buffer
+#ifdef MISSIONPACK
 	int			voiceChatTime;
 	int			voiceChatBufferIn;
 	int			voiceChatBufferOut;
-
+#endif
 	// warmup countdown
 	int			warmup;
 	int			warmupCount;
@@ -886,8 +887,10 @@ typedef struct {
 	sfxHandle_t oneFragSound;
 
 	sfxHandle_t hitSound;
+#ifdef MISSIONPACK
 	sfxHandle_t hitSoundHighArmor;
 	sfxHandle_t hitSoundLowArmor;
+#endif
 	sfxHandle_t hitTeamSound;
 	sfxHandle_t impressiveSound;
 	sfxHandle_t excellentSound;
@@ -895,18 +898,19 @@ typedef struct {
 	sfxHandle_t humiliationSound;
 	sfxHandle_t assistSound;
 	sfxHandle_t defendSound;
+#ifdef MISSIONPACK
 	sfxHandle_t firstImpressiveSound;
 	sfxHandle_t firstExcellentSound;
 	sfxHandle_t firstHumiliationSound;
-
+#endif
 	sfxHandle_t takenLeadSound;
 	sfxHandle_t tiedLeadSound;
 	sfxHandle_t lostLeadSound;
-
+#ifdef MISSIONPACK
 	sfxHandle_t voteNow;
 	sfxHandle_t votePassed;
 	sfxHandle_t voteFailed;
-
+#endif
 	sfxHandle_t watrInSound;
 	sfxHandle_t watrOutSound;
 	sfxHandle_t watrUnSound;
@@ -935,7 +939,9 @@ typedef struct {
 
 	sfxHandle_t redFlagReturnedSound;
 	sfxHandle_t blueFlagReturnedSound;
+#ifdef MISSIONPACK
 	sfxHandle_t neutralFlagReturnedSound;
+#endif
 	sfxHandle_t	enemyTookYourFlagSound;
 	sfxHandle_t	enemyTookTheFlagSound;
 	sfxHandle_t yourTeamTookEnemyFlagSound;
@@ -1159,8 +1165,10 @@ extern	vmCvar_t		cg_predictItems;
 extern	vmCvar_t		cg_deferPlayers;
 extern	vmCvar_t		cg_drawFriend;
 extern	vmCvar_t		cg_teamChatsOnly;
+#ifdef MISSIONPACK
 extern	vmCvar_t		cg_noVoiceChats;
 extern	vmCvar_t		cg_noVoiceText;
+#endif
 extern  vmCvar_t		cg_scorePlum;
 extern	vmCvar_t		cg_smoothClients;
 extern	vmCvar_t		cg_cameraOrbit;
@@ -1212,7 +1220,9 @@ void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
 void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
+#ifdef MISSIONPACK
 score_t *CG_GetSelectedScore( void );
+#endif
 void CG_BuildSpectatorString( void );
 
 
@@ -1699,4 +1709,3 @@ void trap_R_AddRefEntityToScene2( const refEntity_t *re );
 int dll_com_trapGetValue;
 int dll_trap_R_AddRefEntityToScene2;
 #endif
-
