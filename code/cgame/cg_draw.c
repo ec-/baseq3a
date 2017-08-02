@@ -1595,6 +1595,7 @@ void CG_AddLagometerFrameInfo( void ) {
 	lagometer.frameCount++;
 }
 
+
 /*
 ==============
 CG_AddLagometerSnapshotInfo
@@ -1618,6 +1619,7 @@ void CG_AddLagometerSnapshotInfo( snapshot_t *snap ) {
 	lagometer.snapshotFlags[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->snapFlags;
 	lagometer.snapshotCount++;
 }
+
 
 /*
 ==============
@@ -1767,7 +1769,11 @@ static void CG_DrawLagometer( void ) {
 	trap_R_SetColor( NULL );
 
 	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
-		CG_DrawBigString( ax, ay, "snc", 1.0 );
+		CG_DrawStringExt( 640 - 16, y, "snc", g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse, 5, 10, 0 ); 
+	}
+
+	if ( !cg.demoPlayback ) {
+		CG_DrawStringExt( x+1, y, va( "%ims", cg.meanPing ), g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse, 5, 10, 0 ); 
 	}
 
 	CG_DrawDisconnect();
@@ -2578,6 +2584,28 @@ static void CG_DrawTourneyScoreboard( void ) {
 #endif
 }
 
+
+static void CG_CalculatePing( void ) {
+	int count, i, v;
+
+	cg.meanPing = 0;
+
+	for ( i = 0, count = 0; i < LAG_SAMPLES; i++ ) {
+
+		v = lagometer.snapshotSamples[i];
+		if ( v >= 0 ) {
+			cg.meanPing += v;
+			count++;
+		}
+
+	}
+
+	if ( count ) {
+		cg.meanPing /= count;
+	}
+}
+
+
 /*
 =====================
 CG_DrawActive
@@ -2590,6 +2618,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	if ( !cg.snap ) {
 		CG_DrawInformation();
 		return;
+	}
+
+	if ( !cg.demoPlayback ) {
+		CG_CalculatePing();
 	}
 
 	// optionally draw the tournement scoreboard instead

@@ -39,7 +39,7 @@ PM_AddEvent
 ===============
 */
 void PM_AddEvent( int newEvent ) {
-	BG_AddPredictableEventToPlayerstate( newEvent, 0, pm->ps );
+	BG_AddPredictableEventToPlayerstate( newEvent, 0, pm->ps, -1 );
 }
 
 /*
@@ -53,7 +53,8 @@ void PM_AddTouchEnt( int entityNum ) {
 	if ( entityNum == ENTITYNUM_WORLD ) {
 		return;
 	}
-	if ( pm->numtouch == MAXTOUCH ) {
+
+	if ( pm->numtouch >= MAXTOUCH ) {
 		return;
 	}
 
@@ -1401,7 +1402,7 @@ static void PM_Footsteps( void ) {
 	if ( ( ( old + 64 ) ^ ( pm->ps->bobCycle + 64 ) ) & 128 ) {
 		if ( pm->waterlevel == 0 ) {
 			// on ground will only play sounds if running
-			if ( footstep && !pm->noFootsteps ) {
+			if ( footstep ) {
 				PM_AddEvent( PM_FootstepForSurface() );
 			}
 		} else if ( pm->waterlevel == 1 ) {

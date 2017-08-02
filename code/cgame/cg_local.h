@@ -146,6 +146,7 @@ typedef struct {
 	lerpFrame_t		legs, torso, flag;
 	int				painTime;
 	int				painDirection;	// flip from 0 to 1
+	qboolean		painIgnore;
 	int				lightningFiring;
 
 	// railgun trail spawning
@@ -177,6 +178,8 @@ typedef struct centity_s {
 	int				trailTime;		// so missile trails can handle dropped initial packets
 	int				dustTrailTime;
 	int				miscTime;
+	int				delaySpawn;
+	qboolean		delaySpawnPlayed;
 
 	int				snapShotTime;	// last time this entity was found in a snapshot
 
@@ -446,7 +449,11 @@ typedef struct {
 // occurs, and they will have visible effects for #define STEP_TIME or whatever msec after
 
 #define MAX_PREDICTED_EVENTS	16
- 
+
+#define PICKUP_PREDICTION_DELAY 200
+
+#define NUM_SAVED_STATES ( CMD_BACKUP + 2 )
+
 typedef struct {
 	int			clientFrame;		// incremented each frame
 
@@ -648,6 +655,15 @@ typedef struct {
 	char			testModelName[MAX_QPATH];
 	qboolean		testGun;
 
+	// optimized prediction
+	int				lastPredictedCommand;
+	int				lastServerTime;
+	playerState_t	savedPmoveStates[ NUM_SAVED_STATES ];
+	int				stateHead, stateTail;
+
+	int				meanPing;
+	int				timeResidual;
+	int				allowPickupPrediction;
 } cg_t;
 
 
@@ -875,7 +891,6 @@ typedef struct {
 	sfxHandle_t	respawnSound;
 	sfxHandle_t talkSound;
 	sfxHandle_t landSound;
-	sfxHandle_t fallSound;
 	sfxHandle_t jumpPadSound;
 
 	sfxHandle_t oneMinuteSound;
@@ -976,8 +991,6 @@ typedef struct {
 	sfxHandle_t scoutSound;
 #endif
 	qhandle_t cursor;
-	qhandle_t selectCursor;
-	qhandle_t sizeCursor;
 
 	sfxHandle_t	regenSound;
 	sfxHandle_t	protectSound;
@@ -1198,6 +1211,7 @@ extern  vmCvar_t		cg_recordSPDemo;
 extern  vmCvar_t		cg_recordSPDemoName;
 extern	vmCvar_t		cg_obeliskRespawnDelay;
 #endif
+extern const char		*eventnames[EV_MAX];
 
 //
 // cg_main.c
@@ -1334,13 +1348,14 @@ void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec
 void CG_PredictPlayerState( void );
 void CG_LoadDeferredPlayers( void );
 
+void CG_PlayDroppedEvents( playerState_t *ps, playerState_t *ops );
 
 //
 // cg_events.c
 //
 void CG_CheckEvents( centity_t *cent );
-const char	*CG_PlaceString( int rank );
-void CG_EntityEvent( centity_t *cent, vec3_t position );
+const char *CG_PlaceString( int rank );
+void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum );
 void CG_PainEvent( centity_t *cent, int health );
 
 

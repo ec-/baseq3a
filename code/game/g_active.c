@@ -568,6 +568,8 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 				if ( drop->count < 1 ) {
 					drop->count = 1;
 				}
+				// for pickup prediction
+				drop->s.time2 = drop->count;
 
 				ent->client->ps.powerups[ j ] = 0;
 			}
@@ -742,7 +744,7 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ucmd->serverTime > level.time + 200 ) {
 		ucmd->serverTime = level.time + 200;
 //		G_Printf("serverTime <<<<<\n" );
-	}
+	} else
 	if ( ucmd->serverTime < level.time - 1000 ) {
 		ucmd->serverTime = level.time - 1000;
 //		G_Printf("serverTime >>>>>\n" );
@@ -800,7 +802,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	// clear the rewards if time
 	if ( level.time > client->rewardTime ) {
-		client->ps.eFlags &= ~(EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT | EF_AWARD_GAUNTLET | EF_AWARD_ASSIST | EF_AWARD_DEFEND | EF_AWARD_CAP );
+		client->ps.eFlags &= ~EF_AWARDS;
 	}
 
 	if ( client->noclip ) {
@@ -890,7 +892,6 @@ void ClientThink_real( gentity_t *ent ) {
 	pm.trace = trap_Trace;
 	pm.pointcontents = trap_PointContents;
 	pm.debugLevel = g_debugMove.integer;
-	pm.noFootsteps = ( g_dmflags.integer & DF_NO_FOOTSTEPS ) > 0;
 
 	pm.pmove_fixed = pmove_fixed.integer;
 	pm.pmove_msec = pmove_msec.integer;
@@ -1099,7 +1100,7 @@ void ClientEndFrame( gentity_t *ent ) {
 
 	// turn off any expired powerups
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
-		if ( client->ps.powerups[ i ] < level.time ) {
+		if ( client->ps.powerups[ i ] < client->pers.cmd.serverTime ) {
 			client->ps.powerups[ i ] = 0;
 		}
 	}

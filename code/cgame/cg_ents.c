@@ -207,7 +207,7 @@ CG_Item
 static void CG_Item( centity_t *cent ) {
 	refEntity_t		ent;
 	entityState_t	*es;
-	gitem_t			*item;
+	const gitem_t	*item;
 	int				msec;
 	float			frac;
 	float			scale;
@@ -221,7 +221,7 @@ static void CG_Item( centity_t *cent ) {
 	}
 
 	// if set to invisible, skip
-	if ( !es->modelindex || ( es->eFlags & EF_NODRAW ) ) {
+	if ( !es->modelindex || ( es->eFlags & EF_NODRAW ) || cent->delaySpawn > cg.time ) {
 		return;
 	}
 

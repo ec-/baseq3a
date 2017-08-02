@@ -644,19 +644,19 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	// set max health
 #ifdef MISSIONPACK
 	if (client->ps.powerups[PW_GUARD]) {
-		client->pers.maxHealth = 200;
+		client->pers.maxHealth = HEALTH_SOFT_LIMIT*2;
 	} else {
 		health = atoi( Info_ValueForKey( userinfo, "handicap" ) );
 		client->pers.maxHealth = health;
-		if ( client->pers.maxHealth < 1 || client->pers.maxHealth > 100 ) {
-			client->pers.maxHealth = 100;
+		if ( client->pers.maxHealth < 1 || client->pers.maxHealth > HEALTH_SOFT_LIMIT ) {
+			client->pers.maxHealth = HEALTH_SOFT_LIMIT;
 		}
 	}
 #else
 	health = atoi( Info_ValueForKey( userinfo, "handicap" ) );
 	client->pers.maxHealth = health;
-	if ( client->pers.maxHealth < 1 || client->pers.maxHealth > 100 ) {
-		client->pers.maxHealth = 100;
+	if ( client->pers.maxHealth < 1 || client->pers.maxHealth > HEALTH_SOFT_LIMIT ) {
+		client->pers.maxHealth = HEALTH_SOFT_LIMIT;
 	}
 #endif
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
@@ -681,15 +681,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 		client->pers.teamInfo = qfalse;
 	}
 #endif
-	/*
-	s = Info_ValueForKey( userinfo, "cg_pmove_fixed" );
-	if ( !*s || atoi( s ) == 0 ) {
-		client->pers.pmoveFixed = qfalse;
-	}
-	else {
-		client->pers.pmoveFixed = qtrue;
-	}
-	*/
 
 	// set model
 	Q_strncpyz( model, Info_ValueForKey( userinfo, "model" ), sizeof( model ) );
@@ -1062,8 +1053,8 @@ void ClientSpawn(gentity_t *ent) {
 	trap_GetUserinfo( index, userinfo, sizeof(userinfo) );
 	// set max health
 	client->pers.maxHealth = atoi( Info_ValueForKey( userinfo, "handicap" ) );
-	if ( client->pers.maxHealth < 1 || client->pers.maxHealth > 100 ) {
-		client->pers.maxHealth = 100;
+	if ( client->pers.maxHealth < 1 || client->pers.maxHealth > HEALTH_SOFT_LIMIT ) {
+		client->pers.maxHealth = HEALTH_SOFT_LIMIT;
 	}
 	// clear entity values
 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;

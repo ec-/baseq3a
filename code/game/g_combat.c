@@ -82,7 +82,10 @@ void TossClientItems( gentity_t *self ) {
 		item = BG_FindItemForWeapon( weapon );
 
 		// spawn the item
-		Drop_Item( self, item, 0 );
+		drop = Drop_Item( self, item, 0 );
+
+		// for pickup prediction
+		drop->s.time2 = item->quantity;
 	}
 
 	// drop all the powerups if not in teamplay
@@ -100,14 +103,16 @@ void TossClientItems( gentity_t *self ) {
 				if ( drop->count < 1 ) {
 					drop->count = 1;
 				}
+				// for pickup prediction
+				drop->s.time2 = drop->count;
 				angle += 45;
 			}
 		}
 	}
 }
 
-#ifdef MISSIONPACK
 
+#ifdef MISSIONPACK
 /*
 =================
 TossClientCubes
@@ -533,11 +538,13 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	// if I committed suicide, the flag does not fall, it returns.
 	if (meansOfDeath == MOD_SUICIDE) {
+#ifdef MISSIONPACK
 		if ( self->client->ps.powerups[PW_NEUTRALFLAG] ) {		// only happens in One Flag CTF
 			Team_ReturnFlag( TEAM_FREE );
 			self->client->ps.powerups[PW_NEUTRALFLAG] = 0;
-		}
-		else if ( self->client->ps.powerups[PW_REDFLAG] ) {		// only happens in standard CTF
+		} else 
+#endif
+		if ( self->client->ps.powerups[PW_REDFLAG] ) {		// only happens in standard CTF
 			Team_ReturnFlag( TEAM_RED );
 			self->client->ps.powerups[PW_REDFLAG] = 0;
 		}

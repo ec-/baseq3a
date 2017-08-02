@@ -11,6 +11,9 @@
 #define	GIB_HEALTH			-40
 #define	ARMOR_PROTECTION	0.66
 
+#define	HEALTH_SOFT_LIMIT	100
+#define	AMMO_HARD_LIMIT		200
+
 #define	MAX_ITEMS			256
 
 #define	RANK_TIED_FLAG		0x4000
@@ -151,7 +154,6 @@ typedef struct {
 	usercmd_t	cmd;
 	int			tracemask;			// collide against these types of surfaces
 	int			debugLevel;			// if set, diagnostic output will be printed
-	qboolean	noFootsteps;		// if the game is setup for no footsteps by the server
 	qboolean	gauntletHit;		// true if a gauntlet attack would actually hit something
 
 	int			framecount;
@@ -253,6 +255,8 @@ typedef enum {
 
 #define EF_PERSISTANT ( EF_CONNECTION | EF_VOTED | EF_TEAMVOTED )
 #define EF_AWARDS ( EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT | EF_AWARD_GAUNTLET | EF_AWARD_ASSIST | EF_AWARD_DEFEND | EF_AWARD_CAP )
+
+#define EF_NOPREDICT ( EF_AWARDS | EF_PERSISTANT | EF_TALK )
 
 // NOTE: may not have more than 16
 typedef enum {
@@ -694,7 +698,7 @@ typedef enum {
 void	BG_EvaluateTrajectory( const trajectory_t *tr, int atTime, vec3_t result );
 void	BG_EvaluateTrajectoryDelta( const trajectory_t *tr, int atTime, vec3_t result );
 
-void	BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps );
+void	BG_AddPredictableEventToPlayerstate( entity_event_t newEvent, int eventParm, playerState_t *ps, int entityNum );
 
 void	BG_TouchJumpPad( playerState_t *ps, entityState_t *jumppad );
 

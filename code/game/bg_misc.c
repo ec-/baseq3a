@@ -1372,10 +1372,13 @@ BG_AddPredictableEventToPlayerstate
 Handles the sequence numbers
 ===============
 */
+#ifdef CGAME
+void CG_StoreEvent( entity_event_t ev, int eventParm, int entityNum );
+#endif
 
 void	trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
-void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
+void BG_AddPredictableEventToPlayerstate( entity_event_t newEvent, int eventParm, playerState_t *ps, int entityNum ) {
 
 #ifdef _DEBUG
 	{
@@ -1390,10 +1393,16 @@ void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerSta
 		}
 	}
 #endif
+
+#ifdef CGAME
+	CG_StoreEvent( newEvent, eventParm, entityNum );
+#endif
+	
 	ps->events[ps->eventSequence & (MAX_PS_EVENTS-1)] = newEvent;
 	ps->eventParms[ps->eventSequence & (MAX_PS_EVENTS-1)] = eventParm;
 	ps->eventSequence++;
 }
+
 
 /*
 ========================
@@ -1426,7 +1435,7 @@ void BG_TouchJumpPad( playerState_t *ps, entityState_t *jumppad ) {
 		} else {
 			effectNum = 1;
 		}
-		BG_AddPredictableEventToPlayerstate( EV_JUMP_PAD, effectNum, ps );
+		BG_AddPredictableEventToPlayerstate( EV_JUMP_PAD, effectNum, ps, -1 );
 	}
 	// remember hitting this jumppad this frame
 	ps->jumppad_ent = jumppad->number;

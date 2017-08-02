@@ -188,13 +188,15 @@ int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 
 //======================================================================
 
+
 void Add_Ammo (gentity_t *ent, int weapon, int count)
 {
 	ent->client->ps.ammo[weapon] += count;
-	if ( ent->client->ps.ammo[weapon] > 200 ) {
-		ent->client->ps.ammo[weapon] = 200;
+	if ( ent->client->ps.ammo[weapon] > AMMO_HARD_LIMIT ) {
+		ent->client->ps.ammo[weapon] = AMMO_HARD_LIMIT;
 	}
 }
+
 
 int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 {
@@ -441,7 +443,11 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		break;
 	case IT_POWERUP:
 		respawn = Pickup_Powerup(ent, other);
-		predict = qfalse;
+		// allow prediction for some powerups
+		if ( ent->item->giTag >= PW_QUAD && ent->item->giTag <= PW_FLIGHT )
+			predict = qtrue;
+		else
+			predict = qfalse;
 		break;
 #ifdef MISSIONPACK
 	case IT_PERSISTANT_POWERUP:
@@ -656,6 +662,13 @@ void FinishSpawningItem( gentity_t *ent ) {
 	// using an item causes it to respawn
 	ent->use = Use_Item;
 
+	// for pickup prediction
+	if ( ent->count ) {
+		ent->s.time2 = ent->count;
+	} else if ( ent->item ) {
+		ent->s.time2 = ent->item->quantity;	
+	}
+
 	if ( ent->spawnflags & 1 ) {
 		// suspended
 		G_SetOrigin( ent, ent->s.origin );
@@ -694,8 +707,7 @@ void FinishSpawningItem( gentity_t *ent ) {
 		return;
 	}
 
-
-	trap_LinkEntity (ent);
+	trap_LinkEntity( ent );
 }
 
 

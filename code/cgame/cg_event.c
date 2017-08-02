@@ -375,8 +375,8 @@ static void CG_UseItem( centity_t *cent ) {
 		break;
 #endif
 	}
-
 }
+
 
 /*
 ================
@@ -464,6 +464,12 @@ void CG_PainEvent( centity_t *cent, int health ) {
 
 	// don't do more than two pain sounds a second
 	if ( cg.time - cent->pe.painTime < 500 ) {
+		cent->pe.painIgnore = qfalse;
+		return;
+	}
+
+	if ( cent->pe.painIgnore ) {
+		cent->pe.painIgnore = qfalse;
 		return;
 	}
 
@@ -504,15 +510,16 @@ also called by CG_CheckPlayerstateEvents
 ==============
 */
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){CG_Printf(x"\n");}
-void CG_EntityEvent( centity_t *cent, vec3_t position ) {
+void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 	entityState_t	*es;
-	int				event;
+	entity_event_t	event;
 	vec3_t			dir;
 	const char		*s;
 	int				clientNum;
 	clientInfo_t	*ci;
 	vec3_t			vec;
 	float			fovOffset;
+	centity_t		*ce;
 
 	es = &cent->currentState;
 	event = es->event & ~EV_EVENT_BITS;
@@ -586,6 +593,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_FALL_MEDIUM");
 		// use normal pain sound
 		trap_S_StartSound( NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*pain100_1.wav" ) );
+		cent->pe.painIgnore = qtrue;
+		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
 			// smooth landing z changes
 			cg.landChange = -16;
@@ -595,6 +604,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_FALL_FAR:
 		DEBUGNAME("EV_FALL_FAR");
 		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*fall1.wav" ) );
+		cent->pe.painIgnore = qtrue;
 		cent->pe.painTime = cg.time;	// don't play a pain sound right after this
 		if ( clientNum == cg.predictedPlayerState.clientNum ) {
 			// smooth landing z changes
@@ -662,7 +672,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_JUMP:
 		DEBUGNAME("EV_JUMP");
-		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
+		// pain event with fast sequential jump just creates sound distortion
+		if ( cg.time - cent->pe.painTime > 50 )
+			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
 		break;
 	case EV_TAUNT:
 		DEBUGNAME("EV_TAUNT");
@@ -722,6 +734,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if ( index < 1 || index >= bg_numItems ) {
 				break;
 			}
+
+			if ( entityNum >= 0 ) {
+				// our predicted entity
+				ce = cg_entities + entityNum;
+				if ( ce->delaySpawn > cg.time && ce->delaySpawnPlayed ) {
+					break; // delay item pickup
+				}
+			} else {
+				ce = NULL;
+			}
+
 			item = &bg_itemlist[ index ];
 
 			// powerups and team items will have a separate global sound, this one
@@ -753,6 +776,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if ( es->number == cg.snap->ps.clientNum ) {
 				CG_ItemPickup( index );
 			}
+
+			if ( ce ) {
+				ce->delaySpawnPlayed = qtrue;
+			}
 		}
 		break;
 
@@ -767,6 +794,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if ( index < 1 || index >= bg_numItems ) {
 				break;
 			}
+
+			if ( entityNum >= 0 ) {
+				// our predicted entity
+				ce = cg_entities + entityNum;
+				if ( ce->delaySpawn > cg.time && ce->delaySpawnPlayed ) {
+					break;
+				}
+			} else {
+				ce = NULL;
+			}
+
 			item = &bg_itemlist[ index ];
 			// powerup pickups are global
 			if( item->pickup_sound ) {
@@ -776,6 +814,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			// show icon and name on status bar
 			if ( es->number == cg.snap->ps.clientNum ) {
 				CG_ItemPickup( index );
+			}
+
+			if ( ce ) {
+				ce->delaySpawnPlayed = qtrue;
 			}
 		}
 		break;
@@ -1277,6 +1319,5 @@ void CG_CheckEvents( centity_t *cent ) {
 	BG_EvaluateTrajectory( &cent->currentState.pos, cg.snap->serverTime, cent->lerpOrigin );
 	CG_SetEntitySoundPosition( cent );
 
-	CG_EntityEvent( cent, cent->lerpOrigin );
+	CG_EntityEvent( cent, cent->lerpOrigin, -1 );
 }
-
