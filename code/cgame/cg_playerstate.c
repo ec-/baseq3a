@@ -287,7 +287,28 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 		}
 #else
-		trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+		if ( cg_hitSounds.integer > 0 && (ps->persistant[PERS_ATTACKEE_ARMOR] & 0xFF00) == 0 )
+		{
+			// high byte of PERS_ATTACKEE_ARMOR is target->health in vq3/ta i.e. it is always non-zero
+			// so we will use this value to filter legacy data from our new hitsounds where it is always 0
+			int damage, index;
+			damage = ps->persistant[PERS_ATTACKEE_ARMOR] & 0xFF;
+
+			// damage value is already scaled by STAT_MAX_HEALTH on server side
+			if ( damage > 75 ) index = 3;
+			else if ( damage > 50 ) index = 2;
+			else if ( damage > 25 ) index = 1;
+			else index = 0;
+
+			if ( cg_hitSounds.integer > 1 ) // reversed: higher damage - higher tone
+				index = 3 - index;
+
+			trap_S_StartLocalSound( cgs.media.hitSounds[ index ], CHAN_LOCAL_SOUND );
+		} 
+		else
+		{
+			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+		}
 #endif
 	} else if ( ps->persistant[PERS_HITS] < ops->persistant[PERS_HITS] ) {
 		trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );

@@ -902,6 +902,7 @@ typedef struct {
 	sfxHandle_t oneFragSound;
 
 	sfxHandle_t hitSound;
+	sfxHandle_t hitSounds[4];
 #ifdef MISSIONPACK
 	sfxHandle_t hitSoundHighArmor;
 	sfxHandle_t hitSoundLowArmor;
@@ -1211,7 +1212,11 @@ extern  vmCvar_t		cg_recordSPDemo;
 extern  vmCvar_t		cg_recordSPDemoName;
 extern	vmCvar_t		cg_obeliskRespawnDelay;
 #endif
+
+extern	vmCvar_t		cg_hitSounds;
+
 extern const char		*eventnames[EV_MAX];
+
 
 //
 // cg_main.c

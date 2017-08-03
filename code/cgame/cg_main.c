@@ -182,6 +182,8 @@ vmCvar_t	cg_recordSPDemoName;
 vmCvar_t	cg_obeliskRespawnDelay;
 #endif
 
+vmCvar_t	cg_hitSounds;
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	const char	*cvarName;
@@ -297,8 +299,8 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_oldRail, "cg_oldRail", "1", CVAR_ARCHIVE},
 	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
-	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE}
-//	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE }
+	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
+	{ &cg_hitSounds, "cg_hitSounds", "0", CVAR_ARCHIVE}
 };
 
 
@@ -635,7 +637,13 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.talkSound = trap_S_RegisterSound( "sound/player/talk.wav", qfalse );
 	cgs.media.landSound = trap_S_RegisterSound( "sound/player/land1.wav", qfalse);
 
+	cgs.media.hitSounds[0] = trap_S_RegisterSound( "sound/feedback/hit25.wav", qfalse );
+	cgs.media.hitSounds[1] = trap_S_RegisterSound( "sound/feedback/hit50.wav", qfalse );
+	cgs.media.hitSounds[2] = trap_S_RegisterSound( "sound/feedback/hit75.wav", qfalse );
+	cgs.media.hitSounds[3] = trap_S_RegisterSound( "sound/feedback/hit100.wav", qfalse );
+
 	cgs.media.hitSound = trap_S_RegisterSound( "sound/feedback/hit.wav", qfalse );
+
 #ifdef MISSIONPACK
 	cgs.media.hitSoundHighArmor = trap_S_RegisterSound( "sound/feedback/hithi.wav", qfalse );
 	cgs.media.hitSoundLowArmor = trap_S_RegisterSound( "sound/feedback/hitlo.wav", qfalse );

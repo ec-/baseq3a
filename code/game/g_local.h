@@ -325,6 +325,13 @@ struct gclient_s {
 	int			historyHead;
 	int			frameOffset;
 	int			lastUpdateFrame;
+
+	// hitsounds
+	struct {
+		int		team;
+		int		enemy;
+		int		amount;
+	} damage;
 };
 
 

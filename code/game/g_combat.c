@@ -960,18 +960,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		damage *= 0.5;
 	}
 
-	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
-	if ( attacker->client && client && targ != attacker && targ->health > 0
-			&& targ->s.eType != ET_MISSILE
-			&& targ->s.eType != ET_GENERAL) {
-		if ( OnSameTeam( targ, attacker ) ) {
-			attacker->client->ps.persistant[PERS_HITS]--;
-		} else {
-			attacker->client->ps.persistant[PERS_HITS]++;
-		}
-		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
-	}
-
 	// always give half damage if hurting self
 	// calculated after knockback, so rocket jumping works
 	if ( targ == attacker) {
@@ -984,12 +972,37 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	take = damage;
 
 	// save some from armor
-	asave = CheckArmor (targ, take, dflags);
+	asave = CheckArmor( targ, take, dflags );
+
 	take -= asave;
 
 	if ( g_debugDamage.integer ) {
 		G_Printf( "%i: client:%i health:%i damage:%i armor:%i\n", level.time, targ->s.number,
 			targ->health, take, asave );
+	}
+
+	// add to the attacker's hit counter (if the target isn't a general entity like a prox mine)
+	if ( attacker->client && client && targ != attacker && targ->health > 0
+			&& targ->s.eType != ET_MISSILE
+			&& targ->s.eType != ET_GENERAL) {
+#ifdef MISSIONPACK
+		if ( OnSameTeam( targ, attacker ) ) {
+			attacker->client->ps.persistant[PERS_HITS]--;
+		} else {
+			attacker->client->ps.persistant[PERS_HITS]++;
+		}
+		attacker->client->ps.persistant[PERS_ATTACKEE_ARMOR] = (targ->health<<8)|(client->ps.stats[STAT_ARMOR]);
+#else
+		// we may hit multiple targets from different teams
+		// so usual PERS_HITS increments/decrements could result in ZERO delta
+		if ( OnSameTeam( targ, attacker ) ) {
+			attacker->client->damage.team++;
+		} else {
+			attacker->client->damage.enemy++;
+			// accumulate damage during server frame
+			attacker->client->damage.amount += take + asave;
+		}
+#endif
 	}
 
 	// add to the damage inflicted on a player this frame

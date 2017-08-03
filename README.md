@@ -14,10 +14,12 @@ Unofficial Quake III Arena gamecode patch
  * updated serverinfo UI
  * map rotation system
  * unlagged weapons
+ * improved prediction
+ * damage-based hitsounds
 
 # TODO:
- * improved prediction
- * ...
+ * colored skins
+ * documentation
 
 # Compilation and installation
 

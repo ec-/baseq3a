@@ -1177,6 +1177,22 @@ void ClientEndFrame( gentity_t *ent ) {
 	// unlagged
 	G_StoreHistory( ent );
 
+	// hitsounds
+	if ( client->damage.enemy && client->damage.amount ) {
+		client->ps.persistant[PERS_HITS] += client->damage.enemy;
+		client->damage.enemy = 0;
+		// scale damage by max.health
+		i = client->damage.amount * 100 / client->ps.stats[STAT_MAX_HEALTH];
+		// avoid high-byte setup
+		if ( i > 255 )
+			i = 255;
+		client->ps.persistant[PERS_ATTACKEE_ARMOR] = i;
+		client->damage.amount = 0;
+	} else if ( client->damage.team ) {
+		client->ps.persistant[PERS_HITS] -= client->damage.team;
+		client->damage.team = 0;
+	}
+
 	// set the bit for the reachability area the client is currently in
 //	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
 //	ent->client->areabits[i >> 3] |= 1 << (i & 7);
