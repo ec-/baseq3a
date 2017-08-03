@@ -373,6 +373,12 @@ typedef struct {
 	animation_t		animations[MAX_TOTALANIMATIONS];
 
 	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
+
+	qboolean		coloredSkin;
+	vec3_t			headColor;
+	vec3_t			bodyColor;
+	vec3_t			legsColor;
+
 } clientInfo_t;
 
 
@@ -1215,6 +1221,9 @@ extern	vmCvar_t		cg_obeliskRespawnDelay;
 
 extern	vmCvar_t		cg_hitSounds;
 
+extern	vmCvar_t		cg_enemyModel;
+extern	vmCvar_t		cg_enemyColors;
+
 extern const char		*eventnames[EV_MAX];
 
 
@@ -1332,7 +1341,8 @@ qboolean CG_YourTeamHasFlag( void );
 qboolean CG_OtherTeamHasFlag( void );
 qhandle_t CG_StatusHandle(int task);
 
-
+void CG_ForceModelChange( void );
+void CG_TrackClientTeamChange( void );
 
 //
 // cg_player.c

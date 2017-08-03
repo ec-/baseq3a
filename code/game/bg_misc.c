@@ -1692,7 +1692,7 @@ int replace_s( char * str1, char * str2, char * src, int max_len )
 }
 
 
-qboolean replace1( const char match, const char replace, char *str ) 
+qboolean replace1( const char match, const char replace, char *str )
 {
 	qboolean	res = qfalse;
 
@@ -1700,7 +1700,7 @@ qboolean replace1( const char match, const char replace, char *str )
 		return res;
 
 	while ( *str ) {
-		if ( *str == match )	{
+		if ( *str == match ) {
 			*str = replace;
 			res = qtrue;
 		}

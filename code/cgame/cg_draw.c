@@ -244,10 +244,10 @@ static void CG_DrawField (int x, int y, int width, int value) {
 }
 #endif // MISSIONPACK
 
+
 /*
 ================
 CG_Draw3DModel
-
 ================
 */
 void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles ) {
@@ -288,6 +288,57 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	trap_R_RenderScene( &refdef );
 }
 
+
+
+/*
+================
+CG_Draw3DModel
+================
+*/
+void CG_Draw3DModelColor( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles, vec3_t color ) {
+	refdef_t		refdef;
+	refEntity_t		ent;
+
+	if ( !cg_draw3dIcons.integer || !cg_drawIcons.integer ) {
+		return;
+	}
+
+	CG_AdjustFrom640( &x, &y, &w, &h );
+
+	memset( &refdef, 0, sizeof( refdef ) );
+
+	memset( &ent, 0, sizeof( ent ) );
+	AnglesToAxis( angles, ent.axis );
+	VectorCopy( origin, ent.origin );
+	ent.hModel = model;
+	ent.customSkin = skin;
+	ent.renderfx = RF_NOSHADOW;		// no stencil shadows
+
+	refdef.rdflags = RDF_NOWORLDMODEL;
+
+	AxisClear( refdef.viewaxis );
+
+	refdef.fov_x = 30;
+	refdef.fov_y = 30;
+
+	refdef.x = x;
+	refdef.y = y;
+	refdef.width = w;
+	refdef.height = h;
+
+	refdef.time = cg.time;
+
+	ent.shaderRGBA[0] = color[0] * 255;
+	ent.shaderRGBA[1] = color[1] * 255;
+	ent.shaderRGBA[2] = color[2] * 255;
+	ent.shaderRGBA[3] = 255;
+
+	trap_R_ClearScene();
+	trap_R_AddRefEntityToScene( &ent );
+	trap_R_RenderScene( &refdef );
+}
+
+
 /*
 ================
 CG_DrawHead
@@ -324,7 +375,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		// allow per-model tweaking
 		VectorAdd( origin, ci->headOffset, origin );
 
-		CG_Draw3DModel( x, y, w, h, ci->headModel, ci->headSkin, origin, headAngles );
+		CG_Draw3DModelColor( x, y, w, h, ci->headModel, ci->headSkin, origin, headAngles, ci->headColor );
 	} else if ( cg_drawIcons.integer ) {
 		trap_R_SetColor ( NULL );
 		CG_DrawPic( x, y, w, h, ci->modelIcon );
@@ -2215,6 +2266,7 @@ static void CG_DrawIntermission( void ) {
 	cg.scoreBoardShowing = CG_DrawScoreboard();
 }
 
+
 /*
 =================
 CG_DrawFollow
@@ -2228,11 +2280,11 @@ static qboolean CG_DrawFollow( void ) {
 	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) ) {
 		return qfalse;
 	}
+
 	color[0] = 1;
 	color[1] = 1;
 	color[2] = 1;
 	color[3] = 1;
-
 
 	CG_DrawBigString( 320 - 9 * 8, 24, "following", 1.0F );
 
@@ -2457,6 +2509,7 @@ static void CG_DrawWarmup( void ) {
 #endif
 }
 
+
 //==================================================================================
 #ifdef MISSIONPACK
 /* 
@@ -2475,6 +2528,8 @@ void CG_DrawTimedMenus( void ) {
 	}
 }
 #endif
+
+
 /*
 =================
 CG_Draw2D
@@ -2606,6 +2661,110 @@ static void CG_CalculatePing( void ) {
 }
 
 
+// will be called on warmup end and when client changed
+void CG_WarmupEvent( void ) {
+
+	cg.attackerTime = 0;
+	cg.attackerName[0] = '\0';
+
+	cg.itemPickupTime = 0;
+	cg.itemPickupBlendTime = 0;
+
+	cg.killerTime = 0;
+	cg.killerName[0] = '\0';
+	
+	cg.damageTime = 0;
+
+	cg.rewardStack = 0;
+	cg.rewardTime = 0;
+	
+	cg.weaponSelectTime = cg.time;
+
+	cg.lowAmmoWarning = 0;
+}
+
+
+// called each time client team changed
+static void CG_ApplyClientChange( void )
+{
+	CG_WarmupEvent();
+	CG_ForceModelChange();
+}
+
+
+/*
+=====================
+CG_TrackClientTeamChange
+=====================
+*/
+void CG_TrackClientTeamChange( void ) 
+{
+	static int spec_client = -1;
+	static int spec_team = -1;
+	static int curr_team = -1;
+
+	int		ti; // team from clientinfo 
+	int		tp; // persistant team from snapshot
+
+	if ( !cg.snap )
+		return;
+
+	tp = cg.snap->ps.persistant[ PERS_TEAM ];
+	ti = cgs.clientinfo[ cg.snap->ps.clientNum ].team;
+
+	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) && tp != TEAM_SPECTATOR ) {
+		ti = tp; // use team from persistant info
+	}
+
+	// team changed
+	if ( curr_team != ti )
+	{
+		curr_team = ti;
+		spec_client = cg.snap->ps.clientNum;
+		spec_team = tp;
+
+		if ( spec_team == TEAM_SPECTATOR )
+			spec_team = curr_team;
+
+		CG_ApplyClientChange();
+		CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+		return;
+	}
+
+	if ( curr_team == TEAM_SPECTATOR )
+	{
+		if ( spec_team != tp )
+		{
+			spec_team  = tp;
+			spec_client = cg.snap->ps.clientNum;
+
+			CG_ApplyClientChange();
+			CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+			return;
+		}
+
+		if ( cgs.gametype >= GT_TEAM ) 
+		{
+			spec_client = cg.snap->ps.clientNum;
+			return;
+		}
+		// pass through to spec client checks
+	}
+	
+	if ( spec_client != cg.snap->ps.clientNum ) 
+	{
+		spec_client = cg.snap->ps.clientNum;
+		spec_team = tp;
+
+		if ( spec_team == TEAM_SPECTATOR )
+			spec_team = cgs.clientinfo[ cg.snap->ps.clientNum ].team;
+
+		CG_ApplyClientChange();
+		CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+	}
+}
+
+
 /*
 =====================
 CG_DrawActive
@@ -2638,8 +2797,5 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	trap_R_RenderScene( &cg.refdef );
 
 	// draw status bar and other floating elements
- 	CG_Draw2D(stereoView);
+ 	CG_Draw2D( stereoView );
 }
-
-
-

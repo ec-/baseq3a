@@ -756,6 +756,8 @@ void Q_strcpy( char *dst, const char *src );
 char *Q_stradd( char *dst, const char *src );
 int Q_sscanf( const char *buffer, const char *fmt, ... );
 
+qboolean replace1( const char match, const char replace, char *str );
+
 qboolean  BigEndian( void );
 
 //#endif // __BG_PUBLIC_H

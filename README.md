@@ -16,10 +16,12 @@ Unofficial Quake III Arena gamecode patch
  * unlagged weapons
  * improved prediction
  * damage-based hitsounds
+ * colored skins
 
 # TODO:
- * colored skins
+
  * documentation
+ * bugfixes
 
 # Compilation and installation
 

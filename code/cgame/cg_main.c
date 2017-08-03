@@ -10,6 +10,8 @@ displayContextDef_t cgDC;
 #endif
 
 int forceModelModificationCount = -1;
+int enemyModelModificationCount  = -1;
+int	enemyColorsModificationCount = -1;
 
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum );
 void CG_Shutdown( void );
@@ -184,6 +186,10 @@ vmCvar_t	cg_obeliskRespawnDelay;
 
 vmCvar_t	cg_hitSounds;
 
+vmCvar_t	cg_enemyModel;
+vmCvar_t	cg_enemyColors;
+
+
 typedef struct {
 	vmCvar_t	*vmCvar;
 	const char	*cvarName;
@@ -300,7 +306,9 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_oldRocket, "cg_oldRocket", "1", CVAR_ARCHIVE},
 	{ &cg_oldPlasma, "cg_oldPlasma", "1", CVAR_ARCHIVE},
 	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
-	{ &cg_hitSounds, "cg_hitSounds", "0", CVAR_ARCHIVE}
+	{ &cg_hitSounds, "cg_hitSounds", "0", CVAR_ARCHIVE},
+	{ &cg_enemyModel, "cg_enemyModel", "", CVAR_ARCHIVE},
+	{ &cg_enemyColors, "cg_enemyColors", "", CVAR_ARCHIVE}
 };
 
 
@@ -324,31 +332,34 @@ void CG_RegisterCvars( void ) {
 	cgs.localServer = atoi( var );
 
 	forceModelModificationCount = cg_forceModel.modificationCount;
+	enemyModelModificationCount = cg_enemyModel.modificationCount;
+	enemyColorsModificationCount = cg_enemyColors.modificationCount;
 
 	trap_Cvar_Register(NULL, "model", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
 	trap_Cvar_Register(NULL, "headmodel", DEFAULT_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
-	trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
-	trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO | CVAR_ARCHIVE );
+	//trap_Cvar_Register(NULL, "team_model", DEFAULT_TEAM_MODEL, CVAR_USERINFO | CVAR_ARCHIVE );
+	//trap_Cvar_Register(NULL, "team_headmodel", DEFAULT_TEAM_HEAD, CVAR_USERINFO | CVAR_ARCHIVE );
 }
+
 
 /*																																			
 ===================
 CG_ForceModelChange
 ===================
 */
-static void CG_ForceModelChange( void ) {
-	int		i;
+void CG_ForceModelChange( void ) {
+	const char *clientInfo;
+	int	i;
 
-	for (i=0 ; i<MAX_CLIENTS ; i++) {
-		const char		*clientInfo;
-
-		clientInfo = CG_ConfigString( CS_PLAYERS+i );
+	for ( i = 0 ; i < MAX_CLIENTS ; i++ ) {
+		clientInfo = CG_ConfigString( CS_PLAYERS + i );
 		if ( !clientInfo[0] ) {
 			continue;
 		}
 		CG_NewClientInfo( i );
 	}
 }
+
 
 /*
 =================
@@ -369,22 +380,30 @@ void CG_UpdateCvars( void ) {
 	// let the server know so we don't receive it
 	if ( drawTeamOverlayModificationCount != cg_drawTeamOverlay.modificationCount ) {
 		drawTeamOverlayModificationCount = cg_drawTeamOverlay.modificationCount;
-
+#if 0
 		if ( cg_drawTeamOverlay.integer > 0 ) {
 			trap_Cvar_Set( "teamoverlay", "1" );
 		} else {
 			trap_Cvar_Set( "teamoverlay", "0" );
 		}
+#endif
 		// FIXME E3 HACK
 		trap_Cvar_Set( "teamoverlay", "1" );
 	}
 
-	// if force model changed
-	if ( forceModelModificationCount != cg_forceModel.modificationCount ) {
+	// if model changed
+	if ( forceModelModificationCount != cg_forceModel.modificationCount 
+		|| enemyModelModificationCount != cg_enemyModel.modificationCount
+		|| enemyColorsModificationCount != cg_enemyColors.modificationCount	) {
+
 		forceModelModificationCount = cg_forceModel.modificationCount;
+		enemyModelModificationCount = cg_enemyModel.modificationCount;
+		enemyColorsModificationCount = cg_enemyColors.modificationCount;
+
 		CG_ForceModelChange();
 	}
 }
+
 
 int CG_CrosshairPlayer( void ) {
 	if ( cg.time > ( cg.crosshairClientTime + 1000 ) ) {

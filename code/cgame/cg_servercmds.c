@@ -662,7 +662,7 @@ int CG_HeadModelVoiceChats( char *filename ) {
 	p = &ptr;
 
 	token = COM_ParseExt(p, qtrue);
-	if (!token || token[0] == 0) {
+	if ( token[0] == '\0' ) {
 		return -1;
 	}
 
@@ -965,7 +965,8 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 	for ( i = 0; text[i]; i++ ) {
 		if (text[i] == '\x19')
 			continue;
-		text[l++] = text[i];
+		text[l] = text[i];
+		l++;
 	}
 	text[l] = '\0';
 }
