@@ -168,6 +168,20 @@ static void CG_ParseWarmup( void ) {
 	warmup = atoi( info );
 	cg.warmupCount = -1;
 
+	if ( warmup ) {
+		cg.timelimitWarnings |= 1 | 2 | 4;
+		cg.fraglimitWarnings |= 1 | 2 | 4;
+	}
+
+	if ( cg.clientFrame == 0 ) {
+		if ( warmup == 0 && cgs.gametype != GT_SINGLE_PLAYER ) {
+			// force sound playback in CG_WarmupEvents()
+			cg.warmup = cg.time;
+			cg.warmupCount = -1;
+			return;
+		}
+	}
+
 	if ( warmup == 0 && cg.warmup ) {
 
 	} else if ( warmup > 0 && cg.warmup <= 0 ) {
@@ -443,8 +457,8 @@ static void CG_MapRestart( void ) {
 
 	// make sure the "3 frags left" warnings play again
 	cg.fraglimitWarnings = 0;
-
 	cg.timelimitWarnings = 0;
+
 	cg.rewardTime = 0;
 	cg.rewardStack = 0;
 	cg.intermissionStarted = qfalse;
@@ -456,15 +470,19 @@ static void CG_MapRestart( void ) {
 
 	CG_StartMusic();
 
-	trap_S_ClearLoopingSounds(qtrue);
+	trap_S_ClearLoopingSounds( qtrue );
+
+	cg.allowPickupPrediction = cg.time + PICKUP_PREDICTION_DELAY;
 
 	// we really should clear more parts of cg here and stop sounds
 
 	// play the "fight" sound if this is a restart without warmup
-	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */) {
-		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
-		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */ ) {
+		// force sound playback in CG_WarmupEvents()
+		cg.warmup = cg.time;
+		cg.warmupCount = -1;
 	}
+
 #ifdef MISSIONPACK
 	if (cg_singlePlayerActive.integer) {
 		trap_Cvar_Set("ui_matchStartTime", va("%i", cg.time));
@@ -473,7 +491,8 @@ static void CG_MapRestart( void ) {
 		}
 	}
 #endif
-	trap_Cvar_Set("cg_thirdPerson", "0");
+
+	trap_Cvar_Set( "cg_thirdPerson", "0" );
 }
 
 #ifdef MISSIONPACK

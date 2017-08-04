@@ -1517,6 +1517,116 @@ static void CheckExitRules( void ) {
 }
 
 
+static void ClearBodyQue( void ) {
+	int	i;
+	gentity_t	*ent;
+
+	for ( i = 0 ; i < BODY_QUEUE_SIZE ; i++ ) {
+		ent = level.bodyQue[ i ];
+		if ( ent->r.linked || ent->physicsObject ) {
+			trap_UnlinkEntity( ent );
+			ent->physicsObject = qfalse;
+		}
+	}
+}
+
+
+static void G_WarmupEnd( void ) 
+{
+	gclient_t *client;
+	gentity_t *ent;
+	int i, t;
+
+	// remove corpses
+	ClearBodyQue();
+
+	// return flags
+	Team_ResetFlags();
+
+	memset( level.teamScores, 0, sizeof( level.teamScores ) );
+
+	level.warmupTime = 0;
+	level.startTime = level.time;
+
+	trap_SetConfigstring( CS_SCORES1, "0" );
+	trap_SetConfigstring( CS_SCORES2, "0" );
+	trap_SetConfigstring( CS_WARMUP, "" );
+	trap_SetConfigstring( CS_LEVEL_START_TIME, va( "%i", level.startTime ) );
+	
+	client = level.clients;
+	for ( i = 0; i < level.maxclients; i++, client++ ) {
+		
+		if ( client->pers.connected != CON_CONNECTED )
+			continue;
+
+		// reset player awards
+		client->ps.persistant[PERS_IMPRESSIVE_COUNT] = 0;
+		client->ps.persistant[PERS_EXCELLENT_COUNT] = 0;
+		client->ps.persistant[PERS_DEFEND_COUNT] = 0;
+		client->ps.persistant[PERS_ASSIST_COUNT] = 0;
+		client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT] = 0;
+
+		client->ps.persistant[PERS_SCORE] = 0;
+		client->ps.persistant[PERS_CAPTURES] = 0;
+
+		client->ps.persistant[PERS_ATTACKER] = ENTITYNUM_NONE;
+		client->ps.persistant[PERS_ATTACKEE_ARMOR] = 0;
+		client->damage.enemy = client->damage.team = 0;	
+
+		client->ps.stats[STAT_CLIENTS_READY] = 0;
+		client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
+
+		memset( &client->ps.powerups, 0, sizeof( client->ps.powerups ) );
+
+		ClientUserinfoChanged( i ); // set max.health etc.
+
+		if ( client->sess.sessionTeam != TEAM_SPECTATOR ) {
+			ClientSpawn( level.gentities + i );
+		}
+
+		trap_SendServerCommand( i, "map_restart" );
+	}
+
+	// respawn items, remove projectiles, etc.
+	ent = level.gentities + MAX_CLIENTS;
+	for ( i = MAX_CLIENTS; i < level.num_entities ; i++, ent++ ) {
+
+		if ( !ent->inuse || ent->freeAfterEvent )
+			continue;
+
+		if ( ent->s.eType == ET_ITEM && ent->item ) {
+			
+			// remove dropped items
+			if ( ent->flags & FL_DROPPED_ITEM ) {
+				ent->nextthink = level.time;
+				continue;
+			}
+
+			// respawn picked up items
+			t = SpawnTime( ent, qtrue );
+			if ( t != 0 ) {
+				// hide items with defined spawn time
+				ent->s.eFlags |= EF_NODRAW;
+				ent->r.svFlags |= SVF_NOCLIENT;
+				ent->r.contents = 0;
+				ent->activator = NULL;
+				ent->think = RespawnItem;
+				ent->nextthink = level.time + t;
+			} else {
+				if ( ent->activator ) {
+					ent->activator = NULL;
+					ent->think = RespawnItem;
+				}
+				ent->nextthink = level.time + FRAMETIME;
+			}
+
+		} else if ( ent->s.eType == ET_MISSILE ) {
+			// remove all launched missiles
+			G_FreeEntity( ent );
+		}
+	}
+}
+
 
 /*
 ========================================================================
@@ -1585,10 +1695,7 @@ void CheckTournament( void ) {
 
 		// if the warmup time has counted down, restart
 		if ( level.time > level.warmupTime ) {
-			level.warmupTime = level.time + 10000;
-			trap_Cvar_Set( "g_restarted", "1" );
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
+			G_WarmupEnd();
 			return;
 		}
 	} else if ( g_gametype.integer != GT_SINGLE_PLAYER && level.warmupTime != 0 ) {
@@ -1639,10 +1746,7 @@ void CheckTournament( void ) {
 
 		// if the warmup time has counted down, restart
 		if ( level.time > level.warmupTime ) {
-			level.warmupTime = level.time + 10000;
-			trap_Cvar_Set( "g_restarted", "1" );
-			trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
-			level.restarted = qtrue;
+			G_WarmupEnd();
 			return;
 		}
 	}

@@ -613,9 +613,11 @@ typedef struct {
 	int			voiceChatBufferIn;
 	int			voiceChatBufferOut;
 #endif
+
 	// warmup countdown
 	int			warmup;
 	int			warmupCount;
+	int			warmupFightSound;	// last time "Fight!" sound was played
 
 	//==========================
 

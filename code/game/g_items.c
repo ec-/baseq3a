@@ -15,16 +15,71 @@
   movers and respawn apropriately.
 */
 
+// initial spawn times after warmup
+// in vq3 most of the items appears in one frame but we will delay that a bit
+// to reduce peak bandwidth and get some nice transition effects
+#define	SPAWN_WEAPONS		333
+#define	SPAWN_ARMOR			1200
+#define	SPAWN_HEALTH		900
+#define	SPAWN_AMMO			600
+#define	SPAWN_HOLDABLE		2500
+#define	SPAWN_MEGAHEALTH	10000
+#define	SPAWN_POWERUP		45000
 
-#define	RESPAWN_ARMOR		25
-#define	RESPAWN_HEALTH		35
-#define	RESPAWN_AMMO		40
-#define	RESPAWN_HOLDABLE	60
-#define	RESPAWN_MEGAHEALTH	35//120
-#define	RESPAWN_POWERUP		120
-
+// periodic respawn times
+// g_weaponRespawn.integer || g_weaponTeamRespawn.integer
+#define	RESPAWN_ARMOR		25000
+#define	RESPAWN_HEALTH		35000
+#define	RESPAWN_AMMO		40000
+#define	RESPAWN_HOLDABLE	60000
+#define	RESPAWN_MEGAHEALTH	35000 //120000
+#define	RESPAWN_POWERUP		120000
 
 //======================================================================
+
+int SpawnTime( gentity_t *ent, qboolean firstSpawn ) 
+{
+	if ( !ent->item )
+		return 0;
+
+	switch( ent->item->giType ) {
+
+	case IT_WEAPON:
+		if ( firstSpawn )
+			return SPAWN_WEAPONS;
+		if ( g_gametype.integer == GT_TEAM )
+			return g_weaponRespawn.value * 1000 ;
+		else
+			return g_weaponTeamRespawn.value * 1000;
+
+	case IT_AMMO:
+		return firstSpawn ? SPAWN_AMMO : RESPAWN_AMMO;
+
+	case IT_ARMOR:
+		return firstSpawn ? SPAWN_ARMOR : RESPAWN_ARMOR;
+
+	case IT_HEALTH:
+		if ( ent->item->quantity == 100 ) // mega health respawns slow
+			return firstSpawn ? SPAWN_MEGAHEALTH : RESPAWN_MEGAHEALTH;
+		else
+			return firstSpawn ? SPAWN_HEALTH : RESPAWN_HEALTH;
+
+	case IT_POWERUP:
+		return firstSpawn ? SPAWN_POWERUP : RESPAWN_POWERUP;
+
+#ifdef MISSIONPACK
+	case IT_PERSISTANT_POWERUP:
+		return -1;
+		break;
+#endif
+
+	case IT_HOLDABLE:
+		return firstSpawn ? SPAWN_HOLDABLE : RESPAWN_HOLDABLE;
+	}
+
+	return 0;
+} 
+
 
 int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 	int			quantity;
@@ -32,10 +87,8 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 	gclient_t	*client;
 
 	if ( !other->client->ps.powerups[ent->item->giTag] ) {
-		// round timing to seconds to make multiple powerup timers
-		// count in sync
-		other->client->ps.powerups[ent->item->giTag] = 
-			level.time - ( level.time % 1000 );
+		// round timing to seconds to make multiple powerup timers count in sync
+		other->client->ps.powerups[ent->item->giTag] = level.time - ( level.time % 1000 );
 	}
 
 	if ( ent->count ) {
@@ -57,18 +110,18 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 		if ( client == other->client ) {
 			continue;
 		}
-		if ( client->pers.connected == CON_DISCONNECTED ) {
+		if ( client->pers.connected != CON_CONNECTED ) {
 			continue;
 		}
 		if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
 			continue;
 		}
 
-    // if same team in team game, no sound
-    // cannot use OnSameTeam as it expects to g_entities, not clients
-  	if ( g_gametype.integer >= GT_TEAM && other->client->sess.sessionTeam == client->sess.sessionTeam  ) {
-      continue;
-    }
+		// if same team in team game, no sound
+		// cannot use OnSameTeam as it expects to g_entities, not clients
+		if ( g_gametype.integer >= GT_TEAM && other->client->sess.sessionTeam == client->sess.sessionTeam  ) {
+			continue;
+		}
 
 		// if too far away, no sound
 		VectorSubtract( ent->s.pos.trBase, client->ps.origin, delta );
@@ -92,8 +145,10 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 		// anti-reward
 		client->ps.persistant[PERS_PLAYEREVENTS] ^= PLAYEREVENT_DENIEDREWARD;
 	}
-	return RESPAWN_POWERUP;
+
+	return SpawnTime( ent, qfalse ); // return RESPAWN_POWERUP;
 }
+
 
 //======================================================================
 
@@ -166,7 +221,7 @@ int Pickup_PersistantPowerup( gentity_t *ent, gentity_t *other ) {
 		break;
 	}
 
-	return -1;
+	return SpawnTime( ent, qfalse ); // return -1;
 }
 
 //======================================================================
@@ -182,14 +237,14 @@ int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 	}
 #endif
 
-	return RESPAWN_HOLDABLE;
+	return SpawnTime( ent, qfalse ); // return RESPAWN_HOLDABLE;
 }
 
 
 //======================================================================
 
 
-void Add_Ammo (gentity_t *ent, int weapon, int count)
+static void Add_Ammo( gentity_t *ent, int weapon, int count )
 {
 	ent->client->ps.ammo[weapon] += count;
 	if ( ent->client->ps.ammo[weapon] > AMMO_HARD_LIMIT ) {
@@ -198,7 +253,7 @@ void Add_Ammo (gentity_t *ent, int weapon, int count)
 }
 
 
-int Pickup_Ammo (gentity_t *ent, gentity_t *other)
+static int Pickup_Ammo( gentity_t *ent, gentity_t *other )
 {
 	int		quantity;
 
@@ -208,15 +263,15 @@ int Pickup_Ammo (gentity_t *ent, gentity_t *other)
 		quantity = ent->item->quantity;
 	}
 
-	Add_Ammo (other, ent->item->giTag, quantity);
+	Add_Ammo( other, ent->item->giTag, quantity );
 
-	return RESPAWN_AMMO;
+	return SpawnTime( ent, qfalse ); // return RESPAWN_AMMO;
 }
 
 //======================================================================
 
 
-int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
+static int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 	int		quantity;
 
 	if ( ent->count < 0 ) {
@@ -249,17 +304,18 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other) {
 		other->client->ps.ammo[ent->item->giTag] = -1; // unlimited ammo
 
 	// team deathmatch has slow weapon respawns
-	if ( g_gametype.integer == GT_TEAM ) {
-		return g_weaponTeamRespawn.integer;
-	}
-
-	return g_weaponRespawn.integer;
+	//if ( g_gametype.integer == GT_TEAM ) {
+	//	return g_weaponTeamRespawn.integer;
+	//} else {
+	//	return g_weaponRespawn.integer;
+	//}
+	return SpawnTime( ent, qfalse );
 }
 
 
 //======================================================================
 
-int Pickup_Health (gentity_t *ent, gentity_t *other) {
+static int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 	int			max;
 	int			quantity;
 
@@ -289,12 +345,14 @@ int Pickup_Health (gentity_t *ent, gentity_t *other) {
 	}
 	other->client->ps.stats[STAT_HEALTH] = other->health;
 
-	if ( ent->item->quantity == 100 ) {		// mega health respawns slow
-		return RESPAWN_MEGAHEALTH;
-	}
-
-	return RESPAWN_HEALTH;
+	//if ( ent->item->quantity == 100 ) { // mega health respawns slow
+	//	return RESPAWN_MEGAHEALTH;
+	//} else {
+	//	return RESPAWN_HEALTH;
+	//}
+	return SpawnTime( ent, qfalse );
 }
+
 
 //======================================================================
 
@@ -321,7 +379,7 @@ int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
 	}
 #endif
 
-	return RESPAWN_ARMOR;
+	return SpawnTime( ent, qfalse ); // return RESPAWN_ARMOR;
 }
 
 //======================================================================
@@ -356,8 +414,9 @@ void RespawnItem( gentity_t *ent ) {
 			;
 	}
 
-	if (!ent)
+	if ( !ent )
 		return;
+
 	ent->r.contents = CONTENTS_TRIGGER;
 	ent->s.eFlags &= ~EF_NODRAW;
 	ent->r.svFlags &= ~SVF_NOCLIENT;
@@ -429,11 +488,9 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	switch( ent->item->giType ) {
 	case IT_WEAPON:
 		respawn = Pickup_Weapon(ent, other);
-//		predict = qfalse;
 		break;
 	case IT_AMMO:
 		respawn = Pickup_Ammo(ent, other);
-//		predict = qfalse;
 		break;
 	case IT_ARMOR:
 		respawn = Pickup_Armor(ent, other);
@@ -469,7 +526,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	}
 
 	// play the normal pickup sound
-	if (predict) {
+	if ( predict ) {
 		G_AddPredictableEvent( other, EV_ITEM_PICKUP, ent->s.modelindex );
 	} else {
 		G_AddEvent( other, EV_ITEM_PICKUP, ent->s.modelindex );
@@ -510,13 +567,14 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	// non zero wait overrides respawn time
 	if ( ent->wait ) {
 		respawn = ent->wait;
+		respawn *= 1000;
 	}
 
 	// random can be used to vary the respawn time
 	if ( ent->random ) {
-		respawn += crandom() * ent->random;
-		if ( respawn < 1 ) {
-			respawn = 1;
+		respawn += (crandom() * ent->random) * 1000;
+		if ( respawn < 1000 ) {
+			respawn = 1000;
 		}
 	}
 
@@ -540,9 +598,10 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		ent->nextthink = 0;
 		ent->think = 0;
 	} else {
-		ent->nextthink = level.time + respawn * 1000;
+		ent->nextthink = level.time + respawn;
 		ent->think = RespawnItem;
 	}
+
 	trap_LinkEntity( ent );
 }
 
@@ -692,18 +751,6 @@ void FinishSpawningItem( gentity_t *ent ) {
 	if ( ( ent->flags & FL_TEAMSLAVE ) || ent->targetname ) {
 		ent->s.eFlags |= EF_NODRAW;
 		ent->r.contents = 0;
-		return;
-	}
-
-	// powerups don't spawn in for a while
-	if ( ent->item->giType == IT_POWERUP ) {
-		float	respawn;
-
-		respawn = 45 + crandom() * 15;
-		ent->s.eFlags |= EF_NODRAW;
-		ent->r.contents = 0;
-		ent->nextthink = level.time + respawn * 1000;
-		ent->think = RespawnItem;
 		return;
 	}
 

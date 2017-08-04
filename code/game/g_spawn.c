@@ -592,7 +592,11 @@ void SP_worldspawn( void ) {
 	} else {
 		// assume that g_doWarmup is always 1
 		level.warmupTime = -1;
-		trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
+		if ( g_warmup.integer > 0 ) {
+			trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
+		} else {
+			trap_SetConfigstring( CS_WARMUP, "" );
+		}
 		G_LogPrintf( "Warmup:\n" );
 	}
 }

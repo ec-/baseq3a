@@ -432,7 +432,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	}
 
 	// timelimit warnings
-	if ( cgs.timelimit > 0 && !cg.warmup ) {
+	if ( cgs.timelimit > 0 && !cg.warmup && cg.warmupFightSound < cg.time ) {
 		int		msec;
 
 		msec = cg.time - cgs.levelStartTime;
