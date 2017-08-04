@@ -189,6 +189,8 @@ vmCvar_t	cg_hitSounds;
 vmCvar_t	cg_enemyModel;
 vmCvar_t	cg_enemyColors;
 
+vmCvar_t	cg_deadBodyDarken;
+
 
 typedef struct {
 	vmCvar_t	*vmCvar;
@@ -308,7 +310,8 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_trueLightning, "cg_trueLightning", "0.0", CVAR_ARCHIVE},
 	{ &cg_hitSounds, "cg_hitSounds", "0", CVAR_ARCHIVE},
 	{ &cg_enemyModel, "cg_enemyModel", "", CVAR_ARCHIVE},
-	{ &cg_enemyColors, "cg_enemyColors", "", CVAR_ARCHIVE}
+	{ &cg_enemyColors, "cg_enemyColors", "", CVAR_ARCHIVE},
+	{ &cg_deadBodyDarken, "cg_deadBodyDarken", "1", CVAR_ARCHIVE}
 };
 
 

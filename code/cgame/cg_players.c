@@ -2450,6 +2450,7 @@ void CG_Player( centity_t *cent ) {
 	float			angle;
 	vec3_t			dir, angles;
 #endif
+	qboolean		darken;
 
 	// the client number is stored in clientNum.  It can't be derived
 	// from the entity number, because a single client may have
@@ -2477,6 +2478,11 @@ void CG_Player( centity_t *cent ) {
 			}
 		}
 	}
+
+	if ( cg_deadBodyDarken.integer && cent->currentState.eFlags & EF_DEAD )
+		darken = qtrue;
+	else
+		darken = qfalse;
 
 	memset( &legs, 0, sizeof(legs) );
 	memset( &torso, 0, sizeof(torso) );
@@ -2521,9 +2527,15 @@ void CG_Player( centity_t *cent ) {
 	VectorCopy (legs.origin, legs.oldorigin);	// don't positionally lerp at all
 
 	// colored skin
-	legs.shaderRGBA[0] = ci->legsColor[0] * 255;
-	legs.shaderRGBA[1] = ci->legsColor[1] * 255;
-	legs.shaderRGBA[2] = ci->legsColor[2] * 255;
+	if ( darken ) {
+		legs.shaderRGBA[0] = 85;
+		legs.shaderRGBA[1] = 85;
+		legs.shaderRGBA[2] = 85;
+	} else {
+		legs.shaderRGBA[0] = ci->legsColor[0] * 255;
+		legs.shaderRGBA[1] = ci->legsColor[1] * 255;
+		legs.shaderRGBA[2] = ci->legsColor[2] * 255;
+	}
 	legs.shaderRGBA[3] = 255;
 
 	CG_AddRefEntityWithPowerups( &legs, &cent->currentState, ci->team );
@@ -2551,10 +2563,17 @@ void CG_Player( centity_t *cent ) {
 	torso.renderfx = renderfx;
 
 	// colored skin
-	torso.shaderRGBA[0] = ci->bodyColor[0] * 255;
-	torso.shaderRGBA[1] = ci->bodyColor[1] * 255;
-	torso.shaderRGBA[2] = ci->bodyColor[2] * 255;
+	if ( darken ) {
+		torso.shaderRGBA[0] = 85;
+		torso.shaderRGBA[1] = 85;
+		torso.shaderRGBA[2] = 85;
+	} else {
+		torso.shaderRGBA[0] = ci->bodyColor[0] * 255;
+		torso.shaderRGBA[1] = ci->bodyColor[1] * 255;
+		torso.shaderRGBA[2] = ci->bodyColor[2] * 255;
+	}
 	torso.shaderRGBA[3] = 255;
+
 	CG_AddRefEntityWithPowerups( &torso, &cent->currentState, ci->team );
 
 #ifdef MISSIONPACK
@@ -2778,10 +2797,17 @@ void CG_Player( centity_t *cent ) {
 	head.renderfx = renderfx;
 
 	// colored skin
-	head.shaderRGBA[0] = ci->headColor[0] * 255;
-	head.shaderRGBA[1] = ci->headColor[1] * 255;
-	head.shaderRGBA[2] = ci->headColor[2] * 255;
+	if ( darken ) {
+		head.shaderRGBA[0] = 85;
+		head.shaderRGBA[1] = 85;
+		head.shaderRGBA[2] = 85;
+	} else {
+		head.shaderRGBA[0] = ci->headColor[0] * 255;
+		head.shaderRGBA[1] = ci->headColor[1] * 255;
+		head.shaderRGBA[2] = ci->headColor[2] * 255;
+	}
 	head.shaderRGBA[3] = 255;
+	
 	CG_AddRefEntityWithPowerups( &head, &cent->currentState, ci->team );
 
 #ifdef MISSIONPACK
