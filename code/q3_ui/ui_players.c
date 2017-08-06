@@ -978,6 +978,16 @@ static qboolean UI_ParseAnimationFile( const char *filename, animation_t *animat
 
 		token = COM_Parse( &text_p );
 		if ( !token[0] ) {
+			if ( i >= TORSO_GETFLAG && i <= TORSO_NEGATIVE ) {
+				animations[i].firstFrame = animations[TORSO_GESTURE].firstFrame;
+				animations[i].frameLerp = animations[TORSO_GESTURE].frameLerp;
+				animations[i].initialLerp = animations[TORSO_GESTURE].initialLerp;
+				animations[i].loopFrames = animations[TORSO_GESTURE].loopFrames;
+				animations[i].numFrames = animations[TORSO_GESTURE].numFrames;
+				animations[i].reversed = qfalse;
+				animations[i].flipflop = qfalse;
+				continue;
+			}
 			break;
 		}
 		animations[i].firstFrame = atoi( token );
