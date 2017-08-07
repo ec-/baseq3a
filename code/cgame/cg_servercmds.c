@@ -175,9 +175,11 @@ static void CG_ParseWarmup( void ) {
 
 	if ( cg.clientFrame == 0 ) {
 		if ( warmup == 0 && cgs.gametype != GT_SINGLE_PLAYER ) {
-			// force sound playback in CG_WarmupEvents()
-			cg.warmup = cg.time;
-			cg.warmupCount = -1;
+			if ( cg.snap && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR || cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+				// force sound playback in CG_WarmupEvents()
+				cg.warmup = cg.time;
+				cg.warmupCount = -1;
+			}
 			return;
 		}
 	}

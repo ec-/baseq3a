@@ -410,6 +410,8 @@ static void G_LocateSpawnSpots( void )
 	gentity_t			*ent;
 	int i, n;
 
+	level.spawnSpots[ SPAWN_SPOT_INTERMISSION ] = NULL;
+
 	// locate all spawn spots
 	n = 0;
 	ent = g_entities + MAX_CLIENTS;
@@ -421,8 +423,10 @@ static void G_LocateSpawnSpots( void )
 		// intermission/ffa spots
 		if ( !Q_stricmpn( ent->classname, "info_player_", 12 ) ) {
 			if ( !Q_stricmp( ent->classname+12, "intermission" ) ) {
-				level.spawnSpots[SPAWN_SPOT_INTERMISSION] = ent; // put in the last slot
-				ent->fteam = TEAM_FREE;
+				if ( level.spawnSpots[ SPAWN_SPOT_INTERMISSION ] == NULL ) {
+					level.spawnSpots[ SPAWN_SPOT_INTERMISSION ] = ent; // put in the last slot
+					ent->fteam = TEAM_FREE;
+				}
 				continue;
 			}
 			if ( !Q_stricmp( ent->classname+12, "deathmatch" ) ) {
