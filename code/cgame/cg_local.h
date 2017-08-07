@@ -1226,6 +1226,9 @@ extern	vmCvar_t		cg_hitSounds;
 extern	vmCvar_t		cg_enemyModel;
 extern	vmCvar_t		cg_enemyColors;
 
+extern	vmCvar_t		cg_teamModel;
+extern	vmCvar_t		cg_teamColors;
+
 extern	vmCvar_t		cg_deadBodyDarken;
 
 extern const char		*eventnames[EV_MAX];

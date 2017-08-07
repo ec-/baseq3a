@@ -702,11 +702,20 @@ static void CG_SetColorInfo( const char *color, clientInfo_t *info )
 	if ( !color[2] )
 		return;
 	CG_ColorFromChar( color[2], info->legsColor );
+
+	// override color1/color2 if specified
+	if ( !color[3] )
+		return;
+	CG_ColorFromChar( color[3], info->color1 );
+
+	if ( !color[4] )
+		return;
+	CG_ColorFromChar( color[4], info->color2 );
 }
 
 
 static void CG_SetTeamColorInfo( const char *color, clientInfo_t *info ) {
-	char str[4];
+	char str[6];
 
 	Q_strncpyz( str, color, sizeof( str ) );
 
@@ -984,10 +993,11 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 	team = newInfo->team;
 	pm_model = ( Q_stricmp( cg_enemyModel.string, PM_SKIN ) == 0 ) ? qtrue : qfalse;
 
-	if ( cg_forceModel.integer || cg_enemyModel.string[0] )
+	if ( cg_forceModel.integer || cg_enemyModel.string[0] || cg_teamModel.string[0] )
 	{
 		if ( cgs.gametype >= GT_TEAM )
 		{
+			// enemy model
 			if ( cg_enemyModel.string[0] && team != myTeam && team != TEAM_SPECTATOR ) {
 				if ( pm_model )
 					Q_strncpyz( modelName, infomodel, modelNameSize );
@@ -1009,6 +1019,36 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 				if ( setColor ) {
 					if ( cg_enemyColors.string[0] && myTeam != TEAM_SPECTATOR ) // free-fly?
 						CG_SetTeamColorInfo( cg_enemyColors.string, newInfo );
+					else
+						CG_SetTeamColorInfo( "???", newInfo );
+
+					newInfo->coloredSkin = qtrue;
+				}
+
+			} else if ( cg_teamModel.string[0] && team == myTeam && team != TEAM_SPECTATOR && clientNum != myClientNum ) {
+				// teammodel
+				pm_model = ( Q_stricmp( cg_teamModel.string, PM_SKIN ) == 0 ) ? qtrue : qfalse;
+
+				if ( pm_model )
+					Q_strncpyz( modelName, infomodel, modelNameSize );
+				else
+					Q_strncpyz( modelName, cg_teamModel.string, modelNameSize );
+
+				skin = strchr( modelName, '/' );
+				// force skin
+				strcpy( newSkin, PM_SKIN );
+				if ( skin )
+					*skin = '\0';
+
+				if ( pm_model && !CG_IsKnownModel( modelName ) ) {
+					// revert to default model if specified skin is not known
+					Q_strncpyz( modelName, "sarge", modelNameSize );
+				}
+				Q_strncpyz( skinName, newSkin, skinNameSize );
+
+				if ( setColor ) {
+					if ( cg_teamColors.string[0] && myTeam != TEAM_SPECTATOR ) // free-fly?
+						CG_SetTeamColorInfo( cg_teamColors.string, newInfo );
 					else
 						CG_SetTeamColorInfo( "???", newInfo );
 
@@ -1105,7 +1145,7 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 			}
 		}
 	}
-	else // !cg_forcemodel && !cg_enemymodel
+	else // !cg_forcemodel && !cg_enemyModel && !cg_teamModel
 	{
 		Q_strncpyz( modelName, infomodel, modelNameSize );
 		slash = strchr( modelName, '/' );
