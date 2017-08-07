@@ -136,7 +136,6 @@ vmCvar_t	cg_thirdPersonRange;
 vmCvar_t	cg_thirdPersonAngle;
 vmCvar_t	cg_lagometer;
 vmCvar_t	cg_drawAttacker;
-vmCvar_t	cg_synchronousClients;
 vmCvar_t 	cg_teamChatTime;
 vmCvar_t 	cg_teamChatHeight;
 vmCvar_t 	cg_stats;
@@ -281,7 +280,6 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_buildScript, "com_buildScript", "0", 0 },	// force loading of all possible data amd error on failures
 	{ &cg_paused, "cl_paused", "0", CVAR_ROM },
 	{ &cg_blood, "com_blood", "1", CVAR_ARCHIVE },
-	{ &cg_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO },
 #ifdef MISSIONPACK
 	{ &cg_redTeamName, "g_redteam", DEFAULT_REDTEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },
 	{ &cg_blueTeamName, "g_blueteam", DEFAULT_BLUETEAM_NAME, CVAR_ARCHIVE | CVAR_SERVERINFO | CVAR_USERINFO },

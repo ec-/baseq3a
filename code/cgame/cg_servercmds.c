@@ -158,6 +158,8 @@ void CG_ParseSysteminfo( void ) {
 	} else if ( cgs.pmove_msec > 33 ) {
 		cgs.pmove_msec = 33;
 	}
+
+	cgs.synchronousClients = ( atoi( Info_ValueForKey( info, "g_synchronousClients" ) ) ) ? qtrue : qfalse;
 }
 
 

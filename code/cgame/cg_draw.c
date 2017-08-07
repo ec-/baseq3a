@@ -1819,7 +1819,7 @@ static void CG_DrawLagometer( void ) {
 
 	trap_R_SetColor( NULL );
 
-	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
+	if ( cg_nopredict.integer || cgs.synchronousClients ) {
 		CG_DrawStringExt( 640 - 16, y, "snc", g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse, 5, 10, 0 ); 
 	}
 
