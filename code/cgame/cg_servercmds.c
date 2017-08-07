@@ -143,6 +143,13 @@ void CG_ParseServerinfo( void ) {
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
 	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
 	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
+}
+
+
+void CG_ParseSysteminfo( void ) {
+	const char	*info;
+
+	info = CG_ConfigString( CS_SYSTEMINFO );
 
 	cgs.pmove_fixed = ( atoi( Info_ValueForKey( info, "pmove_fixed" ) ) ) ? qtrue : qfalse;
 	cgs.pmove_msec = atoi( Info_ValueForKey( info, "pmove_msec" ) );
@@ -296,6 +303,8 @@ static void CG_ConfigStringModified( void ) {
 	// do something with it if necessary
 	if ( num == CS_MUSIC ) {
 		CG_StartMusic();
+	} else if ( num == CS_SYSTEMINFO ) {
+		CG_ParseSysteminfo();
 	} else if ( num == CS_SERVERINFO ) {
 		CG_ParseServerinfo();
 	} else if ( num == CS_WARMUP ) {
