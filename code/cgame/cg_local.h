@@ -146,6 +146,7 @@ typedef struct {
 	lerpFrame_t		legs, torso, flag;
 	int				painTime;
 	int				painDirection;	// flip from 0 to 1
+	qboolean		painIgnore;
 	int				lightningFiring;
 
 	// railgun trail spawning
@@ -177,6 +178,8 @@ typedef struct centity_s {
 	int				trailTime;		// so missile trails can handle dropped initial packets
 	int				dustTrailTime;
 	int				miscTime;
+	int				delaySpawn;
+	qboolean		delaySpawnPlayed;
 
 	int				snapShotTime;	// last time this entity was found in a snapshot
 
@@ -311,7 +314,7 @@ typedef struct {
 typedef struct {
 	qboolean		infoValid;
 
-	char			name[MAX_QPATH];
+	char			name[MAX_NAME_LENGTH];
 	team_t			team;
 
 	int				botSkill;		// 0 = not bot, 1-5 = bot
@@ -370,6 +373,12 @@ typedef struct {
 	animation_t		animations[MAX_TOTALANIMATIONS];
 
 	sfxHandle_t		sounds[MAX_CUSTOM_SOUNDS];
+
+	qboolean		coloredSkin;
+	vec3_t			headColor;
+	vec3_t			bodyColor;
+	vec3_t			legsColor;
+
 } clientInfo_t;
 
 
@@ -446,7 +455,11 @@ typedef struct {
 // occurs, and they will have visible effects for #define STEP_TIME or whatever msec after
 
 #define MAX_PREDICTED_EVENTS	16
- 
+
+#define PICKUP_PREDICTION_DELAY 200
+
+#define NUM_SAVED_STATES ( CMD_BACKUP + 2 )
+
 typedef struct {
 	int			clientFrame;		// incremented each frame
 
@@ -595,13 +608,16 @@ typedef struct {
 	qhandle_t	soundPlaying;
 
 	// for voice chat buffer
+#ifdef MISSIONPACK
 	int			voiceChatTime;
 	int			voiceChatBufferIn;
 	int			voiceChatBufferOut;
+#endif
 
 	// warmup countdown
 	int			warmup;
 	int			warmupCount;
+	int			warmupFightSound;	// last time "Fight!" sound was played
 
 	//==========================
 
@@ -647,6 +663,15 @@ typedef struct {
 	char			testModelName[MAX_QPATH];
 	qboolean		testGun;
 
+	// optimized prediction
+	int				lastPredictedCommand;
+	int				lastServerTime;
+	playerState_t	savedPmoveStates[ NUM_SAVED_STATES ];
+	int				stateHead, stateTail;
+
+	int				meanPing;
+	int				timeResidual;
+	int				allowPickupPrediction;
 } cg_t;
 
 
@@ -874,7 +899,6 @@ typedef struct {
 	sfxHandle_t	respawnSound;
 	sfxHandle_t talkSound;
 	sfxHandle_t landSound;
-	sfxHandle_t fallSound;
 	sfxHandle_t jumpPadSound;
 
 	sfxHandle_t oneMinuteSound;
@@ -886,8 +910,11 @@ typedef struct {
 	sfxHandle_t oneFragSound;
 
 	sfxHandle_t hitSound;
+	sfxHandle_t hitSounds[4];
+#ifdef MISSIONPACK
 	sfxHandle_t hitSoundHighArmor;
 	sfxHandle_t hitSoundLowArmor;
+#endif
 	sfxHandle_t hitTeamSound;
 	sfxHandle_t impressiveSound;
 	sfxHandle_t excellentSound;
@@ -895,18 +922,19 @@ typedef struct {
 	sfxHandle_t humiliationSound;
 	sfxHandle_t assistSound;
 	sfxHandle_t defendSound;
+#ifdef MISSIONPACK
 	sfxHandle_t firstImpressiveSound;
 	sfxHandle_t firstExcellentSound;
 	sfxHandle_t firstHumiliationSound;
-
+#endif
 	sfxHandle_t takenLeadSound;
 	sfxHandle_t tiedLeadSound;
 	sfxHandle_t lostLeadSound;
-
+#ifdef MISSIONPACK
 	sfxHandle_t voteNow;
 	sfxHandle_t votePassed;
 	sfxHandle_t voteFailed;
-
+#endif
 	sfxHandle_t watrInSound;
 	sfxHandle_t watrOutSound;
 	sfxHandle_t watrUnSound;
@@ -935,7 +963,9 @@ typedef struct {
 
 	sfxHandle_t redFlagReturnedSound;
 	sfxHandle_t blueFlagReturnedSound;
+#ifdef MISSIONPACK
 	sfxHandle_t neutralFlagReturnedSound;
+#endif
 	sfxHandle_t	enemyTookYourFlagSound;
 	sfxHandle_t	enemyTookTheFlagSound;
 	sfxHandle_t yourTeamTookEnemyFlagSound;
@@ -970,8 +1000,6 @@ typedef struct {
 	sfxHandle_t scoutSound;
 #endif
 	qhandle_t cursor;
-	qhandle_t selectCursor;
-	qhandle_t sizeCursor;
 
 	sfxHandle_t	regenSound;
 	sfxHandle_t	protectSound;
@@ -1076,6 +1104,11 @@ typedef struct {
 	float			fov;		// clamped cg_fov value
 	float			zoomFov;	// clamped cg_zoomFov value
 
+	qboolean		pmove_fixed;
+	int				pmove_msec;
+
+	qboolean		synchronousClients;
+
 } cgs_t;
 
 //==============================================================================
@@ -1144,7 +1177,6 @@ extern	vmCvar_t		cg_thirdPersonAngle;
 extern	vmCvar_t		cg_thirdPerson;
 extern	vmCvar_t		cg_lagometer;
 extern	vmCvar_t		cg_drawAttacker;
-extern	vmCvar_t		cg_synchronousClients;
 extern	vmCvar_t		cg_teamChatTime;
 extern	vmCvar_t		cg_teamChatHeight;
 extern	vmCvar_t		cg_stats;
@@ -1156,13 +1188,12 @@ extern	vmCvar_t		cg_predictItems;
 extern	vmCvar_t		cg_deferPlayers;
 extern	vmCvar_t		cg_drawFriend;
 extern	vmCvar_t		cg_teamChatsOnly;
+#ifdef MISSIONPACK
 extern	vmCvar_t		cg_noVoiceChats;
 extern	vmCvar_t		cg_noVoiceText;
+#endif
 extern  vmCvar_t		cg_scorePlum;
 extern	vmCvar_t		cg_smoothClients;
-extern	vmCvar_t		pmove_fixed;
-extern	vmCvar_t		pmove_msec;
-//extern	vmCvar_t		cg_pmove_fixed;
 extern	vmCvar_t		cg_cameraOrbit;
 extern	vmCvar_t		cg_cameraOrbitDelay;
 extern	vmCvar_t		cg_timescaleFadeEnd;
@@ -1191,6 +1222,19 @@ extern  vmCvar_t		cg_recordSPDemoName;
 extern	vmCvar_t		cg_obeliskRespawnDelay;
 #endif
 
+extern	vmCvar_t		cg_hitSounds;
+
+extern	vmCvar_t		cg_enemyModel;
+extern	vmCvar_t		cg_enemyColors;
+
+extern	vmCvar_t		cg_teamModel;
+extern	vmCvar_t		cg_teamColors;
+
+extern	vmCvar_t		cg_deadBodyDarken;
+
+extern const char		*eventnames[EV_MAX];
+
+
 //
 // cg_main.c
 //
@@ -1212,7 +1256,9 @@ void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
 void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
+#ifdef MISSIONPACK
 score_t *CG_GetSelectedScore( void );
+#endif
 void CG_BuildSpectatorString( void );
 
 
@@ -1303,7 +1349,8 @@ qboolean CG_YourTeamHasFlag( void );
 qboolean CG_OtherTeamHasFlag( void );
 qhandle_t CG_StatusHandle(int task);
 
-
+void CG_ForceModelChange( void );
+void CG_TrackClientTeamChange( void );
 
 //
 // cg_player.c
@@ -1324,13 +1371,14 @@ void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec
 void CG_PredictPlayerState( void );
 void CG_LoadDeferredPlayers( void );
 
+void CG_PlayDroppedEvents( playerState_t *ps, playerState_t *ops );
 
 //
 // cg_events.c
 //
 void CG_CheckEvents( centity_t *cent );
-const char	*CG_PlaceString( int rank );
-void CG_EntityEvent( centity_t *cent, vec3_t position );
+const char *CG_PlaceString( int rank );
+void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum );
 void CG_PainEvent( centity_t *cent, int health );
 
 
@@ -1343,9 +1391,9 @@ void CG_Beam( const centity_t *cent );
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out, const vec3_t angles_in, vec3_t angles_out );
 
 void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName );
+							qhandle_t parentModel, const char *tagName );
 void CG_PositionRotatedEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
-							qhandle_t parentModel, char *tagName );
+							qhandle_t parentModel, const char *tagName );
 
 
 
@@ -1456,6 +1504,7 @@ void CG_InitConsoleCommands( void );
 //
 void CG_ExecuteNewServerCommands( int latestSequence );
 void CG_ParseServerinfo( void );
+void CG_ParseSysteminfo( void );
 void CG_SetConfigValues( void );
 void CG_ShaderStateChanged(void);
 #ifdef MISSIONPACK
@@ -1699,4 +1748,3 @@ void trap_R_AddRefEntityToScene2( const refEntity_t *re );
 int dll_com_trapGetValue;
 int dll_trap_R_AddRefEntityToScene2;
 #endif
-

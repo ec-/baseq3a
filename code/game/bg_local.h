@@ -4,8 +4,6 @@
 
 #define	MIN_WALK_NORMAL	0.7f		// can't walk on very steep slopes
 
-#define	STEPSIZE		18
-
 #define	JUMP_VELOCITY	270
 
 #define	TIMER_LAND		130
@@ -59,5 +57,3 @@ void PM_AddEvent( int newEvent );
 
 qboolean	PM_SlideMove( qboolean gravity );
 void		PM_StepSlideMove( qboolean gravity );
-
-

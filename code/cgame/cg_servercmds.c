@@ -142,10 +142,26 @@ void CG_ParseServerinfo( void ) {
 	mapname = Info_ValueForKey( info, "mapname" );
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
 	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
-	trap_Cvar_Set("g_redTeam", cgs.redTeam);
 	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
-	trap_Cvar_Set("g_blueTeam", cgs.blueTeam);
 }
+
+
+void CG_ParseSysteminfo( void ) {
+	const char	*info;
+
+	info = CG_ConfigString( CS_SYSTEMINFO );
+
+	cgs.pmove_fixed = ( atoi( Info_ValueForKey( info, "pmove_fixed" ) ) ) ? qtrue : qfalse;
+	cgs.pmove_msec = atoi( Info_ValueForKey( info, "pmove_msec" ) );
+	if ( cgs.pmove_msec < 8 ) {
+		cgs.pmove_msec = 8;
+	} else if ( cgs.pmove_msec > 33 ) {
+		cgs.pmove_msec = 33;
+	}
+
+	cgs.synchronousClients = ( atoi( Info_ValueForKey( info, "g_synchronousClients" ) ) ) ? qtrue : qfalse;
+}
+
 
 /*
 ==================
@@ -161,6 +177,22 @@ static void CG_ParseWarmup( void ) {
 	warmup = atoi( info );
 	cg.warmupCount = -1;
 
+	if ( warmup ) {
+		cg.timelimitWarnings |= 1 | 2 | 4;
+		cg.fraglimitWarnings |= 1 | 2 | 4;
+	}
+
+	if ( cg.clientFrame == 0 ) {
+		if ( warmup == 0 && cgs.gametype != GT_SINGLE_PLAYER ) {
+			if ( cg.snap && cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR || cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+				// force sound playback in CG_WarmupEvents()
+				cg.warmup = cg.time;
+				cg.warmupCount = -1;
+			}
+			return;
+		}
+	}
+
 	if ( warmup == 0 && cg.warmup ) {
 
 	} else if ( warmup > 0 && cg.warmup <= 0 ) {
@@ -170,12 +202,17 @@ static void CG_ParseWarmup( void ) {
 		} else
 #endif
 		{
-			trap_S_StartLocalSound( cgs.media.countPrepareSound, CHAN_ANNOUNCER );
+			if ( cg.soundPlaying != cgs.media.countPrepareSound ) {
+				CG_AddBufferedSound( -1 );
+				CG_AddBufferedSound( cgs.media.countPrepareSound );
+				cg.soundTime = cg.time + 1; // play in next frame
+			}
 		}
 	}
 
 	cg.warmup = warmup;
 }
+
 
 /*
 ================
@@ -201,8 +238,9 @@ void CG_SetConfigValues( void ) {
 		cgs.flagStatus = s[0] - '0';
 	}
 #endif
-	cg.warmup = atoi( CG_ConfigString( CS_WARMUP ) );
+	CG_ParseWarmup();
 }
+
 
 /*
 =====================
@@ -244,6 +282,7 @@ void CG_ShaderStateChanged(void) {
 	}
 }
 
+
 /*
 ================
 CG_ConfigStringModified
@@ -266,6 +305,8 @@ static void CG_ConfigStringModified( void ) {
 	// do something with it if necessary
 	if ( num == CS_MUSIC ) {
 		CG_StartMusic();
+	} else if ( num == CS_SYSTEMINFO ) {
+		CG_ParseSysteminfo();
 	} else if ( num == CS_SERVERINFO ) {
 		CG_ParseServerinfo();
 	} else if ( num == CS_WARMUP ) {
@@ -429,8 +470,8 @@ static void CG_MapRestart( void ) {
 
 	// make sure the "3 frags left" warnings play again
 	cg.fraglimitWarnings = 0;
-
 	cg.timelimitWarnings = 0;
+
 	cg.rewardTime = 0;
 	cg.rewardStack = 0;
 	cg.intermissionStarted = qfalse;
@@ -442,15 +483,19 @@ static void CG_MapRestart( void ) {
 
 	CG_StartMusic();
 
-	trap_S_ClearLoopingSounds(qtrue);
+	trap_S_ClearLoopingSounds( qtrue );
+
+	cg.allowPickupPrediction = cg.time + PICKUP_PREDICTION_DELAY;
 
 	// we really should clear more parts of cg here and stop sounds
 
 	// play the "fight" sound if this is a restart without warmup
-	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */) {
-		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
-		CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+	if ( cg.warmup == 0 /* && cgs.gametype == GT_TOURNAMENT */ ) {
+		// force sound playback in CG_WarmupEvents()
+		cg.warmup = cg.time;
+		cg.warmupCount = -1;
 	}
+
 #ifdef MISSIONPACK
 	if (cg_singlePlayerActive.integer) {
 		trap_Cvar_Set("ui_matchStartTime", va("%i", cg.time));
@@ -459,8 +504,11 @@ static void CG_MapRestart( void ) {
 		}
 	}
 #endif
-	trap_Cvar_Set("cg_thirdPerson", "0");
+
+	trap_Cvar_Set( "cg_thirdPerson", "0" );
 }
+
+#ifdef MISSIONPACK
 
 #define MAX_VOICEFILESIZE	16384
 #define MAX_VOICEFILES		8
@@ -538,7 +586,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 		voiceChats[i].id[0] = 0;
 	}
 	token = COM_ParseExt(p, qtrue);
-	if (!token || token[0] == 0) {
+	if (token[0] == '\0') {
 		return qtrue;
 	}
 	if (!Q_stricmp(token, "female")) {
@@ -558,7 +606,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 	voiceChatList->numVoiceChats = 0;
 	while ( 1 ) {
 		token = COM_ParseExt(p, qtrue);
-		if (!token || token[0] == 0) {
+		if (token[0] == '\0') {
 			return qtrue;
 		}
 		Com_sprintf(voiceChats[voiceChatList->numVoiceChats].id, sizeof( voiceChats[voiceChatList->numVoiceChats].id ), "%s", token);
@@ -570,7 +618,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 		voiceChats[voiceChatList->numVoiceChats].numSounds = 0;
 		while(1) {
 			token = COM_ParseExt(p, qtrue);
-			if (!token || token[0] == 0) {
+			if (token[0] == '\0') {
 				return qtrue;
 			}
 			if (!Q_stricmp(token, "}"))
@@ -578,7 +626,7 @@ int CG_ParseVoiceChats( const char *filename, voiceChatList_t *voiceChatList, in
 			sound = trap_S_RegisterSound( token, compress );
 			voiceChats[voiceChatList->numVoiceChats].sounds[voiceChats[voiceChatList->numVoiceChats].numSounds] = sound;
 			token = COM_ParseExt(p, qtrue);
-			if (!token || token[0] == 0) {
+			if (token[0] == '\0') {
 				return qtrue;
 			}
 			Com_sprintf(voiceChats[voiceChatList->numVoiceChats].chats[
@@ -646,7 +694,7 @@ int CG_HeadModelVoiceChats( char *filename ) {
 	p = &ptr;
 
 	token = COM_ParseExt(p, qtrue);
-	if (!token || token[0] == 0) {
+	if ( token[0] == '\0' ) {
 		return -1;
 	}
 
@@ -680,6 +728,7 @@ int CG_GetVoiceChat( voiceChatList_t *voiceChatList, const char *id, sfxHandle_t
 	}
 	return qfalse;
 }
+
 
 /*
 =================
@@ -792,7 +841,7 @@ CG_PlayVoiceChat
 =================
 */
 void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
-#ifdef MISSIONPACK
+
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
 		return;
@@ -817,8 +866,8 @@ void CG_PlayVoiceChat( bufferedVoiceChat_t *vchat ) {
 		CG_Printf( "%s\n", vchat->message );
 	}
 	voiceChatBuffer[cg.voiceChatBufferOut].snd = 0;
-#endif
 }
+
 
 /*
 =====================
@@ -826,7 +875,6 @@ CG_PlayBufferedVoieChats
 =====================
 */
 void CG_PlayBufferedVoiceChats( void ) {
-#ifdef MISSIONPACK
 	if ( cg.voiceChatTime < cg.time ) {
 		if (cg.voiceChatBufferOut != cg.voiceChatBufferIn && voiceChatBuffer[cg.voiceChatBufferOut].snd) {
 			//
@@ -836,8 +884,8 @@ void CG_PlayBufferedVoiceChats( void ) {
 			cg.voiceChatTime = cg.time + 1000;
 		}
 	}
-#endif
 }
+
 
 /*
 =====================
@@ -845,7 +893,7 @@ CG_AddBufferedVoiceChat
 =====================
 */
 void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
-#ifdef MISSIONPACK
+
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
 		return;
@@ -857,8 +905,8 @@ void CG_AddBufferedVoiceChat( bufferedVoiceChat_t *vchat ) {
 		CG_PlayVoiceChat( &voiceChatBuffer[cg.voiceChatBufferOut] );
 		cg.voiceChatBufferOut++;
 	}
-#endif
 }
+
 
 /*
 =================
@@ -866,7 +914,7 @@ CG_VoiceChatLocal
 =================
 */
 void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, const char *cmd ) {
-#ifdef MISSIONPACK
+
 	char *chat;
 	voiceChatList_t *voiceChatList;
 	clientInfo_t *ci;
@@ -906,8 +954,8 @@ void CG_VoiceChatLocal( int mode, qboolean voiceOnly, int clientNum, int color, 
 			CG_AddBufferedVoiceChat(&vchat);
 		}
 	}
-#endif
 }
+
 
 /*
 =================
@@ -915,7 +963,6 @@ CG_VoiceChat
 =================
 */
 void CG_VoiceChat( int mode ) {
-#ifdef MISSIONPACK
 	const char *cmd;
 	int clientNum, color;
 	qboolean voiceOnly;
@@ -934,8 +981,9 @@ void CG_VoiceChat( int mode ) {
 	}
 
 	CG_VoiceChatLocal( mode, voiceOnly, clientNum, color, cmd );
-#endif
 }
+#endif // MISSIONPACK
+
 
 /*
 =================
@@ -949,10 +997,12 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 	for ( i = 0; text[i]; i++ ) {
 		if (text[i] == '\x19')
 			continue;
-		text[l++] = text[i];
+		text[l] = text[i];
+		l++;
 	}
 	text[l] = '\0';
 }
+
 
 /*
 =================

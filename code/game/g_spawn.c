@@ -585,13 +585,18 @@ void SP_worldspawn( void ) {
 	g_entities[ENTITYNUM_NONE].classname = "nothing";
 
 	// see if we want a warmup time
-	trap_SetConfigstring( CS_WARMUP, "" );
-	if ( g_restarted.integer ) {
+	if ( g_restarted.integer || g_gametype.integer == GT_SINGLE_PLAYER ) {
 		trap_Cvar_Set( "g_restarted", "0" );
 		level.warmupTime = 0;
-	} else if ( g_doWarmup.integer ) { // Turn it on
+		trap_SetConfigstring( CS_WARMUP, "" );
+	} else {
+		// assume that g_doWarmup is always 1
 		level.warmupTime = -1;
-		trap_SetConfigstring( CS_WARMUP, va("%i", level.warmupTime) );
+		if ( g_warmup.integer > 0 ) {
+			trap_SetConfigstring( CS_WARMUP, va( "%i", level.warmupTime ) );
+		} else {
+			trap_SetConfigstring( CS_WARMUP, "" );
+		}
 		G_LogPrintf( "Warmup:\n" );
 	}
 }

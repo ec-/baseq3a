@@ -28,6 +28,9 @@ float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
 
+#define NO_RESPAWN_OVERBOUNCE 100
+
+static int pm_respawntimer = 0;
 
 /*
 ===============
@@ -36,7 +39,7 @@ PM_AddEvent
 ===============
 */
 void PM_AddEvent( int newEvent ) {
-	BG_AddPredictableEventToPlayerstate( newEvent, 0, pm->ps );
+	BG_AddPredictableEventToPlayerstate( newEvent, 0, pm->ps, -1 );
 }
 
 /*
@@ -50,7 +53,8 @@ void PM_AddTouchEnt( int entityNum ) {
 	if ( entityNum == ENTITYNUM_WORLD ) {
 		return;
 	}
-	if ( pm->numtouch == MAXTOUCH ) {
+
+	if ( pm->numtouch >= MAXTOUCH ) {
 		return;
 	}
 
@@ -167,6 +171,8 @@ static void PM_Friction( void ) {
 		vel[0] = 0;
 		vel[1] = 0;		// allow sinking underwater
 		// FIXME: still have z friction underwater?
+		if ( pm->ps->pm_type == PM_SPECTATOR || pm->ps->powerups[ PW_FLIGHT ] )
+			vel[2] = 0.0f; // no slow-sinking/raising movements
 		return;
 	}
 
@@ -504,7 +510,7 @@ static void PM_WaterMove( void ) {
 	if ( pml.groundPlane && DotProduct( pm->ps->velocity, pml.groundTrace.plane.normal ) < 0 ) {
 		vel = VectorLength(pm->ps->velocity);
 		// slide along the ground plane
-		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal, 
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
 			pm->ps->velocity, OVERCLIP );
 
 		VectorNormalize(pm->ps->velocity);
@@ -766,16 +772,22 @@ static void PM_WalkMove( void ) {
 		// don't reset the z velocity for slopes
 //		pm->ps->velocity[2] = 0;
 	}
+ 
+	if ( pm_respawntimer ) { // no more overbounce at respawn
+		// slide along the ground plane
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
+			pm->ps->velocity, OVERCLIP );
+	} else {
+		vel = VectorLength(pm->ps->velocity);
 
-	vel = VectorLength(pm->ps->velocity);
+		// slide along the ground plane
+		PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal,
+			pm->ps->velocity, OVERCLIP );
 
-	// slide along the ground plane
-	PM_ClipVelocity (pm->ps->velocity, pml.groundTrace.plane.normal, 
-		pm->ps->velocity, OVERCLIP );
-
-	// don't decrease velocity when going up or down a slope
-	VectorNormalize(pm->ps->velocity);
-	VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+		// don't decrease velocity when going up or down a slope
+		VectorNormalize(pm->ps->velocity);
+		VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+	}
 
 	// don't do anything if standing still
 	if (!pm->ps->velocity[0] && !pm->ps->velocity[1]) {
@@ -1390,7 +1402,7 @@ static void PM_Footsteps( void ) {
 	if ( ( ( old + 64 ) ^ ( pm->ps->bobCycle + 64 ) ) & 128 ) {
 		if ( pm->waterlevel == 0 ) {
 			// on ground will only play sounds if running
-			if ( footstep && !pm->noFootsteps ) {
+			if ( footstep ) {
 				PM_AddEvent( PM_FootstepForSurface() );
 			}
 		} else if ( pm->waterlevel == 1 ) {
@@ -1916,6 +1928,13 @@ void PmoveSingle (pmove_t *pmove) {
 		pm->cmd.upmove = 0;
 	}
 
+	if ( pm_respawntimer ) {
+		pm_respawntimer -= pml.msec;
+		if ( pm_respawntimer < 0 ) {
+			pm_respawntimer = 0;
+		}
+	}
+
 	if ( pm->ps->pm_type == PM_SPECTATOR ) {
 		PM_CheckDuck ();
 		PM_FlyMove ();
@@ -1996,6 +2015,11 @@ void PmoveSingle (pmove_t *pmove) {
 	// entering / leaving water splashes
 	PM_WaterEvents();
 
+	if ( pm->ps->powerups[PW_FLIGHT] && !pml.groundPlane ) {
+		// don't snap velocity in free-fly or we will be not able to stop via flight friction
+		return;
+	}
+
 	// snap some parts of playerstate to save network bandwidth
 	trap_SnapVector( pm->ps->velocity );
 }
@@ -2023,6 +2047,10 @@ void Pmove (pmove_t *pmove) {
 
 	pmove->ps->pmove_framecount = (pmove->ps->pmove_framecount+1) & ((1<<PS_PMOVEFRAMECOUNTBITS)-1);
 
+	if ( pmove->ps->pm_flags & PMF_RESPAWNED && pm_respawntimer == 0 ) {
+		pm_respawntimer = NO_RESPAWN_OVERBOUNCE;
+	}
+
 	// chop the move up if it is too long, to prevent framerate
 	// dependent behavior
 	while ( pmove->ps->commandTime != finalTime ) {
@@ -2047,8 +2075,5 @@ void Pmove (pmove_t *pmove) {
 			pmove->cmd.upmove = 20;
 		}
 	}
-
 	//PM_CheckStuck();
-
 }
-

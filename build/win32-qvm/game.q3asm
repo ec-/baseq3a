@@ -22,12 +22,14 @@ g_mem
 g_misc
 g_missile
 g_mover
+g_rotation
 g_session
 g_spawn
 g_svcmds
 g_target
 g_team
 g_trigger
+g_unlagged
 g_utils
 g_weapon
 q_math

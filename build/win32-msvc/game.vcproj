@@ -279,6 +279,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\code\game\g_rotation.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\code\game\g_session.c"
 				>
 			</File>
@@ -304,6 +308,10 @@
 			</File>
 			<File
 				RelativePath="..\..\code\game\g_trigger.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\code\game\g_unlagged.c"
 				>
 			</File>
 			<File

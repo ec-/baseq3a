@@ -95,14 +95,15 @@ int blue_numaltroutegoals;
 BotSetUserInfo
 ==================
 */
-void BotSetUserInfo(bot_state_t *bs, char *key, char *value) {
+static void BotSetUserInfo( bot_state_t *bs, const char *key, const char *value ) {
 	char userinfo[MAX_INFO_STRING];
 
-	trap_GetUserinfo(bs->client, userinfo, sizeof(userinfo));
-	Info_SetValueForKey(userinfo, key, value);
-	trap_SetUserinfo(bs->client, userinfo);
+	trap_GetUserinfo( bs->client, userinfo, sizeof( userinfo ) );
+	Info_SetValueForKey( userinfo, key, value );
+	trap_SetUserinfo( bs->client, userinfo );
 	ClientUserinfoChanged( bs->client );
 }
+
 
 /*
 ==================

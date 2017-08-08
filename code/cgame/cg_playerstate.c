@@ -88,7 +88,7 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 		// dont do it when cg_draw2d = 0 ?
 		info = CG_ConfigString( CS_PLAYERS + attacker );
 		if ( *info ) {
-			VQ3_CleanName( Info_ValueForKey( info, "n" ), cg.attackerName, sizeof( cg.attackerName ), "???" );
+			BG_CleanName( Info_ValueForKey( info, "n" ), cg.attackerName, sizeof( cg.attackerName ), "???" );
 			cg.attackerClientNum = attacker;
 			cg.attackerTime = cg.time;
 		}
@@ -190,17 +190,21 @@ void CG_Respawn( void ) {
 
 	// select the weapon the server says we are using
 	cg.weaponSelect = cg.snap->ps.weapon;
+
+	cg.timeResidual = cg.snap->ps.commandTime + 1000;
 }
 
-extern char *eventnames[];
 
 /*
 ==============
 CG_CheckPlayerstateEvents
 ==============
 */
-void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
-	int			i;
+extern int		eventStack;
+extern int		eventParm2[ MAX_PREDICTED_EVENTS ];
+
+static void CG_CheckPlayerstateEvents( const playerState_t *ps, const playerState_t *ops ) {
+	int			i, n;
 	int			event;
 	centity_t	*cent;
 
@@ -208,10 +212,12 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 		cent = &cg_entities[ ps->clientNum ];
 		cent->currentState.event = ps->externalEvent;
 		cent->currentState.eventParm = ps->externalEventParm;
-		CG_EntityEvent( cent, cent->lerpOrigin );
+		CG_EntityEvent( cent, cent->lerpOrigin, -1 );
 	}
 
 	cent = &cg.predictedPlayerEntity; // cg_entities[ ps->clientNum ];
+	n = eventStack - MAX_PS_EVENTS;
+	if ( n < 0 ) n  = 0;
 	// go through the predictable events buffer
 	for ( i = ps->eventSequence - MAX_PS_EVENTS ; i < ps->eventSequence ; i++ ) {
 		// if we have a new predictable event
@@ -225,7 +231,8 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 				continue;
 			cent->currentState.event = event;
 			cent->currentState.eventParm = ps->eventParms[ i & (MAX_PS_EVENTS-1) ];
-			CG_EntityEvent( cent, cent->lerpOrigin );
+
+			CG_EntityEvent( cent, cent->lerpOrigin, eventParm2[ n++ ] );
 
 			cg.predictableEvents[ i & (MAX_PREDICTED_EVENTS-1) ] = event;
 
@@ -234,49 +241,14 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 	}
 }
 
-/*
-==================
-CG_CheckChangedPredictableEvents
-==================
-*/
-void CG_CheckChangedPredictableEvents( playerState_t *ps ) {
-	int i;
-	int event;
-	centity_t	*cent;
-
-	cent = &cg.predictedPlayerEntity;
-	for ( i = ps->eventSequence - MAX_PS_EVENTS ; i < ps->eventSequence ; i++ ) {
-		//
-		if (i >= cg.eventSequence) {
-			continue;
-		}
-		// if this event is not further back in than the maximum predictable events we remember
-		if (i > cg.eventSequence - MAX_PREDICTED_EVENTS) {
-			// if the new playerstate event is different from a previously predicted one
-			if ( ps->events[i & (MAX_PS_EVENTS-1)] != cg.predictableEvents[i & (MAX_PREDICTED_EVENTS-1) ] ) {
-
-				event = ps->events[ i & (MAX_PS_EVENTS-1) ];
-				cent->currentState.event = event;
-				cent->currentState.eventParm = ps->eventParms[ i & (MAX_PS_EVENTS-1) ];
-				CG_EntityEvent( cent, cent->lerpOrigin );
-
-				cg.predictableEvents[ i & (MAX_PREDICTED_EVENTS-1) ] = event;
-
-				if ( cg_showmiss.integer ) {
-					CG_Printf("WARNING: changed predicted event\n");
-				}
-			}
-		}
-	}
-}
 
 /*
 ==================
 pushReward
 ==================
 */
-static void pushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount) {
-	if (cg.rewardStack < (MAX_REWARDSTACK-1)) {
+static void pushReward( sfxHandle_t sfx, qhandle_t shader, int rewardCount ) {
+	if ( cg.rewardStack < (MAX_REWARDSTACK-1 )) {
 		cg.rewardStack++;
 		cg.rewardSound[cg.rewardStack] = sfx;
 		cg.rewardShader[cg.rewardStack] = shader;
@@ -284,13 +256,17 @@ static void pushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount) {
 	}
 }
 
+
 /*
 ==================
 CG_CheckLocalSounds
 ==================
 */
 void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
-	int			highScore, health, armor, reward;
+#ifdef MISSIONPACK
+	int health, armor;
+#endif
+	int	highScore, reward;
 	sfxHandle_t sfx;
 
 	// don't play the sounds if the player just changed teams
@@ -311,7 +287,28 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
 		}
 #else
-		trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+		if ( cg_hitSounds.integer > 0 && (ps->persistant[PERS_ATTACKEE_ARMOR] & 0xFF00) == 0 )
+		{
+			// high byte of PERS_ATTACKEE_ARMOR is target->health in vq3/ta i.e. it is always non-zero
+			// so we will use this value to filter legacy data from our new hitsounds where it is always 0
+			int damage, index;
+			damage = ps->persistant[PERS_ATTACKEE_ARMOR] & 0xFF;
+
+			// damage value is already scaled by STAT_MAX_HEALTH on server side
+			if ( damage > 75 ) index = 3;
+			else if ( damage > 50 ) index = 2;
+			else if ( damage > 25 ) index = 1;
+			else index = 0;
+
+			if ( cg_hitSounds.integer > 1 ) // reversed: higher damage - higher tone
+				index = 3 - index;
+
+			trap_S_StartLocalSound( cgs.media.hitSounds[ index ], CHAN_LOCAL_SOUND );
+		} 
+		else
+		{
+			trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND );
+		}
 #endif
 	} else if ( ps->persistant[PERS_HITS] < ops->persistant[PERS_HITS] ) {
 		trap_S_StartLocalSound( cgs.media.hitTeamSound, CHAN_LOCAL_SOUND );
@@ -323,7 +320,6 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 			CG_PainEvent( &cg.predictedPlayerEntity, ps->stats[STAT_HEALTH] );
 		}
 	}
-
 
 	// if we are going into the intermission, don't start any voices
 	if ( cg.intermissionStarted ) {
@@ -436,7 +432,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	}
 
 	// timelimit warnings
-	if ( cgs.timelimit > 0 ) {
+	if ( cgs.timelimit > 0 && !cg.warmup && cg.warmupFightSound < cg.time ) {
 		int		msec;
 
 		msec = cg.time - cgs.levelStartTime;
@@ -446,11 +442,11 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		}
 		else if ( !( cg.timelimitWarnings & 2 ) && msec > (cgs.timelimit - 1) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 1 | 2;
-			trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
+			CG_AddBufferedSound( cgs.media.oneMinuteSound );
 		}
 		else if ( cgs.timelimit > 5 && !( cg.timelimitWarnings & 1 ) && msec > (cgs.timelimit - 5) * 60 * 1000 ) {
 			cg.timelimitWarnings |= 1;
-			trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
+			CG_AddBufferedSound( cgs.media.fiveMinuteSound );
 		}
 	}
 
@@ -513,8 +509,14 @@ void CG_TransitionPlayerState( playerState_t *ps, playerState_t *ops ) {
 	// check for going low on ammo
 	CG_CheckAmmo();
 
+	 // try to play potentially dropped events
+	CG_PlayDroppedEvents( ps, ops );
+
 	// run events
 	CG_CheckPlayerstateEvents( ps, ops );
+
+	// reset event stack
+	eventStack = 0;
 
 	// smooth the ducking viewheight change
 	if ( ps->viewheight != ops->viewheight && !respawn ) {

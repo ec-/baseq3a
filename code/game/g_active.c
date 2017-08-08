@@ -568,6 +568,8 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 				if ( drop->count < 1 ) {
 					drop->count = 1;
 				}
+				// for pickup prediction
+				drop->s.time2 = drop->count;
 
 				ent->client->ps.powerups[ j ] = 0;
 			}
@@ -742,11 +744,16 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ucmd->serverTime > level.time + 200 ) {
 		ucmd->serverTime = level.time + 200;
 //		G_Printf("serverTime <<<<<\n" );
-	}
+	} else
 	if ( ucmd->serverTime < level.time - 1000 ) {
 		ucmd->serverTime = level.time - 1000;
 //		G_Printf("serverTime >>>>>\n" );
-	} 
+	}
+
+	// unlagged
+	client->frameOffset = trap_Milliseconds() - level.frameStartTime;
+	client->lastCmdTime = ucmd->serverTime;
+	client->lastUpdateFrame = level.framenum;
 
 	msec = ucmd->serverTime - client->ps.commandTime;
 	// following others may result in bad times, but we still want
@@ -765,7 +772,7 @@ void ClientThink_real( gentity_t *ent ) {
 		trap_Cvar_Set("pmove_msec", "33");
 	}
 
-	if ( pmove_fixed.integer || client->pers.pmoveFixed ) {
+	if ( pmove_fixed.integer ) {
 		ucmd->serverTime = ((ucmd->serverTime + pmove_msec.integer-1) / pmove_msec.integer) * pmove_msec.integer;
 		//if (ucmd->serverTime - client->ps.commandTime <= 0)
 		//	return;
@@ -795,7 +802,7 @@ void ClientThink_real( gentity_t *ent ) {
 
 	// clear the rewards if time
 	if ( level.time > client->rewardTime ) {
-		client->ps.eFlags &= ~(EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT | EF_AWARD_GAUNTLET | EF_AWARD_ASSIST | EF_AWARD_DEFEND | EF_AWARD_CAP );
+		client->ps.eFlags &= ~EF_AWARDS;
 	}
 
 	if ( client->noclip ) {
@@ -885,9 +892,8 @@ void ClientThink_real( gentity_t *ent ) {
 	pm.trace = trap_Trace;
 	pm.pointcontents = trap_PointContents;
 	pm.debugLevel = g_debugMove.integer;
-	pm.noFootsteps = ( g_dmflags.integer & DF_NO_FOOTSTEPS ) > 0;
 
-	pm.pmove_fixed = pmove_fixed.integer | client->pers.pmoveFixed;
+	pm.pmove_fixed = pmove_fixed.integer;
 	pm.pmove_msec = pmove_msec.integer;
 
 	VectorCopy( client->ps.origin, client->oldOrigin );
@@ -914,12 +920,9 @@ void ClientThink_real( gentity_t *ent ) {
 	if ( ent->client->ps.eventSequence != oldEventSequence ) {
 		ent->eventTime = level.time;
 	}
-	if (g_smoothClients.integer) {
-		BG_PlayerStateToEntityStateExtraPolate( &ent->client->ps, &ent->s, ent->client->ps.commandTime, qtrue );
-	}
-	else {
-		BG_PlayerStateToEntityState( &ent->client->ps, &ent->s, qtrue );
-	}
+
+	BG_PlayerStateToEntityState( &ent->client->ps, &ent->s, qtrue );
+
 	SendPendingPredictableEvents( &ent->client->ps );
 
 	if ( !( ent->client->ps.eFlags & EF_FIRING ) ) {
@@ -986,6 +989,7 @@ void ClientThink_real( gentity_t *ent ) {
 	ClientTimerActions( ent, msec );
 }
 
+
 /*
 ==================
 ClientThink
@@ -1001,7 +1005,9 @@ void ClientThink( int clientNum ) {
 
 	// mark the time we got info, so we can display the
 	// phone jack if they don't get any for a while
+#if 0 // unlagged
 	ent->client->lastCmdTime = level.time;
+#endif
 
 	if ( !(ent->r.svFlags & SVF_BOT) && !g_synchronousClients.integer ) {
 		ClientThink_real( ent );
@@ -1064,6 +1070,7 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 	}
 }
 
+
 /*
 ==============
 ClientEndFrame
@@ -1076,18 +1083,25 @@ while a slow client may have multiple ClientEndFrame between ClientThink.
 void ClientEndFrame( gentity_t *ent ) {
 	int			i;
 	clientPersistant_t	*pers;
+	gclient_t	*client;
+	// unlagged
+	int			frames;
+
+	if ( !ent->client )
+		return;
 
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		SpectatorClientEndFrame( ent );
 		return;
 	}
 
-	pers = &ent->client->pers;
+	client = ent->client;
+	pers = &client->pers;
 
 	// turn off any expired powerups
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
-		if ( ent->client->ps.powerups[ i ] < level.time ) {
-			ent->client->ps.powerups[ i ] = 0;
+		if ( client->ps.powerups[ i ] < client->pers.cmd.serverTime ) {
+			client->ps.powerups[ i ] = 0;
 		}
 	}
 
@@ -1123,6 +1137,7 @@ void ClientEndFrame( gentity_t *ent ) {
 	// the player any normal movement attributes
 	//
 	if ( level.intermissiontime ) {
+		client->ps.commandTime = client->pers.cmd.serverTime;
 		return;
 	}
 
@@ -1132,29 +1147,53 @@ void ClientEndFrame( gentity_t *ent ) {
 	// apply all the damage taken this frame
 	P_DamageFeedback (ent);
 
-	// add the EF_CONNECTION flag if we haven't gotten commands recently
-	if ( level.time - ent->client->lastCmdTime > 1000 ) {
+	client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...
+
+	G_SetClientSound( ent );
+
+	// set the latest info
+	BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
+
+	SendPendingPredictableEvents( &client->ps );
+
+	client->ps.eFlags &= ~EF_CONNECTION;
+	ent->s.eFlags &= ~EF_CONNECTION;
+
+	frames = level.framenum - client->lastUpdateFrame - 1;
+
+	if ( frames > 2 ) {
+		// limit lagged player prediction to 2 server frames
+		frames = 2;
+		// and add the EF_CONNECTION flag if we haven't gotten commands recently
+		client->ps.eFlags |= EF_CONNECTION;
 		ent->s.eFlags |= EF_CONNECTION;
-	} else {
-		ent->s.eFlags &= ~EF_CONNECTION;
 	}
 
-	ent->client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...
-
-	G_SetClientSound (ent);
-
-	// set the latest infor
-	if (g_smoothClients.integer) {
-		BG_PlayerStateToEntityStateExtraPolate( &ent->client->ps, &ent->s, ent->client->ps.commandTime, qtrue );
+	if ( frames > 0 && g_smoothClients.integer ) {
+		G_PredictPlayerMove( ent, (float)frames / sv_fps.value );
+		SnapVector( ent->s.pos.trBase );
 	}
-	else {
-		BG_PlayerStateToEntityState( &ent->client->ps, &ent->s, qtrue );
+
+	// unlagged
+	G_StoreHistory( ent );
+
+	// hitsounds
+	if ( client->damage.enemy && client->damage.amount ) {
+		client->ps.persistant[PERS_HITS] += client->damage.enemy;
+		client->damage.enemy = 0;
+		// scale damage by max.health
+		i = client->damage.amount * 100 / client->ps.stats[STAT_MAX_HEALTH];
+		// avoid high-byte setup
+		if ( i > 255 )
+			i = 255;
+		client->ps.persistant[PERS_ATTACKEE_ARMOR] = i;
+		client->damage.amount = 0;
+	} else if ( client->damage.team ) {
+		client->ps.persistant[PERS_HITS] -= client->damage.team;
+		client->damage.team = 0;
 	}
-	SendPendingPredictableEvents( &ent->client->ps );
 
 	// set the bit for the reachability area the client is currently in
 //	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
 //	ent->client->areabits[i >> 3] |= 1 << (i & 7);
 }
-
-

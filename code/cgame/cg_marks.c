@@ -362,11 +362,11 @@ cparticle_t	*active_particles, *free_particles;
 cparticle_t	particles[MAX_PARTICLES];
 const int	cl_numparticles = MAX_PARTICLES;
 
-qboolean		initparticles = qfalse;
-vec3_t			pvforward, pvright, pvup;
-vec3_t			rforward, rright, rup;
+qboolean	initparticles = qfalse;
+vec3_t		pvforward, pvright, pvup;
+vec3_t		rforward, rright, rup;
 
-float			oldtime;
+int			oldtime;
 
 /*
 ===============

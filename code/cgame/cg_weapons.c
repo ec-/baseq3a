@@ -1368,6 +1368,27 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		// add rail trail
 		CG_SpawnRailTrail( cent, flash.origin );
 
+		// use our own muzzle point as dlight origin 
+		// and put it a bit closer to vieworigin to avoid bad normals near walls
+		if ( ps && cent->currentState.number == cg.predictedPlayerState.clientNum ) {
+			vec3_t	start, end, muzzle, forward, up;
+			trace_t	tr;
+			AngleVectors( cg.refdefViewAngles, forward, NULL, up );
+			VectorMA( cg.refdef.vieworg, 14, forward, muzzle );
+			if ( weaponNum == WP_LIGHTNING )
+				VectorMA( muzzle, -8, up, muzzle );
+			else
+				VectorMA( muzzle, -6, up, muzzle );
+			VectorMA( cg.refdef.vieworg, 14, forward, start );
+			VectorMA( cg.refdef.vieworg, 28, forward, end );
+			CG_Trace( &tr, start, NULL, NULL, end, cent->currentState.number, MASK_SHOT | CONTENTS_TRANSLUCENT );
+			if ( tr.fraction != 1.0 ) {
+				VectorMA( muzzle, -13.0 * ( 1.0 - tr.fraction ), forward, flash.origin );
+			} else {
+				VectorCopy( muzzle, flash.origin );
+			}
+		}
+
 		if ( weaponNum == WP_MACHINEGUN ) // make it a bit less annoying
 			radius = MG_FLASH_RADIUS + (rand() & WEAPON_FLASH_RADIUS_MOD);
 		else

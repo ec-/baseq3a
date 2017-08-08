@@ -92,7 +92,7 @@ static void UI_DemosFillList( void );
 
 /*
 =================
-Demos_DrawName
+Demos_DrawFilter
 =================
 */
 static void Demos_DrawFilter( void *self ) {
@@ -543,7 +543,7 @@ static void UI_DemosFillList( void ) {
 			if ( !Q_stricmp( matchname + len - 6, ".dm_68" ) )
 				matchname[ len-6 ] = '\0';
 		
-			VQ3_StripColor( matchname );
+			BG_StripColor( matchname );
 			if ( !Q_stristr( matchname, s_demos.namefilter ) ) {
 				continue;
 			}

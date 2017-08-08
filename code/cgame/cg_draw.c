@@ -244,10 +244,10 @@ static void CG_DrawField (int x, int y, int width, int value) {
 }
 #endif // MISSIONPACK
 
+
 /*
 ================
 CG_Draw3DModel
-
 ================
 */
 void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles ) {
@@ -288,6 +288,57 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	trap_R_RenderScene( &refdef );
 }
 
+
+
+/*
+================
+CG_Draw3DModel
+================
+*/
+void CG_Draw3DModelColor( float x, float y, float w, float h, qhandle_t model, qhandle_t skin, vec3_t origin, vec3_t angles, vec3_t color ) {
+	refdef_t		refdef;
+	refEntity_t		ent;
+
+	if ( !cg_draw3dIcons.integer || !cg_drawIcons.integer ) {
+		return;
+	}
+
+	CG_AdjustFrom640( &x, &y, &w, &h );
+
+	memset( &refdef, 0, sizeof( refdef ) );
+
+	memset( &ent, 0, sizeof( ent ) );
+	AnglesToAxis( angles, ent.axis );
+	VectorCopy( origin, ent.origin );
+	ent.hModel = model;
+	ent.customSkin = skin;
+	ent.renderfx = RF_NOSHADOW;		// no stencil shadows
+
+	refdef.rdflags = RDF_NOWORLDMODEL;
+
+	AxisClear( refdef.viewaxis );
+
+	refdef.fov_x = 30;
+	refdef.fov_y = 30;
+
+	refdef.x = x;
+	refdef.y = y;
+	refdef.width = w;
+	refdef.height = h;
+
+	refdef.time = cg.time;
+
+	ent.shaderRGBA[0] = color[0] * 255;
+	ent.shaderRGBA[1] = color[1] * 255;
+	ent.shaderRGBA[2] = color[2] * 255;
+	ent.shaderRGBA[3] = 255;
+
+	trap_R_ClearScene();
+	trap_R_AddRefEntityToScene( &ent );
+	trap_R_RenderScene( &refdef );
+}
+
+
 /*
 ================
 CG_DrawHead
@@ -324,7 +375,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		// allow per-model tweaking
 		VectorAdd( origin, ci->headOffset, origin );
 
-		CG_Draw3DModel( x, y, w, h, ci->headModel, ci->headSkin, origin, headAngles );
+		CG_Draw3DModelColor( x, y, w, h, ci->headModel, ci->headSkin, origin, headAngles, ci->headColor );
 	} else if ( cg_drawIcons.integer ) {
 		trap_R_SetColor ( NULL );
 		CG_DrawPic( x, y, w, h, ci->modelIcon );
@@ -1595,6 +1646,7 @@ void CG_AddLagometerFrameInfo( void ) {
 	lagometer.frameCount++;
 }
 
+
 /*
 ==============
 CG_AddLagometerSnapshotInfo
@@ -1618,6 +1670,7 @@ void CG_AddLagometerSnapshotInfo( snapshot_t *snap ) {
 	lagometer.snapshotFlags[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->snapFlags;
 	lagometer.snapshotCount++;
 }
+
 
 /*
 ==============
@@ -1766,8 +1819,12 @@ static void CG_DrawLagometer( void ) {
 
 	trap_R_SetColor( NULL );
 
-	if ( cg_nopredict.integer || cg_synchronousClients.integer ) {
-		CG_DrawBigString( ax, ay, "snc", 1.0 );
+	if ( cg_nopredict.integer || cgs.synchronousClients ) {
+		CG_DrawStringExt( 640 - 16, y, "snc", g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse, 5, 10, 0 ); 
+	}
+
+	if ( !cg.demoPlayback ) {
+		CG_DrawStringExt( x+1, y, va( "%ims", cg.meanPing ), g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse, 5, 10, 0 ); 
 	}
 
 	CG_DrawDisconnect();
@@ -2209,6 +2266,7 @@ static void CG_DrawIntermission( void ) {
 	cg.scoreBoardShowing = CG_DrawScoreboard();
 }
 
+
 /*
 =================
 CG_DrawFollow
@@ -2222,11 +2280,11 @@ static qboolean CG_DrawFollow( void ) {
 	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) ) {
 		return qfalse;
 	}
+
 	color[0] = 1;
 	color[1] = 1;
 	color[2] = 1;
 	color[3] = 1;
-
 
 	CG_DrawBigString( 320 - 9 * 8, 24, "following", 1.0F );
 
@@ -2316,27 +2374,24 @@ CG_DrawWarmup
 */
 static void CG_DrawWarmup( void ) {
 	int			w;
-	int			sec;
 	int			i;
 	float scale;
-	clientInfo_t	*ci1, *ci2;
+	clientInfo_t *ci1, *ci2;
 	int			cw;
 	const char	*s;
 
-	sec = cg.warmup;
-	if ( !sec ) {
+	if ( !cg.warmup ) {
 		return;
 	}
 
-	if ( sec < 0 ) {
+	if ( cg.warmup < 0 ) {
 		s = "Waiting for players";		
 		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 		CG_DrawBigString(320 - w / 2, 24, s, 1.0F);
-		cg.warmupCount = 0;
 		return;
 	}
 
-	if (cgs.gametype == GT_TOURNAMENT) {
+	if ( cgs.gametype == GT_TOURNAMENT ) {
 		// find the two active players
 		ci1 = NULL;
 		ci2 = NULL;
@@ -2399,39 +2454,22 @@ static void CG_DrawWarmup( void ) {
 #endif
 	}
 
-	sec = ( sec - cg.time ) / 1000;
-	if ( sec < 0 ) {
-		cg.warmup = 0;
-		sec = 0;
-	}
-	s = va( "Starts in: %i", sec + 1 );
-	if ( sec != cg.warmupCount ) {
-		cg.warmupCount = sec;
-		switch ( sec ) {
-		case 0:
-			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
-			break;
-		case 1:
-			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
-			break;
-		case 2:
-			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
-			break;
-		default:
-			break;
-		}
-	}
+	if ( cg.warmupCount <= 0 )
+		return;
+
+	s = va( "Starts in: %i", cg.warmupCount );
+
 	scale = 0.45f;
 	switch ( cg.warmupCount ) {
-	case 0:
+	case 1:
 		cw = 28;
 		scale = 0.54f;
 		break;
-	case 1:
+	case 2:
 		cw = 24;
 		scale = 0.51f;
 		break;
-	case 2:
+	case 3:
 		cw = 20;
 		scale = 0.48f;
 		break;
@@ -2442,14 +2480,14 @@ static void CG_DrawWarmup( void ) {
 	}
 
 #ifdef MISSIONPACK
-		w = CG_Text_Width(s, scale, 0);
-		CG_Text_Paint(320 - w / 2, 125, scale, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
+	w = CG_Text_Width(s, scale, 0);
+	CG_Text_Paint(320 - w / 2, 125, scale, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE);
 #else
 	w = CG_DrawStrlen( s );
-	CG_DrawStringExt( 320 - w * cw/2, 70, s, colorWhite, 
-			qfalse, qtrue, cw, (int)(cw * 1.5), 0 );
+	CG_DrawStringExt( 320 - w * cw/2, 70, s, colorWhite, qfalse, qtrue, cw, (int)(cw * 1.5), 0 );
 #endif
 }
+
 
 //==================================================================================
 #ifdef MISSIONPACK
@@ -2469,12 +2507,14 @@ void CG_DrawTimedMenus( void ) {
 	}
 }
 #endif
+
+
 /*
 =================
 CG_Draw2D
 =================
 */
-static void CG_Draw2D(stereoFrame_t stereoFrame)
+static void CG_Draw2D( stereoFrame_t stereoFrame )
 {
 #ifdef MISSIONPACK
 	if (cgs.orderPending && cg.time > cgs.orderTime) {
@@ -2578,6 +2618,186 @@ static void CG_DrawTourneyScoreboard( void ) {
 #endif
 }
 
+
+static void CG_CalculatePing( void ) {
+	int count, i, v;
+
+	cg.meanPing = 0;
+
+	for ( i = 0, count = 0; i < LAG_SAMPLES; i++ ) {
+
+		v = lagometer.snapshotSamples[i];
+		if ( v >= 0 ) {
+			cg.meanPing += v;
+			count++;
+		}
+
+	}
+
+	if ( count ) {
+		cg.meanPing /= count;
+	}
+}
+
+
+static void CG_WarmupEvents( void ) {
+
+	int	count;
+
+	if ( !cg.warmup )
+		return;
+
+	if ( cg.warmup < 0 ) {
+		cg.warmupCount = -1;
+		return;
+	}
+
+	if ( cg.warmup < cg.time ) {
+		cg.warmup = 0;
+		count = 0;
+	} else {
+		count = ( cg.warmup - cg.time + 999 ) / 1000;
+	}
+
+	if ( cg.warmupCount == count ) {
+		return;
+	}
+
+	cg.warmupCount = count;
+	cg.timelimitWarnings = 0;
+
+	switch ( count ) {
+		case 0:
+			if ( cg.warmupFightSound <= cg.time ) {
+				trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+				cg.warmupFightSound = cg.time + 750;
+			}
+			CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+			break;
+
+		case 1:
+			trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
+			break;
+
+		case 2:
+			trap_S_StartLocalSound( cgs.media.count2Sound, CHAN_ANNOUNCER );
+			break;
+
+		case 3:
+			trap_S_StartLocalSound( cgs.media.count3Sound, CHAN_ANNOUNCER );
+			break;
+
+		default:
+			break;
+	}
+}
+
+
+
+// will be called on warmup end and when client changed
+void CG_WarmupEvent( void ) {
+
+	cg.attackerTime = 0;
+	cg.attackerName[0] = '\0';
+
+	cg.itemPickupTime = 0;
+	cg.itemPickupBlendTime = 0;
+
+	cg.killerTime = 0;
+	cg.killerName[0] = '\0';
+	
+	cg.damageTime = 0;
+
+	cg.rewardStack = 0;
+	cg.rewardTime = 0;
+	
+	cg.weaponSelectTime = cg.time;
+
+	cg.lowAmmoWarning = 0;
+}
+
+
+// called each time client team changed
+static void CG_ApplyClientChange( void )
+{
+	CG_WarmupEvent();
+	CG_ForceModelChange();
+}
+
+
+/*
+=====================
+CG_TrackClientTeamChange
+=====================
+*/
+void CG_TrackClientTeamChange( void ) 
+{
+	static int spec_client = -1;
+	static int spec_team = -1;
+	static int curr_team = -1;
+
+	int		ti; // team from clientinfo 
+	int		tp; // persistant team from snapshot
+
+	if ( !cg.snap )
+		return;
+
+	tp = cg.snap->ps.persistant[ PERS_TEAM ];
+	ti = cgs.clientinfo[ cg.snap->ps.clientNum ].team;
+
+	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) && tp != TEAM_SPECTATOR ) {
+		ti = tp; // use team from persistant info
+	}
+
+	// team changed
+	if ( curr_team != ti )
+	{
+		curr_team = ti;
+		spec_client = cg.snap->ps.clientNum;
+		spec_team = tp;
+
+		if ( spec_team == TEAM_SPECTATOR )
+			spec_team = curr_team;
+
+		CG_ApplyClientChange();
+		CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+		return;
+	}
+
+	if ( curr_team == TEAM_SPECTATOR )
+	{
+		if ( spec_team != tp )
+		{
+			spec_team  = tp;
+			spec_client = cg.snap->ps.clientNum;
+
+			CG_ApplyClientChange();
+			CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+			return;
+		}
+
+		if ( cgs.gametype >= GT_TEAM ) 
+		{
+			spec_client = cg.snap->ps.clientNum;
+			return;
+		}
+		// pass through to spec client checks
+	}
+	
+	if ( spec_client != cg.snap->ps.clientNum ) 
+	{
+		spec_client = cg.snap->ps.clientNum;
+		spec_team = tp;
+
+		if ( spec_team == TEAM_SPECTATOR )
+			spec_team = cgs.clientinfo[ cg.snap->ps.clientNum ].team;
+
+		CG_ApplyClientChange();
+		CG_ResetPlayerEntity( &cg.predictedPlayerEntity );
+	}
+}
+
+
 /*
 =====================
 CG_DrawActive
@@ -2590,6 +2810,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	if ( !cg.snap ) {
 		CG_DrawInformation();
 		return;
+	}
+
+	if ( !cg.demoPlayback ) {
+		CG_CalculatePing();
 	}
 
 	// optionally draw the tournement scoreboard instead
@@ -2605,9 +2829,9 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	// draw 3D view
 	trap_R_RenderScene( &cg.refdef );
 
+	// play warmup sounds and display text
+	CG_WarmupEvents();
+
 	// draw status bar and other floating elements
- 	CG_Draw2D(stereoView);
+ 	CG_Draw2D( stereoView );
 }
-
-
-

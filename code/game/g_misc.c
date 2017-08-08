@@ -89,6 +89,9 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	if ( angles )
 		SetClientViewAngle( player, angles );
 
+	// unlagged
+	G_ResetHistory( player );
+
 	// kill anything at the destination
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 		G_KillBox( player );

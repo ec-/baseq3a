@@ -227,7 +227,6 @@ typedef struct {
 	qboolean	localClient;		// true if "ip" info key is "localhost"
 	qboolean	initialSpawn;		// the first spawn should be at a cool location
 	qboolean	predictItemPickup;	// based on cg_predictItems userinfo
-	qboolean	pmoveFixed;			//
 	char		netname[MAX_NETNAME];
 	int			maxHealth;			// for handicapping
 	int			enterTime;			// level.time the client entered the game
@@ -237,8 +236,18 @@ typedef struct {
 	qboolean	teamInfo;			// send team overlay updates?
 	int			voted;
 	int			teamVoted;
+
+	qboolean	inGame;
 } clientPersistant_t;
 
+// unlagged
+#define NUM_CLIENT_HISTORY 18
+
+typedef struct {
+	vec3_t		mins, maxs;
+	vec3_t		currentOrigin;
+	int			leveltime;
+} clientHistory_t;
 
 // this structure is cleared on each ClientSpawn(),
 // except for 'client->pers' and 'client->sess'
@@ -308,6 +317,21 @@ struct gclient_s {
 #endif
 
 	char		*areabits;
+
+	// unlagged
+	clientHistory_t	history[ NUM_CLIENT_HISTORY ];
+	clientHistory_t	saved;
+
+	int			historyHead;
+	int			frameOffset;
+	int			lastUpdateFrame;
+
+	// hitsounds
+	struct {
+		int		team;
+		int		enemy;
+		int		amount;
+	} damage;
 };
 
 
@@ -389,7 +413,6 @@ typedef struct {
 										// frag can be watched.  Disable future
 										// kills during this delay
 	int			intermissiontime;		// time the intermission was started
-	char		*changemap;
 	qboolean	readyToExit;			// at least one client wants to exit
 	int			exitTime;
 	
@@ -411,6 +434,12 @@ typedef struct {
 	int			numSpawnSpotsTeam;
 	int			numSpawnSpotsFFA;
 
+	// map rotation
+	qboolean	denyMapRestart;
+
+	// unlagged
+	int			frameStartTime;
+
 } level_locals_t;
 
 
@@ -430,8 +459,8 @@ char *G_NewString( const char *string );
 //
 void Cmd_Score_f (gentity_t *ent);
 void StopFollowing( gentity_t *ent, qboolean release );
-void BroadcastTeamChange( gclient_t *client, int oldTeam );
-void SetTeam( gentity_t *ent, char *s );
+void BroadcastTeamChange( gclient_t *client, team_t oldTeam );
+qboolean SetTeam( gentity_t *ent, const char *s );
 void Cmd_FollowCycle_f( gentity_t *ent, int dir );
 void G_RevertVote( gclient_t *client );
 
@@ -441,6 +470,7 @@ void G_RevertVote( gclient_t *client );
 void G_CheckTeamItems( void );
 void G_RunItem( gentity_t *ent );
 void RespawnItem( gentity_t *ent );
+int SpawnTime( gentity_t *ent, qboolean firstSpawn );
 
 void UseHoldableItem( gentity_t *ent );
 void PrecacheItem (gitem_t *it);
@@ -451,7 +481,6 @@ void G_SpawnItem (gentity_t *ent, gitem_t *item);
 void FinishSpawningItem( gentity_t *ent );
 void Think_Weapon (gentity_t *ent);
 int ArmorIndex (gentity_t *ent);
-void	Add_Ammo (gentity_t *ent, int weapon, int count);
 void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace);
 
 void ClearRegisteredItems( void );
@@ -568,7 +597,8 @@ void Weapon_HookThink (gentity_t *ent);
 // g_client.c
 //
 int TeamCount( int ignoreClientNum, team_t team );
-int TeamLeader( int team );
+int TeamConnectedCount( int ignoreClientNum, team_t team );
+int TeamLeader( team_t team );
 team_t PickTeam( int ignoreClientNum );
 void SetClientViewAngle( gentity_t *ent, vec3_t angle );
 gentity_t *SelectSpawnPoint( gentity_t *ent, vec3_t avoidPoint, vec3_t origin, vec3_t angles );
@@ -607,19 +637,20 @@ void DeathmatchScoreboardMessage( gentity_t *ent );
 //
 void MoveClientToIntermission( gentity_t *ent );
 void FindIntermissionPoint( void );
-void SetLeader(int team, int client);
-void CheckTeamLeader( int team );
+void SetLeader( team_t team, int client );
+void CheckTeamLeader( team_t team );
 void G_RunThink (gentity_t *ent);
 void QDECL G_LogPrintf( const char *fmt, ... );
 void SendScoreboardMessageToAllClients( void );
 void QDECL G_Printf( const char *fmt, ... );
 void QDECL G_Error( const char *fmt, ... );
+void G_BroadcastServerCommand( int ignoreClient, const char *command );
 
 //
 // g_client.c
 //
-char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
-void ClientUserinfoChanged( int clientNum );
+const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
+qboolean ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );
 void ClientBegin( int clientNum );
 void ClientCommand( int clientNum );
@@ -637,6 +668,7 @@ void G_RunClient( gentity_t *ent );
 qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 );
 void Team_CheckDroppedItem( gentity_t *dropped );
 qboolean CheckObeliskAttack( gentity_t *obelisk, gentity_t *attacker );
+void Team_ResetFlags( void );
 
 //
 // g_mem.c
@@ -648,11 +680,13 @@ void Svcmd_GameMem_f( void );
 //
 // g_session.c
 //
-void G_ReadSessionData( gclient_t *client );
-void G_InitSessionData( gclient_t *client, char *userinfo );
-
 void G_InitWorldSession( void );
 void G_WriteSessionData( void );
+
+void G_InitSessionData( gclient_t *client, const char *team, qboolean isBot );
+void G_ReadClientSessionData( gclient_t *client );
+void G_WriteClientSessionData( gclient_t *client );
+void G_ClearClientSessionData( gclient_t *client );
 
 //
 // g_arenas.c
@@ -660,6 +694,18 @@ void G_WriteSessionData( void );
 void UpdateTournamentInfo( void );
 void SpawnModelsOnVictoryPads( void );
 void Svcmd_AbortPodium_f( void );
+
+//
+// g_unlagged.c
+//
+void G_ResetHistory( gentity_t *ent );
+void G_StoreHistory( gentity_t *ent );
+void G_TimeShiftAllClients( int time, gentity_t *skip );
+void G_UnTimeShiftAllClients( gentity_t *skip );
+void G_DoTimeShiftFor( gentity_t *ent );
+void G_UndoTimeShiftFor( gentity_t *ent );
+void G_UnTimeShiftClient( gentity_t *client );
+void G_PredictPlayerMove( gentity_t *ent, float frametime );
 
 //
 // g_bot.c
@@ -693,8 +739,15 @@ int BotAIShutdownClient( int client, qboolean restart );
 int BotAIStartFrame( int time );
 void BotTestAAS(vec3_t origin);
 
-#include "g_team.h" // teamplay specific stuff
 
+// g_rotation.c
+#define SV_ROTATION "sessionMapIndex"
+qboolean ParseMapRotation( void );
+void G_LoadMap( const char *map );
+qboolean G_MapExist( const char *map );
+
+
+#include "g_team.h" // teamplay specific stuff
 
 extern	level_locals_t	level;
 extern	gentity_t		g_entities[MAX_GENTITIES];
@@ -702,6 +755,8 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
 #define	FOFS(x) ((intptr_t)&(((gentity_t *)0)->x))
 
 extern	vmCvar_t	g_gametype;
+extern	vmCvar_t	g_mapname;
+extern	vmCvar_t	sv_fps;
 extern	vmCvar_t	g_dedicated;
 extern	vmCvar_t	g_cheats;
 extern	vmCvar_t	g_maxclients;			// allow this many total, including spectators
@@ -729,10 +784,9 @@ extern	vmCvar_t	g_weaponTeamRespawn;
 extern	vmCvar_t	g_synchronousClients;
 extern	vmCvar_t	g_motd;
 extern	vmCvar_t	g_warmup;
-extern	vmCvar_t	g_doWarmup;
 extern	vmCvar_t	g_blood;
 extern	vmCvar_t	g_allowVote;
-extern	vmCvar_t	g_teamAutoJoin;
+extern	vmCvar_t	g_autoJoin;
 extern	vmCvar_t	g_teamForceBalance;
 extern	vmCvar_t	g_banIPs;
 extern	vmCvar_t	g_filterBan;
@@ -746,7 +800,8 @@ extern	vmCvar_t	g_blueteam;
 extern	vmCvar_t	g_smoothClients;
 extern	vmCvar_t	pmove_fixed;
 extern	vmCvar_t	pmove_msec;
-extern	vmCvar_t	g_rankings;
+extern	vmCvar_t	g_rotation;
+extern	vmCvar_t	g_unlagged;
 extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
@@ -958,4 +1013,3 @@ void	trap_BotResetWeaponState(int weaponstate);
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
 
 void	trap_SnapVector( float *v );
-

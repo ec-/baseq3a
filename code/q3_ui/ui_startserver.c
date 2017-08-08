@@ -71,14 +71,14 @@ static startserver_t s_startserver;
 
 static const char *gametype_items[] = {
 	"Free For All",
-	"Team Deathmatch",
 	"Tournament",
+	"Team Deathmatch",
 	"Capture the Flag",
 	NULL
 };
 
-static int gametype_remap[] = {GT_FFA, GT_TEAM, GT_TOURNAMENT, GT_CTF};
-static int gametype_remap2[] = {0, 2, 0, 1, 3};
+static int gametype_remap[] = { GT_FFA, GT_TOURNAMENT, GT_TEAM, GT_CTF };
+static int gametype_remap2[] = {0, 1, 0, 2, 3};
 
 // use ui_servers2.c definition
 extern const char* punkbuster_items[];
@@ -796,7 +796,7 @@ static void ServerOptions_Start( void ) {
 
 	// set player's team
 	if( dedicated == 0 && s_serveroptions.gametype >= GT_TEAM ) {
-		trap_Cmd_ExecuteText( EXEC_APPEND, va( "wait 5; team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
+		trap_Cmd_ExecuteText( EXEC_APPEND, va( "team %s\n", playerTeam_list[s_serveroptions.playerTeam[0].curvalue] ) );
 	}
 }
 

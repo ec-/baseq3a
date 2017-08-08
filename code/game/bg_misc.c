@@ -1372,10 +1372,13 @@ BG_AddPredictableEventToPlayerstate
 Handles the sequence numbers
 ===============
 */
+#ifdef CGAME
+void CG_StoreEvent( entity_event_t ev, int eventParm, int entityNum );
+#endif
 
 void	trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize );
 
-void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerState_t *ps ) {
+void BG_AddPredictableEventToPlayerstate( entity_event_t newEvent, int eventParm, playerState_t *ps, int entityNum ) {
 
 #ifdef _DEBUG
 	{
@@ -1390,10 +1393,16 @@ void BG_AddPredictableEventToPlayerstate( int newEvent, int eventParm, playerSta
 		}
 	}
 #endif
+
+#ifdef CGAME
+	CG_StoreEvent( newEvent, eventParm, entityNum );
+#endif
+	
 	ps->events[ps->eventSequence & (MAX_PS_EVENTS-1)] = newEvent;
 	ps->eventParms[ps->eventSequence & (MAX_PS_EVENTS-1)] = eventParm;
 	ps->eventSequence++;
 }
+
 
 /*
 ========================
@@ -1426,7 +1435,7 @@ void BG_TouchJumpPad( playerState_t *ps, entityState_t *jumppad ) {
 		} else {
 			effectNum = 1;
 		}
-		BG_AddPredictableEventToPlayerstate( EV_JUMP_PAD, effectNum, ps );
+		BG_AddPredictableEventToPlayerstate( EV_JUMP_PAD, effectNum, ps, -1 );
 	}
 	// remember hitting this jumppad this frame
 	ps->jumppad_ent = jumppad->number;
@@ -1683,7 +1692,7 @@ int replace_s( char * str1, char * str2, char * src, int max_len )
 }
 
 
-qboolean replace1( const char match, const char replace, char *str ) 
+qboolean replace1( const char match, const char replace, char *str )
 {
 	qboolean	res = qfalse;
 
@@ -1691,7 +1700,7 @@ qboolean replace1( const char match, const char replace, char *str )
 		return res;
 
 	while ( *str ) {
-		if ( *str == match )	{
+		if ( *str == match ) {
 			*str = replace;
 			res = qtrue;
 		}
@@ -1766,7 +1775,7 @@ char *strtok( char *strToken, const char *strDelimit ) {
 }
 
 
-char *VQ3_StripColor( char *string ) {
+char *BG_StripColor( char *string ) {
 	char	*d;
 	char	*s;
 	int		c;
@@ -1961,91 +1970,93 @@ char *Q_stristr( const char * str1, const char * str2 )
 }
 
 
-
 /*
-	Filter player tag
-	* only ['1'..'7'] and 't' colors is allowed
-	* non-printable/non-ascii chars is not allowed
-	* more that 3 consecutive spaces is not allowed
+===========
+BG_CleanName
+============
 */
-void VQ3_CleanName( const char *in, char *out, int outSize, const char *blankString )
-{
-	int	length = 0;
-	int	colors = 0;
-	int spaces = 0;
-	char c;
-	char * base = out;
-	char * omax = out + outSize - 1;
+void BG_CleanName( const char *in, char *out, int outSize, const char *blankString ) {
+	int		len, colorlessLen;
+	char	ch;
+	char	*p;
+	int		spaces;
 
-	while ( *in && out < omax ) 
-	{
-		// check colors
-		if ( Q_IsColorString( in ) ) 
-		{
-			if ( !colors ) 
-			{
-				// dump new color
-				*out = '^'; out++; in++;
-				c = *in; in++;
-				// force white instead of unknown/black colors
-				if ( (c < '0' || c > '7') && c != 't' )		
-					c = '7';
-				*out = c; out++;
-				colors += 2;
-			} 
-			else 
-			{
-				// update color at previous position
-				in++; c = *in; in++;
-				// force white instead of unknown/black colors
-				if ( (c < '0' || c > '7') && c != 't' )		
-					c = '7';
-				out[-1] = c;
-			}
+	//save room for trailing null byte
+	outSize--;
+
+	len = 0;
+	colorlessLen = 0;
+	p = out;
+	*p = '\0';
+	spaces = 0;
+
+	while( 1 ) {
+		ch = *in++;
+		if( !ch ) {
+			break;
 		}
-		else 
-		{
-			// don't allow non-printable/non-ascii chars
-			if ( *in < ' ' || (unsigned)*in > 126 ) 
-			{
+
+		// don't allow leading spaces
+		if( *p == '\0' && ch <= ' ' ) {
+			continue;
+		}
+
+		// check colors
+		if( ch == Q_COLOR_ESCAPE ) {
+			// solo trailing carat is not a color prefix
+			if( !*in ) {
+				break;
+			}
+
+			// don't allow black in a name, period
+			if( ColorIndex(*in) == 0 ) {
 				in++;
 				continue;
 			}
-			
-			// don't allow too many consecutive spaces
-			if( *in == ' ' ) 
-			{
-				spaces++;
-				if( spaces > 3 ) 
-				{
-					in++;
-					continue;
-				}
-			}
-			else 
-			{
-				spaces = 0;
+
+			// make sure room in dest for both chars
+			if( len > outSize - 2 ) {
+				break;
 			}
 
-			*out = *in;	out++; in++;
-			colors = 0;
-			length++;
+			*out++ = ch;
+			*out++ = *in++;
+			len += 2;
+			continue;
 		}
-		// don't allow too long names
-		if ( length >= outSize-1 )
-			break;
-	}
 
-	// remove colors at the end
-	out -= colors;   
+		// let's keep it in printable range
+		if ( ch < ' ' || ch > 126 ) {
+			continue;
+		}
+
+		// don't allow too many consecutive spaces
+		if( ch == ' ' ) {
+			spaces++;
+			if( spaces > 2 ) {
+				continue;
+			}
+		}
+		else {
+			spaces = 0;
+		}
+
+		if( len > outSize - 1 ) {
+			break;
+		}
+
+		*out++ = ch;
+		colorlessLen++;
+		len++;
+	}
 	*out = '\0';
 
-	 // don't allow empty names	
 	if ( blankString ) {
-		if ( length == 0 || spaces == length ) {
-			Q_strcpy( base, blankString );
+		// don't allow empty names
+		if( *p == '\0' || colorlessLen == 0 ) {
+			Q_strncpyz( p, blankString, outSize );
 		}
- 	}
+	}
 }
 
 

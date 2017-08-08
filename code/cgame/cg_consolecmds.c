@@ -10,18 +10,22 @@ extern menuDef_t *menuScoreboard;
 #endif
 
 
-
-void CG_TargetCommand_f( void ) {
+/*
+=================
+CG_TargetCommand_f
+=================
+*/
+static void CG_TargetCommand_f( void ) {
 	int		targetNum;
-	char	test[4];
+	char	cmd[4];
 
 	targetNum = CG_CrosshairPlayer();
 	if ( targetNum == -1 ) {
 		return;
 	}
 
-	trap_Argv( 1, test, 4 );
-	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
+	trap_Argv( 1, cmd, sizeof( cmd ) );
+	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( cmd ) ) );
 }
 
 
@@ -160,6 +164,11 @@ static void CG_spLose_f( void) {
 
 #endif
 
+/*
+==================
+CG_TellTarget_f
+==================
+*/
 static void CG_TellTarget_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -170,12 +179,17 @@ static void CG_TellTarget_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "tell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 
 
+/*
+==================
+CG_TellAttacker_f
+==================
+*/
 static void CG_TellAttacker_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -186,13 +200,18 @@ static void CG_TellAttacker_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "tell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "tell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 
 
 #ifdef MISSIONPACK
+/*
+==================
+CG_VoiceTellTarget_f
+==================
+*/
 static void CG_VoiceTellTarget_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -203,11 +222,17 @@ static void CG_VoiceTellTarget_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "vtell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 
+
+/*
+==================
+CG_VoiceTellAttacker_f
+==================
+*/
 static void CG_VoiceTellAttacker_f( void ) {
 	int		clientNum;
 	char	command[128];
@@ -218,8 +243,8 @@ static void CG_VoiceTellAttacker_f( void ) {
 		return;
 	}
 
-	trap_Args( message, 128 );
-	Com_sprintf( command, 128, "vtell %i %s", clientNum, message );
+	trap_Args( message, sizeof( message ) );
+	Com_sprintf( command, sizeof( command ), "vtell %i %s", clientNum, message );
 	trap_SendClientCommand( command );
 }
 
@@ -428,7 +453,7 @@ static void CG_Camera_f( void ) {
 
 
 typedef struct {
-	char	*cmd;
+	const char *cmd;
 	void	(*function)(void);
 } consoleCommand_t;
 

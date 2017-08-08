@@ -8,7 +8,8 @@ set cgamedir=..\..\..\..\code\cgame
 set gamedir=..\..\..\..\code\game
 set uidir=..\..\..\..\code\q3_ui
 
-set tooldir=%~dp0\tools\
+set tooldir=%~dp0tools\
+set pk3=%~dp0pak8a.pk3
 
 set cc1=%tooldir%q3lcc -DQ3_VM -DCGAME  -S -Wf-g -I%cgamedir% -I%gamedir% %1
 set cc2=%tooldir%q3lcc -DQ3_VM -DQAGAME -S -Wf-g -I%gamedir% %1
@@ -144,6 +145,8 @@ cd vm\game
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_mover.c
 @if errorlevel 1 goto quit
+%cc2% %gamedir%\g_rotation.c
+@if errorlevel 1 goto quit
 %cc2% %gamedir%\g_session.c
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_spawn.c
@@ -155,6 +158,8 @@ cd vm\game
 %cc2% %gamedir%\g_team.c
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_trigger.c
+@if errorlevel 1 goto quit
+%cc2% %gamedir%\g_unlagged.c
 @if errorlevel 1 goto quit
 %cc2% %gamedir%\g_utils.c
 @if errorlevel 1 goto quit
@@ -282,8 +287,12 @@ copy vm\ui\ui.jts vm
 copy vm\game\qagame.jts vm
 copy vm\cgame\cgame.jts vm
 
-%tooldir%7za.exe a -tzip -mx=9 -mpass=8 -mfb=255 -- pak8a.pk3 vm\*.*
+%tooldir%7za.exe a -tzip -mx=9 -mpass=8 -mfb=255 -- %pk3% vm\*.*
 rem rmdir /S /Q vm
+
+cd ..\..\assets
+@if errorlevel 1 goto quit
+%tooldir%7za.exe a -tzip -mx=9 -mpass=8 -mfb=255 -r -- %pk3% *.*
 
 :quit
 pause

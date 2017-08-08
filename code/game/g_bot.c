@@ -306,12 +306,13 @@ int G_RemoveRandomBot( int team ) {
 	return qfalse;
 }
 
+
 /*
 ===============
 G_CountHumanPlayers
 ===============
 */
-int G_CountHumanPlayers( int team ) {
+static int G_CountHumanPlayers( team_t team ) {
 	int i, num;
 	gclient_t	*cl;
 
@@ -332,12 +333,13 @@ int G_CountHumanPlayers( int team ) {
 	return num;
 }
 
+
 /*
 ===============
 G_CountBotPlayers
 ===============
 */
-int G_CountBotPlayers( int team ) {
+static int G_CountBotPlayers( team_t team ) {
 	int i, n, num;
 	gclient_t	*cl;
 
@@ -367,6 +369,7 @@ int G_CountBotPlayers( int team ) {
 	return num;
 }
 
+
 /*
 ===============
 G_CheckMinimumPlayers
@@ -377,11 +380,16 @@ void G_CheckMinimumPlayers( void ) {
 	int humanplayers, botplayers;
 	static int checkminimumplayers_time;
 
-	if (level.intermissiontime) return;
-	//only check once each 10 seconds
-	if (checkminimumplayers_time > level.time - 10000) {
+	if ( level.intermissiontime )
 		return;
-	}
+
+	//only check once each 10 seconds
+	if ( checkminimumplayers_time > level.time - 10000 )
+		return;
+
+	if ( level.time - level.startTime < 2000 )
+		return;
+
 	checkminimumplayers_time = level.time;
 	trap_Cvar_Update(&bot_minplayers);
 	minplayers = bot_minplayers.integer;
@@ -441,6 +449,7 @@ void G_CheckMinimumPlayers( void ) {
 		}
 	}
 }
+
 
 /*
 ===============
@@ -542,16 +551,17 @@ qboolean G_BotConnect( int clientNum, qboolean restart ) {
 G_AddBot
 ===============
 */
-static void G_AddBot( const char *name, float skill, const char *team, int delay, char *altname) {
+static void G_AddBot( const char *name, float skill, const char *team, int delay, const char *altname ) {
 	int				clientNum;
 	char			*botinfo;
 	gentity_t		*bot;
 	char			*key;
 	char			*s;
-	char			*botname;
-	char			*model;
-	char			*headmodel;
+	const char		*botname;
+	const char		*model;
+	const char		*headmodel;
 	char			userinfo[MAX_INFO_STRING];
+	char			nm[MAX_CVAR_VALUE_STRING];
 
 	// get the botinfo from bots.txt
 	botinfo = G_GetBotInfoByName( name );
@@ -571,9 +581,12 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	if (altname && altname[0]) {
 		botname = altname;
 	}
-	Info_SetValueForKey( userinfo, "name", botname );
+
+	BG_CleanName( botname, nm, sizeof( nm ), "unnamed bot" );
+	Info_SetValueForKey( userinfo, "name", nm );
+
 	Info_SetValueForKey( userinfo, "rate", "25000" );
-	Info_SetValueForKey( userinfo, "snaps", "20" );
+	Info_SetValueForKey( userinfo, "snaps", va( "%i", sv_fps.integer ) );
 	Info_SetValueForKey( userinfo, "skill", va("%1.2f", skill) );
 
 	if ( skill >= 1 && skill < 2 ) {
@@ -592,8 +605,8 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		model = "visor/default";
 	}
 	Info_SetValueForKey( userinfo, key, model );
-	key = "team_model";
-	Info_SetValueForKey( userinfo, key, model );
+	//key = "team_model";
+	//Info_SetValueForKey( userinfo, key, model );
 
 	key = "headmodel";
 	headmodel = Info_ValueForKey( botinfo, key );
@@ -601,8 +614,8 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		headmodel = model;
 	}
 	Info_SetValueForKey( userinfo, key, headmodel );
-	key = "team_headmodel";
-	Info_SetValueForKey( userinfo, key, headmodel );
+	//key = "team_headmodel";
+	//Info_SetValueForKey( userinfo, key, headmodel );
 
 	key = "gender";
 	s = Info_ValueForKey( botinfo, key );
@@ -639,22 +652,14 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		return;
 	}
 
-	// initialize the bot settings
-	if( !team || !*team ) {
-		if( g_gametype.integer >= GT_TEAM ) {
-			if( PickTeam(clientNum) == TEAM_RED) {
-				team = "red";
-			}
-			else {
-				team = "blue";
-			}
-		}
-		else {
-			team = "red";
-		}
+	// cleanup previous data manually
+	// because client may silently (re)connect without ClientDisconnect in case of crash for example
+	if ( level.clients[ clientNum ].pers.connected != CON_DISCONNECTED ) {
+		ClientDisconnect( clientNum );
 	}
+
 	Info_SetValueForKey( userinfo, "characterfile", Info_ValueForKey( botinfo, "aifile" ) );
-	Info_SetValueForKey( userinfo, "skill", va( "%5.2f", skill ) );
+	Info_SetValueForKey( userinfo, "skill", va( "%1.2f", skill ) );
 	Info_SetValueForKey( userinfo, "team", team );
 
 	bot = &g_entities[ clientNum ];
@@ -669,7 +674,7 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 		return;
 	}
 
-	if( delay == 0 ) {
+	if ( delay == 0 ) {
 		ClientBegin( clientNum );
 		return;
 	}
@@ -891,7 +896,7 @@ static void G_LoadBots( void ) {
 	}
 
 	// get all bots from .bot files
-	numdirs = trap_FS_GetFileList("scripts", ".bot", dirlist, 1024 );
+	numdirs = trap_FS_GetFileList("scripts", ".bot", dirlist, sizeof( dirlist ) );
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
 		dirlen = (int)strlen(dirptr);

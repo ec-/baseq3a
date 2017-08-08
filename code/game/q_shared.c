@@ -94,6 +94,7 @@ static	char	com_token[MAX_TOKEN_CHARS];
 static	char	com_parsename[MAX_TOKEN_CHARS];
 static	int		com_lines;
 static	int		com_tokenline;
+static	int		is_separator[ 256 ];
 
 void COM_BeginParseSession( const char *name )
 {
@@ -108,7 +109,7 @@ int COM_GetCurrentParseLine( void )
 	if ( com_tokenline )
 	{
 		return com_tokenline;
-}
+	}
 
 	return com_lines;
 }
@@ -319,15 +320,19 @@ char *COM_ParseExt( char **data_p, qboolean allowLineBreaks )
 	if ( c == '"' )
 	{
 		data++;
-		while (1)
+		while ( 1 )
 		{
-			c = *data++;
+			c = *data;
 			if ( c == '"' || c == '\0' )
 			{
+				if ( c == '"' )
+					data++;
+
 				com_token[ len ] = '\0';
 				*data_p = ( char * ) data;
 				return com_token;
 			}
+			data++;
 			if ( c == '\n' )
 			{
 				com_lines++;
@@ -425,6 +430,212 @@ void SkipRestOfLine( char **data ) {
 	}
 
 	*data = p;
+}
+
+
+void Com_InitSeparators( void )
+{
+	is_separator['\n']=1;
+	is_separator[';']=1;
+	is_separator['=']=1;
+	is_separator['{']=1;
+	is_separator['}']=1;
+}
+
+
+void SkipTillSeparators( char **data )
+{
+	char	*p;
+	int	c;
+
+	p = *data;
+
+	if ( !*p )
+		return;
+
+	while ( (c = *p) != '\0' ) 
+	{
+		p++;
+		if ( is_separator[ c ] )
+		{
+			if ( c == '\n' )
+			{
+				com_lines++;
+			}
+			break;
+		}
+	}
+
+	*data = p;
+}
+
+
+char *COM_ParseSep( char **data_p, qboolean allowLineBreaks )
+{
+	int c = 0, len;
+	qboolean hasNewLines = qfalse;
+	char *data;
+
+	data = *data_p;
+	len = 0;
+	com_token[0] = '\0';
+	com_tokenline = 0;
+
+	// make sure incoming data is valid
+	if ( !data )
+	{
+		*data_p = NULL;
+		return com_token;
+	}
+
+	while ( 1 )
+	{
+		// skip whitespace
+		data = SkipWhitespace( data, &hasNewLines );
+		if ( !data )
+		{
+			*data_p = NULL;
+			return com_token;
+		}
+		if ( hasNewLines && !allowLineBreaks )
+		{
+			*data_p = data;
+			return com_token;
+		}
+
+		c = *data;
+
+		// skip double slash comments
+		if ( c == '/' && data[1] == '/' )
+		{
+			data += 2;
+			while (*data && *data != '\n') {
+				data++;
+			}
+		}
+		// skip /* */ comments
+		else if ( c == '/' && data[1] == '*' ) 
+		{
+			data += 2;
+			while ( *data && ( *data != '*' || data[1] != '/' ) ) 
+			{
+				if ( *data == '\n' )
+				{
+					com_lines++;
+				}
+				data++;
+			}
+			if ( *data ) 
+			{
+				data += 2;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	com_tokenline = com_lines;
+
+	// handle quoted strings
+	if ( c == '"' )
+	{
+		data++;
+		while ( 1 )
+		{
+			c = *data;
+			if ( c == '"' || c == '\0' )
+			{
+				if ( c == '"' )
+					data++;
+
+				com_token[ len ] = '\0';
+				*data_p = ( char * ) data;
+				return com_token;
+			}
+			data++;
+			if ( c == '\n' )
+			{
+				com_lines++;
+			}
+			if ( len < MAX_TOKEN_CHARS-1 )
+			{
+				com_token[ len ] = c;
+				len++;
+			}
+		}
+	}
+
+	// special case for separators
+ 	if ( is_separator[ c ]  )  
+	{
+		com_token[ len ] = c;
+		len++;
+		data++;
+	} 
+	else // parse a regular word
+	do
+	{
+		if ( len < MAX_TOKEN_CHARS - 1 )
+		{
+			com_token[ len ] = c;
+			len++;
+		}
+		data++;
+		c = *data;
+	} while ( c > ' ' && !is_separator[ c ] );
+
+	com_token[ len ] = '\0';
+
+	*data_p = ( char * ) data;
+	return com_token;
+}
+
+
+/*
+============
+Com_Split
+============
+*/
+int Com_Split( char *in, char **out, int outsz, int delim ) 
+{
+	int c;
+	char **o = out, **end = out + outsz;
+	// skip leading spaces
+	if ( delim >= ' ' ) {
+		while( (c = *in) != '\0' && c <= ' ' ) 
+			in++; 
+	}
+	*out = in; out++;
+	while( out < end ) {
+		while( (c = *in) != '\0' && c != delim ) 
+			in++; 
+		*in = '\0';
+		if ( !c ) {
+			// don't count last null value
+			if ( out[-1][0] == '\0' ) 
+				out--;
+			break;
+		}
+		in++;
+		// skip leading spaces
+		if ( delim >= ' ' ) {
+			while( (c = *in) != '\0' && c <= ' ' ) 
+				in++; 
+		}
+		*out = in; out++;
+	}
+	// sanitize last value
+	while( (c = *in) != '\0' && c != delim ) 
+		in++; 
+	*in = '\0';
+	c = out - o;
+	// set remaining out pointers
+	while( out < end ) {
+		*out = in; out++;
+	}
+	return c;
 }
 
 

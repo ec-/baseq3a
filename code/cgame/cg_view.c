@@ -749,6 +749,29 @@ static void CG_PlayBufferedSounds( void ) {
 
 /*
 =================
+CG_FirstFrame
+
+Called once on first rendered frame
+=================
+*/
+static void CG_FirstFrame( void )
+{
+	CG_SetConfigValues();
+
+	cgs.voteTime = atoi( CG_ConfigString( CS_VOTE_TIME ) );
+	cgs.voteYes = atoi( CG_ConfigString( CS_VOTE_YES ) );
+	cgs.voteNo = atoi( CG_ConfigString( CS_VOTE_NO ) );
+	Q_strncpyz( cgs.voteString, CG_ConfigString( CS_VOTE_STRING ), sizeof( cgs.voteString ) );
+
+	if ( cgs.voteTime )
+		cgs.voteModified = qtrue;
+	else
+		cgs.voteModified = qfalse;
+}
+
+
+/*
+=================
 CG_DrawActiveFrame
 
 Generates and draws a game scene and status information at the given time.
@@ -790,6 +813,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// let the client system know what our weapon and zoom settings are
 	trap_SetUserCmdValue( cg.weaponSelect, cg.zoomSensitivity );
 
+	if ( cg.clientFrame == 0 ) {
+		CG_FirstFrame();
+	}
+
 	// this counter will be bumped for every valid scene we generate
 	cg.clientFrame++;
 
@@ -800,6 +827,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	// decide on third person view
 	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
+
+	CG_TrackClientTeamChange();
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
@@ -870,7 +899,5 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	if ( cg_stats.integer ) {
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
-
-
 }
 
