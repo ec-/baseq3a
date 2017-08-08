@@ -466,9 +466,9 @@ static void CG_DrawStatusBarHead( float x ) {
 
 	if ( cg.damageTime && cg.time - cg.damageTime < DAMAGE_TIME ) {
 		frac = (float)(cg.time - cg.damageTime ) / DAMAGE_TIME;
-		size = ICON_SIZE * 1.25 * ( 1.5 - frac * 0.5 );
+		size = ICON_SIZE * 1.125 * ( 1.5 - frac * 0.5 );
 
-		stretch = size - ICON_SIZE * 1.25;
+		stretch = size - ICON_SIZE * 1.125;
 		// kick in the direction of damage
 		x -= stretch * 0.5 + cg.damageX * stretch * 0.5;
 
@@ -491,7 +491,7 @@ static void CG_DrawStatusBarHead( float x ) {
 			cg.headEndPitch = 5 * cos( crandom()*M_PI );
 		}
 
-		size = ICON_SIZE * 1.25;
+		size = ICON_SIZE * 1.125;
 	}
 
 	// if the server was frozen for a while we may have a bad head start time
@@ -504,7 +504,7 @@ static void CG_DrawStatusBarHead( float x ) {
 	angles[YAW] = cg.headStartYaw + ( cg.headEndYaw - cg.headStartYaw ) * frac;
 	angles[PITCH] = cg.headStartPitch + ( cg.headEndPitch - cg.headStartPitch ) * frac;
 
-	CG_DrawHead( x, 480 - size, size, size, 
+	CG_DrawHead( x, 481 - size, size, size, 
 				cg.snap->ps.clientNum, angles );
 }
 #endif // MISSIONPACK
@@ -578,7 +578,7 @@ static void CG_DrawStatusBar( void ) {
 	}
 
 	// draw the team background
-	CG_DrawTeamBackground( 0, 420, 640, 60, 0.33f, cg.snap->ps.persistant[PERS_TEAM] );
+	CG_DrawTeamBackground( 0, 432, 640, 60, 0.33f, cg.snap->ps.persistant[PERS_TEAM] );
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
 	ps = &cg.snap->ps;
@@ -591,7 +591,7 @@ static void CG_DrawStatusBar( void ) {
 		origin[1] = 0;
 		origin[2] = 0;
 		angles[YAW] = 90 + 20 * sin( ( cg.time % TMOD_1000 ) / 1000.0 );
-		CG_Draw3DModel( CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
+		CG_Draw3DModel( CHAR_WIDTH*3 + TEXT_ICON_SPACE, 433.5, ICON_SIZE, ICON_SIZE,
 					   cg_weapons[ cent->currentState.weapon ].ammoModel, 0, origin, angles );
 	}
 
@@ -610,7 +610,7 @@ static void CG_DrawStatusBar( void ) {
 		origin[1] = 0;
 		origin[2] = -10;
 		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
-		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, 432, ICON_SIZE, ICON_SIZE,
+		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, 435.5, ICON_SIZE, ICON_SIZE,
 					   cgs.media.armorModel, 0, origin, angles );
 	}
 #ifdef MISSIONPACK
@@ -1100,7 +1100,7 @@ static float CG_DrawScores( float y ) {
 	s1 = cgs.scores1;
 	s2 = cgs.scores2;
 
-	y -=  BIGCHAR_HEIGHT + 8;
+	y -=  BIGCHAR_HEIGHT + 4;
 
 	y1 = y;
 
@@ -1359,7 +1359,7 @@ CG_DrawLowerRight
 static void CG_DrawLowerRight( void ) {
 	float	y;
 
-	y = 480 - ICON_SIZE;
+	y = 432;
 
 	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay.integer == 2 ) {
 		y = CG_DrawTeamOverlay( y, qtrue, qfalse );
@@ -1384,7 +1384,7 @@ static int CG_DrawPickupItem( int y ) {
 		return y;
 	}
 
-	y -= ICON_SIZE;
+	y -= ICON_SIZE + 8;
 
 	value = cg.itemPickup;
 	if ( value ) {
@@ -1412,7 +1412,7 @@ CG_DrawLowerLeft
 static void CG_DrawLowerLeft( void ) {
 	float	y;
 
-	y = 480 - ICON_SIZE;
+	y = 432;
 
 	if ( cgs.gametype >= GT_TEAM && cg_drawTeamOverlay.integer == 3 ) {
 		y = CG_DrawTeamOverlay( y, qfalse, qfalse );
