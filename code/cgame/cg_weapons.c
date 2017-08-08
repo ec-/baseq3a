@@ -1562,7 +1562,7 @@ void CG_DrawWeaponSelect( void ) {
 		x += 40;
 	}
 
-	if (cg_drawWeaponName.integer == 1) {
+	if (cg_drawWeaponSelect.integer == 1) {
 		// draw the selected name
 		if ( cg_weapons[ cg.weaponSelect ].item ) {
 			name = cg_weapons[ cg.weaponSelect ].item->pickup_name;

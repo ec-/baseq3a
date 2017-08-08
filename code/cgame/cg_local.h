@@ -1233,7 +1233,7 @@ extern	vmCvar_t		cg_teamColors;
 
 extern	vmCvar_t		cg_deadBodyDarken;
 
-extern	vmCvar_t		cg_drawWeaponName;
+extern	vmCvar_t		cg_drawWeaponSelect;
 
 extern const char		*eventnames[EV_MAX];
 
