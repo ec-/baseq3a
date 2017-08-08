@@ -195,6 +195,7 @@ vmCvar_t	cg_teamColors;
 
 vmCvar_t	cg_deadBodyDarken;
 
+vmCvar_t	cg_drawWeaponName;
 
 typedef struct {
 	vmCvar_t	*vmCvar;
@@ -317,7 +318,8 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_enemyColors, "cg_enemyColors", "", CVAR_ARCHIVE},
 	{ &cg_teamModel, "cg_teamModel", "", CVAR_ARCHIVE},
 	{ &cg_teamColors, "cg_teamColors", "", CVAR_ARCHIVE},
-	{ &cg_deadBodyDarken, "cg_deadBodyDarken", "1", CVAR_ARCHIVE}
+	{ &cg_deadBodyDarken, "cg_deadBodyDarken", "1", CVAR_ARCHIVE},
+	{ &cg_drawWeaponName, "cg_drawWeaponName", "1", CVAR_ARCHIVE}
 };
 
 

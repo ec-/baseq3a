@@ -1562,13 +1562,15 @@ void CG_DrawWeaponSelect( void ) {
 		x += 40;
 	}
 
-	// draw the selected name
-	if ( cg_weapons[ cg.weaponSelect ].item ) {
-		name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
-		if ( name ) {
-			w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
-			x = ( SCREEN_WIDTH - w ) / 2;
-			CG_DrawBigStringColor(x, y - 22, name, color);
+	if (cg_drawWeaponName.integer == 1) {
+		// draw the selected name
+		if ( cg_weapons[ cg.weaponSelect ].item ) {
+			name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
+			if ( name ) {
+				w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
+				x = ( SCREEN_WIDTH - w ) / 2;
+				CG_DrawBigStringColor(x, y - 22, name, color);
+			}
 		}
 	}
 
