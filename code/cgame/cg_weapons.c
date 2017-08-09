@@ -1537,7 +1537,7 @@ void CG_DrawWeaponSelect( void ) {
 	}
 
 	x = 320 - count * 20;
-	y = 380;
+	y = cgs.screenYmax + 1 - 100; // - STATUSBAR_HEIGHT - 40
 
 	for ( i = 1 ; i < MAX_WEAPONS ; i++ ) {
 		if ( !( bits & ( 1 << i ) ) ) {
@@ -1591,6 +1591,7 @@ static qboolean CG_WeaponSelectable( int i ) {
 
 	return qtrue;
 }
+
 
 /*
 ===============

@@ -1023,7 +1023,15 @@ typedef struct {
 	glconfig_t		glconfig;			// rendering configuration
 	float			screenXScale;		// derived from glconfig
 	float			screenYScale;
-	float			screenXBias;
+
+	int				screenXBias;
+	int				screenYBias;
+
+	float			screenXmin;
+	float			screenXmax;
+
+	float			screenYmin;
+	float			screenYmax;
 
 	int				serverCommandSequence;	// reliable command stream counter
 	int				processedSnapshotNum;// the number of snapshots cgame has requested
@@ -1080,6 +1088,7 @@ typedef struct {
 	int				teamChatPos;
 	int				teamLastChatPos;
 
+#ifdef MISSIONPACK
 	int cursorX;
 	int cursorY;
 	qboolean eventHandling;
@@ -1097,6 +1106,7 @@ typedef struct {
 	int acceptTask;
 	int acceptLeader;
 	char acceptVoice[MAX_NAME_LENGTH];
+#endif
 
 	// media
 	cgMedia_t		media;

@@ -180,7 +180,8 @@ void UI_DrawConnectScreen( qboolean overlay ) {
 	if ( !overlay ) {
 		// draw the dialog background
 		UI_SetColor( color_white );
-		UI_DrawHandlePic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, uis.menuBackShader );
+		// fill whole screen, not just 640x480 virtual rectangle
+		trap_R_DrawStretchPic( 0, 0, uis.glconfig.vidWidth, uis.glconfig.vidHeight, 0, 0, 1, 1, uis.menuBackShader );
 	}
 
 	// see what information we should display

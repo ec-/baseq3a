@@ -10,19 +10,15 @@ CG_AdjustFrom640
 Adjusted for resolution and screen aspect ratio
 ================
 */
-void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
-#if 0
-	// adjust for wide screens
-	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
-		*x += 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * 640 / 480 ) );
-	}
-#endif
+void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) 
+{
 	// scale for screen sizes
-	*x *= cgs.screenXScale;
-	*y *= cgs.screenYScale;
+	*x = *x * cgs.screenXScale + cgs.screenXBias;
+	*y = *y * cgs.screenYScale + cgs.screenYBias;
 	*w *= cgs.screenXScale;
 	*h *= cgs.screenYScale;
 }
+
 
 /*
 ================
@@ -40,6 +36,7 @@ void CG_FillRect( float x, float y, float width, float height, const float *colo
 	trap_R_SetColor( NULL );
 }
 
+
 /*
 ================
 CG_DrawSides
@@ -54,12 +51,15 @@ void CG_DrawSides(float x, float y, float w, float h, float size) {
 	trap_R_DrawStretchPic( x + w - size, y, size, h, 0, 0, 0, 0, cgs.media.whiteShader );
 }
 
+
 void CG_DrawTopBottom(float x, float y, float w, float h, float size) {
 	CG_AdjustFrom640( &x, &y, &w, &h );
 	size *= cgs.screenYScale;
 	trap_R_DrawStretchPic( x, y, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
 	trap_R_DrawStretchPic( x, y + h - size, w, size, 0, 0, 0, 0, cgs.media.whiteShader );
 }
+
+
 /*
 ================
 UI_DrawRect
@@ -590,7 +590,7 @@ static void UI_DrawBannerString2( int x, int y, const char* str, vec4_t color )
 	trap_R_SetColor( color );
 	
 	ax = x * cgs.screenXScale + cgs.screenXBias;
-	ay = y * cgs.screenXScale;
+	ay = y * cgs.screenYScale + cgs.screenYBias;
 
 	s = str;
 	while ( *s )
@@ -700,7 +700,7 @@ static void UI_DrawProportionalString2( int x, int y, const char* str, vec4_t co
 	trap_R_SetColor( color );
 	
 	ax = x * cgs.screenXScale + cgs.screenXBias;
-	ay = y * cgs.screenXScale;
+	ay = y * cgs.screenYScale + cgs.screenYBias;
 
 	s = str;
 	while ( *s )

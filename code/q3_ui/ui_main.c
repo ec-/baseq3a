@@ -235,24 +235,31 @@ void UI_UpdateCvars( void ) {
 UI_VideoCheck
 =================
 */
-void UI_VideoCheck( int time ) {
-	if ( abs(time - uis.lastVideoCheck) > 1000 ) {
+void UI_VideoCheck( int time ) 
+{
+	if ( abs( time - uis.lastVideoCheck ) > 1000 ) {
+		
 		int oldWidth, oldHeight;
 		oldWidth = uis.glconfig.vidWidth;
 		oldHeight = uis.glconfig.vidHeight;
 
 		trap_GetGlconfig( &uis.glconfig );
+
 		if ( uis.glconfig.vidWidth != oldWidth || uis.glconfig.vidHeight != oldHeight ) {
+			uis.biasY = 0.0;
+			uis.biasX = 0.0;
 			// for 640x480 virtualized screen
-			uis.scale = uis.glconfig.vidHeight * (1.0/480.0);
 			if ( uis.glconfig.vidWidth * 480 > uis.glconfig.vidHeight * 640 ) {
-				// wide screen
-				uis.bias = 0.5 * ( uis.glconfig.vidWidth - ( uis.glconfig.vidHeight * (640.0/480.0) ) );
+				// wide screen, scale by height
+				uis.scale = uis.glconfig.vidHeight * (1.0/480.0);
+				uis.biasX = 0.5 * ( uis.glconfig.vidWidth - ( uis.glconfig.vidHeight * (640.0/480.0) ) );
 			} else {
-				// no wide screen
-				uis.bias = 0;
+				// no wide screen, scale by width
+				uis.scale = uis.glconfig.vidWidth * (1.0/640.0);
+				uis.biasY = 0.5 * ( uis.glconfig.vidHeight - ( uis.glconfig.vidWidth * (480.0/640) ) );
 			}
 		}
+
 		uis.lastVideoCheck = time;
 	}
 }

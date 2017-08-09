@@ -539,7 +539,8 @@ typedef struct {
 	qhandle_t			rb_on;
 	qhandle_t			rb_off;
 	float				scale;
-	float				bias;
+	float				biasX;
+	float				biasY;
 	qboolean			demoversion;
 	qboolean			firstdraw;
 	int					lastVideoCheck;

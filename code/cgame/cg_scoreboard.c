@@ -195,7 +195,8 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 		hcolor[3] = fade * 0.7;
 		CG_FillRect( SB_SCORELINE_X + BIGCHAR_WIDTH + (SB_RATING_WIDTH / 2), y, 
-			640 - SB_SCORELINE_X - BIGCHAR_WIDTH, BIGCHAR_HEIGHT+1, hcolor );
+			640 - SB_SCORELINE_X - BIGCHAR_WIDTH - (SB_RATING_WIDTH/2),
+			BIGCHAR_HEIGHT+1, hcolor );
 	}
 
 	CG_DrawBigString( SB_SCORELINE_X + (SB_RATING_WIDTH / 2), y, string, fade );

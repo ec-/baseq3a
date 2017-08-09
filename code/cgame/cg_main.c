@@ -1933,8 +1933,26 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 
 	// get the rendering configuration from the client system
 	trap_GetGlconfig( &cgs.glconfig );
-	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0;
-	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
+
+	cgs.screenXBias = 0.0;
+	cgs.screenYBias = 0.0;
+	
+	if ( cgs.glconfig.vidWidth * 480 > cgs.glconfig.vidHeight * 640 ) {
+		// wide screen, scale by height
+		cgs.screenXScale = cgs.screenYScale = cgs.glconfig.vidHeight * (1.0/480.0);
+		cgs.screenXBias = 0.5 * ( cgs.glconfig.vidWidth - ( cgs.glconfig.vidHeight * (640.0/480.0) ) );
+	}
+	else {
+		// no wide screen, scale by width
+		cgs.screenXScale = cgs.screenYScale = cgs.glconfig.vidWidth * (1.0/640.0);
+		cgs.screenYBias = 0.5 * ( cgs.glconfig.vidHeight - ( cgs.glconfig.vidWidth * (480.0/640.0) ) );
+	}
+
+	cgs.screenXmin = 0.0 - (cgs.screenXBias / cgs.screenXScale);
+	cgs.screenXmax = 639.0 + (cgs.screenXBias / cgs.screenXScale);
+
+	cgs.screenYmin = 0.0 - (cgs.screenYBias / cgs.screenYScale);
+	cgs.screenYmax = 479.0 + (cgs.screenYBias / cgs.screenYScale);
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
