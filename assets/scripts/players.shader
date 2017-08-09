@@ -1,4 +1,6 @@
-// colored skins
+
+// CPM skins
+// KHB  9-Mar-01	single shader for both v and lm, all standard models now supported, and a WICKED trick...  :)
 
 models/players/anarki/pm
 {
@@ -86,6 +88,7 @@ models/players/biker/pmh
 	}
 }
 
+
 models/players/bitterman/pm
 {
 	nopicmip
@@ -138,6 +141,7 @@ models/players/bones/pm
 	}
 }
 
+
 models/players/crash/pm
 {
 	nopicmip
@@ -149,6 +153,23 @@ models/players/crash/pm
 	}
 	{
 		map models/players/crash/color.tga
+		blendFunc GL_ONE GL_ZERO
+		alphaFunc LT128
+		rgbGen identity
+	}
+}
+
+models/players/crash/pmt
+{
+	nopicmip
+	{
+		map models/players/crash/color_t.tga
+		blendFunc GL_ONE GL_ZERO
+		alphaFunc GE128
+		rgbGen entity
+	}
+	{
+		map models/players/crash/color_t.tga
 		blendFunc GL_ONE GL_ZERO
 		alphaFunc LT128
 		rgbGen identity
@@ -208,6 +229,7 @@ models/players/grunt/pmh
 	}
 }
 
+
 models/players/hunter/pm
 {
 	nopicmip
@@ -258,6 +280,7 @@ models/players/hunter/pmf
 		rgbGen identity
 	}
 }
+
 
 models/players/keel/pm
 {
@@ -327,6 +350,7 @@ models/players/klesk/pmh
 		rgbGen identity
 	}
 }
+
 
 models/players/lucy/pm
 {
@@ -484,6 +508,7 @@ models/players/orbb/pmh
 	}
 }
 
+
 models/players/ranger/pm
 {
 	nopicmip
@@ -500,6 +525,7 @@ models/players/ranger/pm
 		rgbGen identity
 	}
 }
+
 
 models/players/ranger/pmh
 {
@@ -552,6 +578,7 @@ models/players/razor/pmh
 		rgbGen identity
 	}
 }
+
 
 models/players/sarge/pm
 {
@@ -614,9 +641,16 @@ models/players/slash/pms
 		clampmap models/players/slash/color_skates.tga
 		blendFunc GL_ONE GL_ONE
 		tcMod stretch sin .9 0.1 0 1.1
+		rgbGen entity
+	}
+	{
+		clampmap models/players/slash/color_skates.tga
+		blendFunc GL_ONE GL_ONE
+		tcMod stretch sin .9 0.1 0 1.1
 		rgbGen identity
 	}
 }
+
 
 models/players/sorlag/pm
 {
@@ -635,6 +669,24 @@ models/players/sorlag/pm
 	}
 }
 
+models/players/sorlag/pmt
+{
+	nopicmip
+	{
+		map models/players/sorlag/color_t.tga
+		blendFunc GL_ONE GL_ZERO
+		alphaFunc GE128
+		rgbGen entity
+	}
+	{
+		map models/players/sorlag/color_t.tga
+		blendFunc GL_ONE GL_ZERO
+		alphaFunc LT128
+		rgbGen identity
+	}
+}
+
+
 models/players/tankjr/pm
 {
 	nopicmip
@@ -651,6 +703,7 @@ models/players/tankjr/pm
 		rgbGen identity
 	}
 }
+
 
 models/players/uriel/pm
 {
@@ -686,6 +739,7 @@ models/players/uriel/pmh
 	}
 }
 
+
 models/players/uriel/pmw
 {
 	nopicmip
@@ -703,6 +757,7 @@ models/players/uriel/pmw
 	}
 }
 
+
 models/players/visor/pm
 {
 	nopicmip
@@ -719,6 +774,7 @@ models/players/visor/pm
 		rgbGen identity
 	}
 }
+
 
 models/players/xaero/pm
 {
