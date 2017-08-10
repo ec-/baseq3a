@@ -48,9 +48,9 @@ int SpawnTime( gentity_t *ent, qboolean firstSpawn )
 		if ( firstSpawn )
 			return SPAWN_WEAPONS;
 		if ( g_gametype.integer == GT_TEAM )
-			return g_weaponRespawn.value * 1000 ;
-		else
 			return g_weaponTeamRespawn.value * 1000;
+		else
+			return g_weaponRespawn.value * 1000 ;
 
 	case IT_AMMO:
 		return firstSpawn ? SPAWN_AMMO : RESPAWN_AMMO;
