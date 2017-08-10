@@ -1500,6 +1500,7 @@ WEAPON SELECTION
 ==============================================================================
 */
 
+
 /*
 ===================
 CG_DrawWeaponSelect
@@ -1510,11 +1511,13 @@ void CG_DrawWeaponSelect( void ) {
 	int		bits;
 	int		count;
 	int		x, y, w;
-	char	*name;
+	int		dx, dy;
+	const char *name;
 	float	*color;
+	char	buf[16];
 
 	// don't display if dead
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 || cg_drawWeaponSelect.integer <= 0 ) {
 		return;
 	}
 
@@ -1530,16 +1533,25 @@ void CG_DrawWeaponSelect( void ) {
 	// count the number of weapons owned
 	bits = cg.snap->ps.stats[ STAT_WEAPONS ];
 	count = 0;
-	for ( i = 1 ; i < MAX_WEAPONS ; i++ ) {
+	for ( i = WP_GAUNTLET ; i < MAX_WEAPONS ; i++ ) {
 		if ( bits & ( 1 << i ) ) {
 			count++;
 		}
 	}
 
-	x = 320 - count * 20;
-	y = cgs.screenYmax + 1 - 100; // - STATUSBAR_HEIGHT - 40
+	if ( cg_drawWeaponSelect.integer < 3 ) {
+		x = 320 - count * 20;
+		y = cgs.screenYmax + 1 - 100; // - STATUSBAR_HEIGHT - 40
+		dx = 40;
+		dy = 0;
+	} else {
+		x = cgs.screenXmin + 6;
+		y = 240 - count * 20;
+		dx = 0;
+		dy = 40;
+	}
 
-	for ( i = 1 ; i < MAX_WEAPONS ; i++ ) {
+	for ( i = WP_GAUNTLET ; i < MAX_WEAPONS ; i++ ) {
 		if ( !( bits & ( 1 << i ) ) ) {
 			continue;
 		}
@@ -1551,24 +1563,34 @@ void CG_DrawWeaponSelect( void ) {
 
 		// draw selection marker
 		if ( i == cg.weaponSelect ) {
-			CG_DrawPic( x-4, y-4, 40, 40, cgs.media.selectShader );
+			CG_DrawPic( x-4, y-4, 32+8, 32+8, cgs.media.selectShader );
 		}
 
 		// no ammo cross on top
 		if ( !cg.snap->ps.ammo[ i ] ) {
 			CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
+		} else if ( cg_drawWeaponSelect.integer > 1 && cg.snap->ps.ammo[ i ] > 0 ) {
+			// ammo counter
+			BG_sprintf( buf, "%i", cg.snap->ps.ammo[ i ] );
+			w = CG_DrawStrlen( buf ) * 9;
+			if ( cg_drawWeaponSelect.integer == 2 ) {
+				CG_DrawStringExt( x + (32-w)/2, y - 18, buf, color, qtrue, qtrue, 9, 9, 0 );
+			} else {
+				CG_DrawStringExt( x + 39, y + (32-9)/2, buf, color, qtrue, qtrue, 9, 9, 0 );
+			}
 		}
 
-		x += 40;
+		x += dx;
+		y += dy;
 	}
 
 	// draw the selected name
-	if ( cg_weapons[ cg.weaponSelect ].item ) {
+	if ( cg_weapons[ cg.weaponSelect ].item && cg_drawWeaponSelect.integer == 1 ) {
 		name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
 		if ( name ) {
 			w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
 			x = ( SCREEN_WIDTH - w ) / 2;
-			CG_DrawBigStringColor(x, y - 22, name, color);
+			CG_DrawBigStringColor( x, y - 22, name, color );
 		}
 	}
 
