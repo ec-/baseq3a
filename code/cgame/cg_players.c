@@ -1279,7 +1279,7 @@ void CG_NewClientInfo( int clientNum ) {
 			CG_SetDeferredClientInfo( &newInfo );
 			// if we are low on memory, leave them with this model
 			if ( forceDefer ) {
-				CG_Printf( "Memory is low.  Using deferred model.\n" );
+				CG_Printf( "Memory is low. Using deferred model.\n" );
 				newInfo.deferred = qfalse;
 			}
 		} else {

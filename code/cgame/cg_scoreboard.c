@@ -207,6 +207,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	}
 }
 
+
 /*
 =================
 CG_TeamScoreboard

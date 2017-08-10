@@ -64,8 +64,9 @@ void CG_TestModel_f (void) {
 		cg.testModelEntity.frame = 1;
 		cg.testModelEntity.oldframe = 0;
 	}
-	if (! cg.testModelEntity.hModel ) {
-		CG_Printf( "Can't register model\n" );
+
+	if ( !cg.testModelEntity.hModel ) {
+		CG_Printf( "Can't register model '%s'.\n", cg.testModelName );
 		return;
 	}
 
