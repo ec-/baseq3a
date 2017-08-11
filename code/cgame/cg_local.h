@@ -622,6 +622,7 @@ typedef struct {
 	//==========================
 
 	int			itemPickup;
+	int			itemPickupCount;
 	int			itemPickupTime;
 	int			itemPickupBlendTime;	// the pulse around the crosshair is timed seperately
 

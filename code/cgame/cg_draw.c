@@ -1423,6 +1423,7 @@ CG_DrawPickupItem
 static int CG_DrawPickupItem( int y ) {
 	int		value;
 	float	*fadeColor;
+	const char *text;
 
 	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
 		return y;
@@ -1437,8 +1438,16 @@ static int CG_DrawPickupItem( int y ) {
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
 			CG_DrawPic( cgs.screenXmin + 8, y, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
-			CG_DrawBigString( cgs.screenXmin + ICON_SIZE + 16, y + (ICON_SIZE/2 - BIGCHAR_HEIGHT/2), bg_itemlist[ value ].pickup_name, fadeColor[0] );
+			if ( cg.itemPickupCount > 1 ) {
+				text = va( "%s x%i", bg_itemlist[ value ].pickup_name, cg.itemPickupCount );
+			} else {
+				text = bg_itemlist[ value ].pickup_name;
+			}
+			CG_DrawBigString( cgs.screenXmin + ICON_SIZE + 16, y + (ICON_SIZE/2 - BIGCHAR_HEIGHT/2), text, fadeColor[0] );
+			
 			trap_R_SetColor( NULL );
+		} else {
+			cg.itemPickupCount = 0;
 		}
 	}
 	
@@ -2754,6 +2763,7 @@ void CG_WarmupEvent( void ) {
 
 	cg.itemPickupTime = 0;
 	cg.itemPickupBlendTime = 0;
+	cg.itemPickupCount = 0;
 
 	cg.killerTime = 0;
 	cg.killerName[0] = '\0';

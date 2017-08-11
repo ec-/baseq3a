@@ -1506,6 +1506,7 @@ WEAPON SELECTION
 CG_DrawWeaponSelect
 ===================
 */
+#define AMMO_FONT_SIZE 10
 void CG_DrawWeaponSelect( void ) {
 	int		i;
 	int		bits;
@@ -1572,11 +1573,11 @@ void CG_DrawWeaponSelect( void ) {
 		} else if ( cg_drawWeaponSelect.integer > 1 && cg.snap->ps.ammo[ i ] > 0 ) {
 			// ammo counter
 			BG_sprintf( buf, "%i", cg.snap->ps.ammo[ i ] );
-			w = CG_DrawStrlen( buf ) * 9;
+			w = CG_DrawStrlen( buf ) * AMMO_FONT_SIZE;
 			if ( cg_drawWeaponSelect.integer == 2 ) {
-				CG_DrawStringExt( x + (32-w)/2, y - 18, buf, color, qtrue, qtrue, 9, 9, 0 );
+				CG_DrawStringExt( x + (32-w)/2, y - 18, buf, color, qtrue, qfalse, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0 );
 			} else {
-				CG_DrawStringExt( x + 39, y + (32-9)/2, buf, color, qtrue, qtrue, 9, 9, 0 );
+				CG_DrawStringExt( x + 39 + (3*AMMO_FONT_SIZE-w)/2, y + (32-AMMO_FONT_SIZE)/2, buf, color, qtrue, qfalse, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0 );
 			}
 		}
 
