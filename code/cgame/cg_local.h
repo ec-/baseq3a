@@ -1163,6 +1163,7 @@ extern	vmCvar_t		cg_debugAnim;
 extern	vmCvar_t		cg_debugPosition;
 extern	vmCvar_t		cg_debugEvents;
 extern	vmCvar_t		cg_railTrailTime;
+extern	vmCvar_t		cg_railTrailRadius;
 extern	vmCvar_t		cg_errorDecay;
 extern	vmCvar_t		cg_nopredict;
 extern	vmCvar_t		cg_noPlayerAnims;
@@ -1752,12 +1753,16 @@ int CG_NewParticleArea ( int num );
 
 // extension interface
 extern  qboolean intShaderTime;
+extern  qboolean linearLight;
 
 #ifdef Q3_VM
 extern void (*trap_R_AddRefEntityToScene2)( const refEntity_t *re );
+extern void	(*trap_R_AddLinearLightToScene)( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 #else
 qboolean trap_GetValue( char *value, int valueSize, const char *key );
 void trap_R_AddRefEntityToScene2( const refEntity_t *re );
+void trap_R_AddLinearLightToScene( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 int dll_com_trapGetValue;
 int dll_trap_R_AddRefEntityToScene2;
+int dll_trap_R_AddLinearLightToScene;
 #endif

@@ -316,6 +316,11 @@ static void CG_AddFadeRGB( localEntity_t *le ) {
 	re = &le->refEntity;
 
 	c = ( le->endTime - cg.time ) * le->lifeRate;
+
+	if ( re->reType == RT_RAIL_CORE && cg_railTrailRadius.integer && linearLight ) {
+		trap_R_AddLinearLightToScene( re->origin, re->oldorigin, cg_railTrailRadius.value, le->color[0]*c, le->color[1]*c, le->color[2]*c );
+	}
+
 	c *= 0xff;
 
 	re->shaderRGBA[0] = le->color[0] * c;

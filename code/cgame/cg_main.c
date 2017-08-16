@@ -20,10 +20,12 @@ void CG_Shutdown( void );
 
 // extension interface
 qboolean intShaderTime = qfalse;
+qboolean linearLight = qfalse;
 
 #ifdef Q3_VM
 qboolean (*trap_GetValue)( char *value, int valueSize, const char *key );
 void (*trap_R_AddRefEntityToScene2)( const refEntity_t *re );
+void (*trap_R_AddLinearLightToScene)( const vec3_t start, const vec3_t end, float intensity, float r, float g, float b );
 #endif
 
 
@@ -82,6 +84,7 @@ itemInfo_t			cg_items[MAX_ITEMS];
 
 
 vmCvar_t	cg_railTrailTime;
+vmCvar_t	cg_railTrailRadius;
 vmCvar_t	cg_centertime;
 vmCvar_t	cg_runpitch;
 vmCvar_t	cg_runroll;
@@ -236,6 +239,7 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_addMarks, "cg_marks", "1", CVAR_ARCHIVE },
 	{ &cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE },
 	{ &cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  },
+	{ &cg_railTrailRadius, "cg_railTrailRadius", "75", CVAR_ARCHIVE  },
 	{ &cg_gun_x, "cg_gunX", "0", CVAR_ARCHIVE },
 	{ &cg_gun_y, "cg_gunY", "0", CVAR_ARCHIVE },
 	{ &cg_gun_z, "cg_gunZ", "0", CVAR_ARCHIVE },
@@ -1909,11 +1913,19 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 			trap_R_AddRefEntityToScene2 = (void*)~atoi( value );
 			intShaderTime = qtrue;
 		}
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene" ) ) {
+			trap_R_AddLinearLightToScene = (void*)~atoi( value );
+			linearLight = qtrue;
+		}
 #else
 		dll_com_trapGetValue = atoi( value );
 		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddRefEntityToScene2" ) ) {
 			dll_trap_R_AddRefEntityToScene2 = atoi( value );
 			intShaderTime = qtrue;
+		}
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene" ) ) {
+			dll_trap_R_AddLinearLightToScene = atoi( value );
+			linearLight = qtrue;
 		}
 #endif
 	}
