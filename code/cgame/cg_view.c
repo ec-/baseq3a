@@ -814,17 +814,11 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// let the client system know what our weapon and zoom settings are
 	trap_SetUserCmdValue( cg.weaponSelect, cg.zoomSensitivity );
 
-	if ( cg.clientFrame == 0 ) {
+	if ( cg.clientFrame == 0 )
 		CG_FirstFrame();
-	}
-
-	// this counter will be bumped for every valid scene we generate
-	cg.clientFrame++;
 
 	// update cg.predictedPlayerState
-	if ( cg.snap ) { // FIXME: avoid double prediction?
-		CG_PredictPlayerState();
-	}
+	CG_PredictPlayerState();
 
 	// decide on third person view
 	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
@@ -897,8 +891,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
 
+	// this counter will be bumped for every valid scene we generate
+	cg.clientFrame++;
+
 	if ( cg_stats.integer ) {
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 }
-

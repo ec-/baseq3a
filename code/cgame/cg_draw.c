@@ -1429,21 +1429,23 @@ static int CG_DrawPickupItem( int y ) {
 		return y;
 	}
 
-	y -= ICON_SIZE;
+	y -= PICKUP_ICON_SIZE - 8;
 
 	value = cg.itemPickup;
 	if ( value ) {
-		fadeColor = CG_FadeColor( cg.itemPickupTime, 3000 );
+		fadeColor = CG_FadeColorTime( cg.itemPickupTime, 3000, 250 );
 		if ( fadeColor ) {
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
-			CG_DrawPic( cgs.screenXmin + 8, y, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( cgs.screenXmin + 8, y, PICKUP_ICON_SIZE, PICKUP_ICON_SIZE, cg_items[ value ].icon );
 			if ( cg.itemPickupCount > 1 ) {
 				text = va( "%s x%i", bg_itemlist[ value ].pickup_name, cg.itemPickupCount );
 			} else {
 				text = bg_itemlist[ value ].pickup_name;
 			}
-			CG_DrawBigString( cgs.screenXmin + ICON_SIZE + 16, y + (ICON_SIZE/2 - BIGCHAR_HEIGHT/2), text, fadeColor[0] );
+		
+			CG_DrawStringExt( cgs.screenXmin + PICKUP_ICON_SIZE + 16, y + (PICKUP_ICON_SIZE/2 - PICKUP_TEXT_SIZE/2), text, 
+				fadeColor, qfalse, qtrue, PICKUP_TEXT_SIZE, PICKUP_TEXT_SIZE, 0 );
 			
 			trap_R_SetColor( NULL );
 		} else {
@@ -2718,6 +2720,10 @@ static void CG_WarmupEvents( void ) {
 		count = 0;
 	} else {
 		count = ( cg.warmup - cg.time + 999 ) / 1000;
+	}
+
+	if ( cg.warmupCount == -2 && cg.demoPlayback ) {
+		cg.warmupCount = 0;
 	}
 
 	if ( cg.warmupCount == count ) {
