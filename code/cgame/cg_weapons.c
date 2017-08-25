@@ -1628,11 +1628,13 @@ void CG_NextWeapon_f( void ) {
 	if ( !cg.snap ) {
 		return;
 	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+
+	cg.weaponSelectTime = cg.time;
+
+	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
 		return;
 	}
 
-	cg.weaponSelectTime = cg.time;
 	original = cg.weaponSelect;
 
 	for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
@@ -1652,6 +1654,7 @@ void CG_NextWeapon_f( void ) {
 	}
 }
 
+
 /*
 ===============
 CG_PrevWeapon_f
@@ -1664,11 +1667,13 @@ void CG_PrevWeapon_f( void ) {
 	if ( !cg.snap ) {
 		return;
 	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+
+	cg.weaponSelectTime = cg.time;
+
+	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
 		return;
 	}
 
-	cg.weaponSelectTime = cg.time;
 	original = cg.weaponSelect;
 
 	for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
@@ -1688,6 +1693,7 @@ void CG_PrevWeapon_f( void ) {
 	}
 }
 
+
 /*
 ===============
 CG_Weapon_f
@@ -1699,7 +1705,10 @@ void CG_Weapon_f( void ) {
 	if ( !cg.snap ) {
 		return;
 	}
-	if ( cg.snap->ps.pm_flags & PMF_FOLLOW ) {
+
+	cg.weaponSelectTime = cg.time;
+
+	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
 		return;
 	}
 
@@ -1709,14 +1718,13 @@ void CG_Weapon_f( void ) {
 		return;
 	}
 
-	cg.weaponSelectTime = cg.time;
-
 	if ( ! ( cg.snap->ps.stats[STAT_WEAPONS] & ( 1 << num ) ) ) {
 		return;		// don't have the weapon
 	}
 
 	cg.weaponSelect = num;
 }
+
 
 /*
 ===================
@@ -1730,6 +1738,10 @@ void CG_OutOfAmmoChange( void ) {
 
 	cg.weaponSelectTime = cg.time;
 
+	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
+		return;
+	}
+
 	for ( i = MAX_WEAPONS-1 ; i > 0 ; i-- ) {
 		if ( CG_WeaponSelectable( i ) ) {
 			cg.weaponSelect = i;
@@ -1737,7 +1749,6 @@ void CG_OutOfAmmoChange( void ) {
 		}
 	}
 }
-
 
 
 /*
