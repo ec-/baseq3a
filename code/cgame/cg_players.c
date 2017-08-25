@@ -1191,6 +1191,7 @@ void CG_NewClientInfo( int clientNum ) {
 		myClientNum = cg.snap->ps.clientNum;
 		myTeam = cgs.clientinfo[ myClientNum ].team;
 	} else {
+		myClientNum = cg.clientNum;
 		myTeam = TEAM_SPECTATOR;
 	}
 

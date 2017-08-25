@@ -2302,18 +2302,15 @@ parse and ignore formats we don't support.
 
 returns: number of char written without ending '\0'
 */
-int ED_vsprintf( char *buffer, const char *fmt, va_list argptr ) {
-	intptr_t *arg;
+int ED_vsprintf( char *buffer, const char *fmt, va_list ap ) {
 	char	*buf_p;
 	char	ch;
 	int		flags;
 	int		width;
 	int		prec;
 	int		n;
-	//char	sign;
 
 	buf_p = buffer;
-	arg = (intptr_t*)argptr;
 
 	while( qtrue ) {
 		// run through the format string until we hit a '%' or '\0'
@@ -2321,7 +2318,7 @@ int ED_vsprintf( char *buffer, const char *fmt, va_list argptr ) {
 			*buf_p = ch; buf_p++;
 		}
 		if ( ch == '\0' ) {
-			goto done;
+			break;
 		}
 
 		// skip over the '%'
@@ -2331,7 +2328,6 @@ int ED_vsprintf( char *buffer, const char *fmt, va_list argptr ) {
 		flags = 0;
 		width = 0;
 		prec = -1;
-		//sign = '\0';
 rflag:
 		ch = *fmt; fmt++;
 reswitch:
@@ -2343,7 +2339,7 @@ reswitch:
 		case '.':
 			if ( *fmt == '*' ) {
 				fmt++;
-				n = (int)*arg; arg++;
+				n = va_arg( ap, int );
 				prec = n < 0 ? -1 : n;
 				goto rflag;
 			} else {
@@ -2374,29 +2370,20 @@ reswitch:
 			width = n;
 			goto reswitch;
 		case '*':
-			width = (int)*arg; 
-			arg++;
+			width = va_arg( ap, int );
 			goto rflag;
 		case 'c':
-			*buf_p = (char)*arg; buf_p++;
-			arg++;
+			*buf_p = va_arg( ap, char ); buf_p++;
 			break;
 		case 'd':
 		case 'i':
-			AddInt( &buf_p, *arg, width, flags );
-			arg++;
+			AddInt( &buf_p, va_arg( ap, int ), width, flags );
 			break;
 		case 'f':
-			AddFloat( &buf_p, *(double *)arg, width, prec, flags & REDUCE );
-#if defined __LCC__ 
-			arg += 1;	// everything is 32 bit in my compiler
-#else
-			arg += sizeof(double)/sizeof(intptr_t);
-#endif
+			AddFloat( &buf_p, va_arg( ap, double ), width, prec, flags & REDUCE );
 			break;
 		case 's':
-			AddString( &buf_p, (char *)*arg, width, prec );
-			arg++;
+			AddString( &buf_p, va_arg( ap, char * ), width, prec );
 			break;
 		case '%':
 			*buf_p = ch; buf_p++;
@@ -2406,14 +2393,12 @@ reswitch:
 			flags |= REDUCE;
 			goto rflag;
 		default:
-			*buf_p = (char)*arg; buf_p++;
-			arg++;
+			*buf_p = va_arg( ap, char ); buf_p++;
 			break;
-		}
-	}
+		} // switch ( ch )
+	} // while ( qtrue )
 
-done:
-	*buf_p = 0;
+	*buf_p = '\0';
 	return buf_p - buffer;
 }
 
@@ -2585,14 +2570,13 @@ static void _atos( const char **stringPtr, char *buffer, int delimiter, int widt
 
 int Q_sscanf( const char *buffer, const char *fmt, ... ) 
 {
-	int		**arg;
-	int		count;
-	int 	width;
-	int		cmd;
-
+	va_list ap;
+	int count;
+	int width;
+	int cmd;
 	const char *p;
 
-	arg = (int **)&fmt + 1;
+	va_start( ap, fmt );
 	count = 0;
 
 	while ( *fmt ) 
@@ -2641,21 +2625,20 @@ int Q_sscanf( const char *buffer, const char *fmt, ... )
 		case 'i':
 		case 'd':
 		case 'u':
-			**arg = _atoi( &buffer );
+			*(va_arg(ap, int *)) = _atoi( &buffer );
 			break;
 		case 'f':
-			*(float *)*arg = _atof( &buffer );
+			*(va_arg(ap, float *)) = _atof( &buffer );
 			break;
 		case 'c':
-			*(char *)*arg = *buffer; buffer++;
+			*(va_arg(ap, char *)) = *buffer; buffer++;
 			break;
 		case 's':
-			_atos( &buffer, (char*)*arg, *fmt, width );
+			_atos( &buffer, va_arg(ap, char *), *fmt, width );
 			break;
 		default:
 			return count;
 		}
-		arg++;
 
 		if ( p != buffer )
 			count++;
