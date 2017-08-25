@@ -1979,6 +1979,8 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 		CG_Error( "Client/Server game mismatch: %s/%s", GAME_VERSION, s );
 	}
 
+	cgs.ospEnc = atoi( CG_ConfigString( 872 ) ) & 1;
+
 	s = CG_ConfigString( CS_LEVEL_START_TIME );
 	cgs.levelStartTime = atoi( s );
 

@@ -1123,6 +1123,8 @@ typedef struct {
 
 	qboolean		synchronousClients;
 
+	int				ospEnc;
+
 } cgs_t;
 
 //==============================================================================

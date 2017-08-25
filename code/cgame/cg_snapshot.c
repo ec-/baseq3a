@@ -179,6 +179,7 @@ A new snapshot has just been read in from the client system.
 */
 static void CG_SetNextSnap( snapshot_t *snap ) {
 	int					num;
+	int					esNum;
 	entityState_t		*es;
 	centity_t			*cent;
 
@@ -194,6 +195,12 @@ static void CG_SetNextSnap( snapshot_t *snap ) {
 
 		memcpy(&cent->nextState, es, sizeof(entityState_t));
 		//cent->nextState = *es;
+
+		if ( cgs.ospEnc && ( esNum = cent->nextState.number ) <= MAX_CLIENTS-1 ) {
+			cent->nextState.pos.trBase[0] += (677 - 7 * esNum);
+			cent->nextState.pos.trBase[1] += (411 - 12 * esNum);
+			cent->nextState.pos.trBase[2] += (243 - 2 * esNum);
+		}
 
 		// if this frame is a teleport, or the entity wasn't in the
 		// previous frame, don't interpolate
@@ -353,7 +360,6 @@ void CG_ProcessSnapshots( void ) {
 			}
 
 			CG_SetNextSnap( snap );
-
 
 			// if time went backwards, we have a level restart
 			if ( cg.nextSnap->serverTime < cg.snap->serverTime ) {
