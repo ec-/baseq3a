@@ -1506,12 +1506,12 @@ WEAPON SELECTION
 CG_DrawWeaponSelect
 ===================
 */
-#define AMMO_FONT_SIZE 10
+#define AMMO_FONT_SIZE 12
 void CG_DrawWeaponSelect( void ) {
 	int		i;
 	int		bits;
 	int		count;
-	int		x, y, w;
+	int		x, y;
 	int		dx, dy;
 	const char *name;
 	float	*color;
@@ -1573,11 +1573,12 @@ void CG_DrawWeaponSelect( void ) {
 		} else if ( cg_drawWeaponSelect.integer > 1 && cg.snap->ps.ammo[ i ] > 0 ) {
 			// ammo counter
 			BG_sprintf( buf, "%i", cg.snap->ps.ammo[ i ] );
-			w = CG_DrawStrlen( buf ) * AMMO_FONT_SIZE;
 			if ( cg_drawWeaponSelect.integer == 2 ) {
-				CG_DrawStringExt( x + (32-w)/2, y - 18, buf, color, qtrue, qfalse, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0 );
+				// horizontal ammo counters
+				CG_DrawString( x + 32/2, y - 18, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_CENTER );
 			} else {
-				CG_DrawStringExt( x + 39 + (3*AMMO_FONT_SIZE-w)/2, y + (32-AMMO_FONT_SIZE)/2, buf, color, qtrue, qfalse, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0 );
+				// vectical ammo counters
+				CG_DrawString( x + 39 + (3*AMMO_FONT_SIZE), y + (32-AMMO_FONT_SIZE)/2, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_RIGHT );
 			}
 		}
 
@@ -1589,9 +1590,7 @@ void CG_DrawWeaponSelect( void ) {
 	if ( cg_weapons[ cg.weaponSelect ].item && cg_drawWeaponSelect.integer == 1 ) {
 		name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
 		if ( name ) {
-			w = CG_DrawStrlen( name ) * BIGCHAR_WIDTH;
-			x = ( SCREEN_WIDTH - w ) / 2;
-			CG_DrawBigStringColor( x, y - 22, name, color );
+			CG_DrawString( 320, y - 22, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_PROPORTIONAL | DS_CENTER | DS_FORCE_COLOR );
 		}
 	}
 

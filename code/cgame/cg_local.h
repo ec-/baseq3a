@@ -1302,17 +1302,11 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 //
 void CG_AdjustFrom640( float *x, float *y, float *w, float *h );
 void CG_FillRect( float x, float y, float width, float height, const float *color );
+void CG_FillScreen( const float *color );
 void CG_DrawPic( float x, float y, float width, float height, qhandle_t hShader );
-void CG_DrawString( float x, float y, const char *string, 
-				   float charWidth, float charHeight, const float *modulate );
-
 
 void CG_DrawStringExt( int x, int y, const char *string, const float *setColor, 
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars );
-void CG_DrawBigString( int x, int y, const char *s, float alpha );
-void CG_DrawBigStringColor( int x, int y, const char *s, vec4_t color );
-void CG_DrawSmallString( int x, int y, const char *s, float alpha );
-void CG_DrawSmallStringColor( int x, int y, const char *s, vec4_t color );
 
 int CG_DrawStrlen( const char *str );
 
@@ -1328,6 +1322,16 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 void CG_DrawRect( float x, float y, float width, float height, float size, const float *color );
 void CG_DrawSides(float x, float y, float w, float h, float size);
 void CG_DrawTopBottom(float x, float y, float w, float h, float size);
+
+// flags for CG_DrawString
+enum {
+	DS_SHADOW      = 0x1,
+	DS_FORCE_COLOR = 0x2,
+	DS_PROPORTIONAL = 0x4,
+	DS_CENTER = 0x8,	// alignment
+	DS_RIGHT  = 0x10	// alignment
+};
+void CG_DrawString( int x, int y, const char *s, vec4_t color, float charWidth, float charHeight, int maxChars, int flags );
 
 
 //

@@ -61,6 +61,7 @@ void CG_CheckAmmo( void ) {
 	}
 }
 
+
 /*
 ==============
 CG_DamageFeedback
