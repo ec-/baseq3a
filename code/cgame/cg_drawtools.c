@@ -90,7 +90,6 @@ void CG_DrawRect( float x, float y, float width, float height, float size, const
 }
 
 
-
 /*
 ================
 CG_DrawPic
@@ -270,14 +269,15 @@ static void CG_LoadFont( font_t *fnt, const char *fontName )
 	float width, height, r_width, r_height;
 	float char_width;
 	float char_height;
-	char shaderName[ MAX_FONT_SHADERS ][ MAX_QPATH ];
+	char shaderName[ MAX_FONT_SHADERS ][ MAX_QPATH ], tmpName[ MAX_QPATH ];
 	int shaderCount;
 	int shaderThreshold[ MAX_FONT_SHADERS ];
 	font_metric_t *fm;
-	int i, len, chars;
+	int i, tmp, len, chars;
 	float w1, w2;
 	float s1, s2;
 	float x0, y0;
+	qboolean swapped;
 
 	memset( fnt, 0, sizeof( *fnt ) );
 
@@ -461,6 +461,24 @@ static void CG_LoadFont( font_t *fnt, const char *fontName )
 		SkipRestOfLine( &text );
 	}
 
+	// sort images by threshold
+	do {
+		for ( swapped = qfalse, i = 1 ; i < shaderCount; i++ ) {
+			if ( shaderThreshold[i-1] > shaderThreshold[i] ) {
+				tmp = shaderThreshold[i-1];
+				shaderThreshold[i-1] = shaderThreshold[i];
+				shaderThreshold[i] = tmp;
+				strcpy( tmpName, shaderName[i-1] );
+				strcpy( shaderName[i-1], shaderName[i] );
+				strcpy( shaderName[i], tmpName );
+				swapped = qtrue;
+			}
+		}
+	} while ( swapped );
+
+	// always assume zero threshold for lowest-quality shader
+	shaderThreshold[0] = 0;
+	
 	fnt->shaderCount = shaderCount;
 	for ( i = 0; i < shaderCount; i++ ) {
 		fnt->shader[i] = trap_R_RegisterShaderNoMip( shaderName[i] );
@@ -567,9 +585,9 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 	}
 
 	sh = font->shader[0];
-	// select low-res shader if needed
+	// select hi-res shader if accepted
 	for ( i = 1; i < font->shaderCount; i++ ) {
-		if ( ah <= font->shaderThreshold[i] ) {
+		if ( ah >= font->shaderThreshold[i] ) {
 			sh = font->shader[i];
 		}
 	}

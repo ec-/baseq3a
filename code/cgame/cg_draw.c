@@ -911,7 +911,7 @@ static float CG_DrawTimer( float y ) {
 	seconds -= mins * 60;
 
 	s = va( "%i:%02i", mins, seconds );
-	CG_DrawString( cgs.screenXmax - 4, y + 2, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_RIGHT );
+	CG_DrawString( cgs.screenXmax - 4, y + 2, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_RIGHT | DS_PROPORTIONAL );
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
