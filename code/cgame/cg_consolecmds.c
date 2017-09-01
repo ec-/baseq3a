@@ -73,7 +73,7 @@ static void CG_ScoresDown_f( void ) {
 #ifdef MISSIONPACK
 		CG_BuildSpectatorString();
 #endif
-	if ( cg.scoresRequestTime + 2000 < cg.time ) {
+	if ( cg.scoresRequestTime + 2000 < cg.time && !cg.demoPlayback ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
@@ -92,12 +92,14 @@ static void CG_ScoresDown_f( void ) {
 	}
 }
 
+
 static void CG_ScoresUp_f( void ) {
 	if ( cg.showScores ) {
 		cg.showScores = qfalse;
 		cg.scoreFadeTime = cg.time;
 	}
 }
+
 
 #ifdef MISSIONPACK
 extern menuDef_t *menuScoreboard;

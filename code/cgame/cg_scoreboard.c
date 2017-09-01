@@ -286,9 +286,8 @@ qboolean CG_DrawOldScoreboard( void ) {
 			cg.killerName[0] = 0;
 			return qfalse;
 		}
-		fade = *fadeColor;
+		fade = fadeColor[3];
 	}
-
 
 	// fragged by ... line
 	if ( cg.killerName[0] ) {
