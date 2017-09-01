@@ -1970,6 +1970,10 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	cgs.screenYmin = 0.0 - (cgs.screenYBias / cgs.screenYScale);
 	cgs.screenYmax = 479.0 + (cgs.screenYBias / cgs.screenYScale);
 
+#ifdef USE_NEW_FONT_RENDERER
+	CG_LoadFonts();
+#endif
+
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
 

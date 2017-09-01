@@ -646,14 +646,19 @@ static void CG_DrawStatusBar( void ) {
 				color = 2;	// dark grey
 			} else {
 				if ( value >= 0 ) {
-					color = 0;	// green
+					color = 0;	// yellow
 				} else {
 					color = 1;	// red
 				}
 			}
+#ifdef USE_NEW_FONT_RENDERER
+			CG_SelectFont( 1 );
+			CG_DrawString( CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+			CG_SelectFont( 0 );
+#else
 			trap_R_SetColor( colors[color] );
-			
 			CG_DrawField( 0, y, 3, value );
+#endif
 			trap_R_SetColor( NULL );
 
 			// if we didn't draw a 3D icon, draw a 2D icon for ammo
@@ -673,18 +678,25 @@ static void CG_DrawStatusBar( void ) {
 	//
 	value = ps->stats[STAT_HEALTH];
 	if ( value > 100 ) {
-		trap_R_SetColor( colors[3] );		// white
-	} else if (value > 25) {
-		trap_R_SetColor( colors[0] );	// green
+		color = 3; // white
+	} else if ( value > 25 ) {
+		color = 0; 	// yellow
 	} else if (value > 0) {
-		color = (cg.time >> 8) & 1;	// flash
-		trap_R_SetColor( colors[color] );
+		color = (cg.time >> 8) & 1;	// red/yellow flashing
 	} else {
-		trap_R_SetColor( colors[1] );	// red
+		color = 1; // red
 	}
 
+#ifdef USE_NEW_FONT_RENDERER
+	CG_SelectFont( 1 );
+	CG_DrawString( 185 + CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+	CG_SelectFont( 0 );
+#else
+	trap_R_SetColor( colors[ color ] );
 	// stretch the health up when taking damage
 	CG_DrawField( 185, y, 3, value );
+#endif
+	
 	CG_ColorForHealth( hcolor );
 	trap_R_SetColor( hcolor );
 
@@ -692,16 +704,22 @@ static void CG_DrawStatusBar( void ) {
 	// armor
 	//
 	value = ps->stats[STAT_ARMOR];
-	if (value > 0 ) {
+	if ( value > 0 ) {
+#ifdef USE_NEW_FONT_RENDERER
+		CG_SelectFont( 1 );
+		CG_DrawString( 370 + CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+		CG_SelectFont( 0 );
+#else
 		trap_R_SetColor( colors[0] );
 		CG_DrawField( 370, y, 3, value );
+#endif
 		trap_R_SetColor( NULL );
 		// if we didn't draw a 3D icon, draw a 2D icon for armor
 		if ( !cg_draw3dIcons.integer && cg_drawIcons.integer ) {
 			CG_DrawPic( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, y, ICON_SIZE, ICON_SIZE, cgs.media.armorIcon );
 		}
-
 	}
+
 #ifdef MISSIONPACK
 	//
 	// cubes
@@ -811,7 +829,7 @@ static float CG_DrawSpeedMeter( float y ) {
 		return y + BIGCHAR_HEIGHT + 4;
 	} else {
 		/* center of screen */
-		CG_DrawString( 320, 300, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER );
+		CG_DrawString( 320, 300, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
 		return y;
 	}
 }
@@ -2113,7 +2131,7 @@ static void CG_DrawCrosshairNames( void ) {
 	CG_Text_Paint( 320 - w / 2, 190, 0.3f, color, name, 0, 0, ITEM_TEXTSTYLE_SHADOWED);
 #else
 	color[3] *= 0.5f;
-	CG_DrawString( 320, 178, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+	CG_DrawString( 320, 174, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
 #endif
 	trap_R_SetColor( NULL );
 }

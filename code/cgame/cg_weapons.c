@@ -1575,7 +1575,7 @@ void CG_DrawWeaponSelect( void ) {
 			BG_sprintf( buf, "%i", cg.snap->ps.ammo[ i ] );
 			if ( cg_drawWeaponSelect.integer == 2 ) {
 				// horizontal ammo counters
-				CG_DrawString( x + 32/2, y - 18, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_CENTER );
+				CG_DrawString( x + 32/2, y - 20, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_CENTER | DS_PROPORTIONAL );
 			} else {
 				// vectical ammo counters
 				CG_DrawString( x + 39 + (3*AMMO_FONT_SIZE), y + (32-AMMO_FONT_SIZE)/2, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_RIGHT );
