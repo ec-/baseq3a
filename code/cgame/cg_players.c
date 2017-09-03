@@ -1102,7 +1102,7 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 					newInfo->coloredSkin = qtrue;
 				}
 
-			} else if ( cg_enemyModel.string[0] && myClientNum != clientNum && !allowNativeModel ) {
+			} else if ( cg_enemyModel.string[0] && myClientNum != clientNum && !allowNativeModel && cgs.gametype != GT_SINGLE_PLAYER ) {
 
 				Q_strncpyz( modelName, cg_enemyModel.string, modelNameSize );
 
