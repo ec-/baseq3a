@@ -96,6 +96,9 @@ void InGame_Event( void *ptr, int notification ) {
 		break;
 
 	case ID_LEAVEARENA:
+#if LFEDITOR	// JUHOX: reset edit mode
+		trap_Cvar_Set("g_editmode", "0");
+#endif
 		trap_Cmd_ExecuteText( EXEC_APPEND, "disconnect\n" );
 		break;
 
@@ -294,6 +297,14 @@ void InGame_MenuInit( void ) {
 	s_ingame.quit.string				= "EXIT GAME";
 	s_ingame.quit.color					= color_red;
 	s_ingame.quit.style					= UI_CENTER|UI_SMALLFONT;
+
+#if LFEDITOR	// JUHOX: grey out the unneeded menu items in edit mode
+	if (trap_Cvar_VariableValue("g_editmode") > 0) {
+		s_ingame.addbots.generic.flags |= QMF_GRAYED;
+		s_ingame.removebots.generic.flags |= QMF_GRAYED;
+		s_ingame.team.generic.flags |= QMF_GRAYED;
+	}
+#endif
 
 	Menu_AddItem( &s_ingame.menu, &s_ingame.frame );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.team );

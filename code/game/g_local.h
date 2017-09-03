@@ -440,6 +440,9 @@ typedef struct {
 	// unlagged
 	int			frameStartTime;
 
+#if LFEDITOR	// JUHOX: level locals for the lens flare editor
+	qboolean	lfeFMM;	// FMM = fine move mode
+#endif
 } level_locals_t;
 
 
@@ -754,6 +757,9 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
 
 #define	FOFS(x) ((intptr_t)&(((gentity_t *)0)->x))
 
+#if MAPLENSFLARES	// JUHOX: cvars for map lens flares
+extern	vmCvar_t	g_editmode;
+#endif
 extern	vmCvar_t	g_gametype;
 extern	vmCvar_t	g_mapname;
 extern	vmCvar_t	sv_fps;
@@ -836,7 +842,7 @@ void	trap_GetUserinfo( int num, char *buffer, int bufferSize );
 void	trap_SetUserinfo( int num, const char *buffer );
 void	trap_GetServerinfo( char *buffer, int bufferSize );
 void	trap_SetBrushModel( gentity_t *ent, const char *name );
-void	trap_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
+void	trap_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 void	trap_TraceCapsule( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask );
 
 int		trap_PointContents( const vec3_t point, int passEntityNum );

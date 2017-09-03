@@ -1,0 +1,162 @@
+import juhox/fire.lfs
+
+gnc/light_spot01
+{
+	range -200
+	fadeAngle 45
+	{
+		shader gnc_flare2
+		mode star
+		size .5
+		rotation 0 .5 .5 0
+		/*
+		entityAngleFactor .7
+		fadeAngleFactor .7
+		*/
+		intensitythreshold 0.5
+		alpha 4
+	}
+	{
+		shader gnc_line0
+		rotation 0 0 0 0
+		/*
+		entityAngleFactor .4
+		fadeAngleFactor .4
+		*/
+		size 15
+		alpha 15
+		intensitythreshold 0.7
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 5
+		/*
+		entityAngleFactor .3
+		fadeAngleFactor .3
+		*/
+		intensitythreshold 0.6
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 1
+	}
+	{
+		shader gnc_penta0
+		pos .6
+		size .3
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .33
+		size .7
+		color 1 0 1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .25
+		size .3
+		color .8 .9 .1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .2
+		size .2
+		color 1 .5 1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos -1.25
+		size .5
+		color .5 .75 .75
+		alpha .5
+		rotation 0 0 0 1
+	}
+}
+
+gnc/light_halo_red
+{
+	range -1500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size .5
+		alpha 2
+		color 1 .1 .1
+	}
+}
+
+gnc/light_spot01
+{
+	range -300
+	fadeAngle 15
+	{
+		shader gnc_star0
+		mode star
+		rotation 0 0.5 0.5 0
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+		size 0.6
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_line1
+		size 8
+		alpha .1
+		rotation 0 0 0 0
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 1.7
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_penta0
+		pos 0.6
+		size 0.7
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.33
+		size 0.17
+		color 1 0.98 0.9
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.25
+		size 0.3
+		color 0.8 0.9 1
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.1
+		size 0.19
+		color 1 0.6 0.9
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos -0.24
+		size 0.41
+		color 0.6 0.7 0.85
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+}

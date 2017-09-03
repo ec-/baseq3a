@@ -1,0 +1,24 @@
+diffuse_white1
+{
+	range 500
+	{
+		shader bfglfglare
+		mode glare
+		size 0.13
+		alpha 2
+	}
+	{
+		shader lfdisc2
+		pos 0.6
+		size 0.85
+		color 1 0.25 0.3
+		alpha 0.5
+	}
+	{
+		shader lfdisc2
+		pos -0.8
+		size 1.2
+		color 0 0.75 1
+		alpha 0.5
+	}
+}

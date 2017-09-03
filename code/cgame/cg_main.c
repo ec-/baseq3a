@@ -9,6 +9,8 @@
 displayContextDef_t cgDC;
 #endif
 
+#define LFDEBUG 0	// JUHOX DEBUG
+
 int forceModelModificationCount = -1;
 int enemyModelModificationCount  = -1;
 int	enemyColorsModificationCount = -1;
@@ -177,6 +179,16 @@ vmCvar_t	cg_oldRail;
 vmCvar_t	cg_oldRocket;
 vmCvar_t	cg_oldPlasma;
 vmCvar_t	cg_trueLightning;
+#if LENSFLARES
+vmCvar_t	cg_lensFlare;		// JUHOX
+#endif
+#if MISSILELENSFLARES
+vmCvar_t	cg_missileFlare;	// JUHOX
+#endif
+#if MAPLENSFLARES
+vmCvar_t	cg_mapFlare;		// JUHOX
+vmCvar_t	cg_sunFlare;		// JUHOX
+#endif
 
 #ifdef MISSIONPACK
 vmCvar_t 	cg_redTeamName;
@@ -280,6 +292,16 @@ static const cvarTable_t cvarTable[] = {
 #endif
 	{ &cg_drawTeamOverlay, "cg_drawTeamOverlay", "0", CVAR_ARCHIVE },
 	{ &cg_teamOverlayUserinfo, "teamoverlay", "0", CVAR_ROM | CVAR_USERINFO },
+#if LENSFLARES
+	{ &cg_lensFlare, "cg_lensFlare", "1", CVAR_ARCHIVE},	// JUHOX
+#endif
+#if MISSILELENSFLARES
+	{ &cg_missileFlare, "cg_missileFlare", "1", CVAR_ARCHIVE},	// JUHOX
+#endif
+#if MAPLENSFLARES
+	{ &cg_mapFlare, "cg_mapFlare", "2", CVAR_ARCHIVE},		// JUHOX
+	{ &cg_sunFlare, "cg_sunFlare", "2", CVAR_ARCHIVE},		// JUHOX
+#endif
 	{ &cg_stats, "cg_stats", "0", 0 },
 	{ &cg_drawFriend, "cg_drawFriend", "1", CVAR_ARCHIVE },
 	{ &cg_teamChatsOnly, "cg_teamChatsOnly", "0", CVAR_ARCHIVE },
@@ -837,6 +859,750 @@ static void CG_RegisterSounds( void ) {
 
 
 /*
+=====================
+JUHOX: CG_LFEntOrigin
+=====================
+*/
+#if MAPLENSFLARES
+void CG_LFEntOrigin(const lensFlareEntity_t* lfent, vec3_t origin) {
+	if (lfent->lock) {	// lf entity locked to mover
+		VectorAdd(lfent->origin, lfent->lock->lerpOrigin, origin);
+	}
+	else if (lfent->angle < -1.5) {	// sun
+		VectorAdd(lfent->origin, cg.refdef.vieworg, origin);
+	}
+	else {	// standard lf entity
+		VectorCopy(lfent->origin, origin);
+	}
+}
+#endif
+
+/*
+=====================
+JUHOX: CG_SetLFEntOrigin
+=====================
+*/
+#if LFEDITOR
+void CG_SetLFEntOrigin(lensFlareEntity_t* lfent, const vec3_t origin) {
+	if (lfent->lock) {
+		VectorSubtract(origin, lfent->lock->lerpOrigin, lfent->origin);
+	}
+	else {
+		VectorCopy(origin, lfent->origin);
+	}
+}
+#endif
+
+/*
+=================
+JUHOX: CG_SetLFEdMoveMode
+=================
+*/
+#if LFEDITOR
+void CG_SetLFEdMoveMode(lfeMoveMode_t mode) {
+	vec3_t origin;
+
+	if (cg.lfEditor.moveMode == mode) return;
+
+	switch (mode) {
+	case LFEMM_coarse:
+		VectorCopy(cg.snap->ps.origin, origin);
+		switch (cg.lfEditor.moveMode) {
+		case LFEMM_fine:
+			if (cg.lfEditor.selectedLFEnt) {
+				vec3_t dir;
+
+				AngleVectors(cg.snap->ps.viewangles, dir, NULL, NULL);
+				CG_LFEntOrigin(cg.lfEditor.selectedLFEnt, origin);
+				VectorMA(origin, -cg.lfEditor.fmm_distance, dir, origin);
+			}
+			break;
+		default:
+			break;
+		}
+		trap_SendClientCommand(va("lfemm %d %f %f %f", mode, origin[0], origin[1], origin[2]));
+		break;
+	case LFEMM_fine:
+		CG_LFEntOrigin(cg.lfEditor.selectedLFEnt, origin);
+		VectorSubtract(origin, cg.refdef.vieworg, cg.lfEditor.fmm_offset);
+		cg.lfEditor.fmm_distance = VectorLength(cg.lfEditor.fmm_offset);
+		trap_SendClientCommand(va("lfemm %d", mode));
+		break;
+	}
+
+	cg.lfEditor.moveMode = mode;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_SelectLFEnt
+=================
+*/
+#if LFEDITOR
+void CG_SelectLFEnt(int lfentnum) {
+	lensFlareEntity_t* lfent;
+
+	if (lfentnum < 0 || lfentnum >= cgs.numLensFlareEntities) return;
+
+	CG_SetLFEdMoveMode(LFEMM_coarse);
+	lfent = &cgs.lensFlareEntities[lfentnum];
+	cg.lfEditor.selectedLFEnt = lfent;
+	cg.lfEditor.markedLFEnt = -1;
+	cg.lfEditor.editMode = LFEEM_none;
+	cg.lfEditor.originalLFEnt = *lfent;
+}
+#endif
+
+#if MAPLENSFLARES	// JUHOX: definitions needed for parsing the lens flare files
+#define FILESTACK_NAMESIZE 128
+typedef struct {
+	char path[FILESTACK_NAMESIZE];
+	char name[FILESTACK_NAMESIZE];
+} lfFileData_t;
+
+#define FILESTACK_SIZE 128
+static int numFilesOnStack;
+static lfFileData_t fileStack[FILESTACK_SIZE];
+
+static char lfNameBase[128];
+
+static char lfbuf[65536];
+#endif
+
+/*
+=================
+JUHOX: CG_InitFileStack
+=================
+*/
+#if MAPLENSFLARES
+static void CG_InitFileStack(void) {
+#if LFDEBUG
+	CG_LoadingString("LF: CG_InitFileStack()");
+#endif
+	numFilesOnStack = 0;
+	lfbuf[0] = 0;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_PushFile
+=================
+*/
+#if MAPLENSFLARES
+static void CG_PushFile(const char* path, const char* name) {
+#if LFDEBUG
+	CG_LoadingString(va("LF: CG_PushFile(%s)", name));
+#endif
+	if (numFilesOnStack >= FILESTACK_SIZE) return;
+
+	Q_strncpyz(fileStack[numFilesOnStack].path, path, FILESTACK_NAMESIZE);
+	Q_strncpyz(fileStack[numFilesOnStack].name, name, FILESTACK_NAMESIZE);
+	numFilesOnStack++;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_PopFile
+=================
+*/
+#if MAPLENSFLARES
+static qboolean CG_PopFile(void) {
+	char name[256];
+	fileHandle_t file;
+	int len;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_PopFile()");
+#endif
+	PopFile:
+	if (numFilesOnStack <= 0) return qfalse;
+
+	numFilesOnStack--;
+	Q_strncpyz(lfNameBase, fileStack[numFilesOnStack].name, sizeof(lfNameBase)-1);
+	Com_sprintf(name, sizeof(name), "%s%s", fileStack[numFilesOnStack].path, lfNameBase);
+	COM_StripExtension( lfNameBase, lfNameBase, 1 );
+	len = strlen(lfNameBase);
+	lfNameBase[len] = '/';
+	lfNameBase[len+1] = 0;
+
+	len = trap_FS_FOpenFile(name, &file, FS_READ);
+	if (!file) {
+		CG_Printf(S_COLOR_YELLOW "'%s' not found\n", name);
+#if LFDEBUG
+		CG_LoadingString(va("LF: CG_PopFile(%s) failed", name));
+#endif
+		goto PopFile;
+	}
+	if (len >= sizeof(lfbuf)) {
+		CG_Printf(S_COLOR_YELLOW "file too large: '%s' > %d\n", name, sizeof(lfbuf)-1);
+#if LFDEBUG
+		CG_LoadingString(va("LF: CG_PopFile(%s): file too large", name));
+#endif
+		goto PopFile;
+	}
+	CG_Printf("reading '%s'...\n", name);
+#if LFDEBUG
+	CG_LoadingString(va("%s", name));
+#endif
+
+	trap_FS_Read(lfbuf, len, file);
+	lfbuf[len] = 0;
+	trap_FS_FCloseFile(file);
+	return qtrue;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_ParseLensFlare
+=================
+*/
+#if MAPLENSFLARES
+static qboolean CG_ParseLensFlare(char** p, lensFlare_t* lf, const char* lfename) {
+	char* token;
+
+#if LFDEBUG
+	CG_LoadingString(va("LF: CG_ParseLensFlare(%s)", lfename));
+#endif
+	// set non-zero default values
+	lf->pos = 1.0;
+	lf->size = 1.0;
+	lf->rgba[0] = 0xff;
+	lf->rgba[1] = 0xff;
+	lf->rgba[2] = 0xff;
+	lf->rgba[3] = 0xff;
+	lf->fadeAngleFactor = 1.0;
+	lf->entityAngleFactor = 1.0;
+	lf->rotationRollFactor = 1.0;
+
+	while (1) {
+		token = COM_Parse(p);
+		if (!token[0]) {
+			CG_Printf(S_COLOR_YELLOW "unexpected end of lens flare definition in '%s'\n", lfename);
+#if LFDEBUG
+			CG_LoadingString(va("LF: CG_ParseLensFlare(%s) unexpected end", lfename));
+#endif
+			return qfalse;
+		}
+
+		if (!Q_stricmp(token, "}")) break;
+
+		if (!Q_stricmp(token, "shader")) {
+			token = COM_Parse(p);
+			if (token[0]) {
+				lf->shader = trap_R_RegisterShaderNoMip(token);
+			}
+		}
+		else if (!Q_stricmp(token, "mode")) {
+			token = COM_Parse(p);
+			if (!Q_stricmp(token, "reflexion")) {
+				lf->mode = LFM_reflexion;
+			}
+			else if (!Q_stricmp(token, "glare")) {
+				lf->mode = LFM_glare;
+			}
+			else if (!Q_stricmp(token, "star")) {
+				lf->mode = LFM_star;
+			}
+			else {
+				CG_Printf(S_COLOR_YELLOW "unknown mode '%s' in '%s'\n", token, lfename);
+				return qfalse;
+			}
+		}
+		else if (!Q_stricmp(token, "pos")) {
+			token = COM_Parse(p);
+			lf->pos = atof(token);
+		}
+		else if (!Q_stricmp(token, "size")) {
+			token = COM_Parse(p);
+			lf->size = atof(token);
+		}
+		else if (!Q_stricmp(token, "color")) {
+			token = COM_Parse(p);
+			lf->rgba[0] = 0xff * Com_Clamp(0, 1, atof(token));
+
+			token = COM_Parse(p);
+			lf->rgba[1] = 0xff * Com_Clamp(0, 1, atof(token));
+
+			token = COM_Parse(p);
+			lf->rgba[2] = 0xff * Com_Clamp(0, 1, atof(token));
+		}
+		else if (!Q_stricmp(token, "alpha")) {
+			token = COM_Parse(p);
+			lf->rgba[3] = 0xff * Com_Clamp(0, 1000, atof(token));
+		}
+		else if (!Q_stricmp(token, "rotation")) {
+			token = COM_Parse(p);
+			lf->rotationOffset = Com_Clamp(-360, 360, atof(token));
+
+			token = COM_Parse(p);
+			lf->rotationYawFactor = atof(token);
+
+			token = COM_Parse(p);
+			lf->rotationPitchFactor = atof(token);
+
+			token = COM_Parse(p);
+			lf->rotationRollFactor = atof(token);
+		}
+		else if (!Q_stricmp(token, "fadeAngleFactor")) {
+			token = COM_Parse(p);
+			lf->fadeAngleFactor = atof(token);
+			if (lf->fadeAngleFactor < 0) lf->fadeAngleFactor = 0;
+		}
+		else if (!Q_stricmp(token, "entityAngleFactor")) {
+			token = COM_Parse(p);
+			lf->entityAngleFactor = atof(token);
+			if (lf->entityAngleFactor < 0) lf->entityAngleFactor = 0;
+		}
+		else if (!Q_stricmp(token, "intensityThreshold")) {
+			token = COM_Parse(p);
+			lf->intensityThreshold = Com_Clamp(0, 0.99, atof(token));
+		}
+		else {
+			CG_Printf(S_COLOR_YELLOW "unexpected token '%s' in '%s'\n", token, lfename);
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_FindLensFlareEffect
+=================
+*/
+#if MAPLENSFLARES
+static const lensFlareEffect_t* CG_FindLensFlareEffect(const char* name) {
+	int i;
+
+#if LFDEBUG
+	CG_LoadingString(va("LF: CG_FindLensFlareEffect(%s)", name));
+#endif
+	for (i = 0; i < cgs.numLensFlareEffects; i++) {
+		if (!Q_stricmp(name, cgs.lensFlareEffects[i].name)) {
+			return &cgs.lensFlareEffects[i];
+		}
+	}
+	return NULL;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_FindMissileLensFlareEffect
+=================
+*/
+#if MISSILELENSFLARES
+static const lensFlareEffect_t* CG_FindMissileLensFlareEffect(const char* name) {
+	const lensFlareEffect_t* lfeff;
+	int i;
+
+	lfeff = CG_FindLensFlareEffect(name);
+	if (lfeff) return lfeff;
+
+	for (i = 0; i < cgs.numMissileLensFlareEffects; i++) {
+		if (!Q_stricmp(name, cgs.missileLensFlareEffects[i].name)) {
+			return &cgs.missileLensFlareEffects[i];
+		}
+	}
+	return NULL;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_FinalizeLensFlareEffect
+=================
+*/
+#if MAPLENSFLARES
+static void CG_FinalizeLensFlareEffect(lensFlareEffect_t* lfeff) {
+	int i;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_FinalizeLensFlareEffect()");
+#endif
+	if (lfeff->range >= 0) return;
+
+	for (i = 0; i < lfeff->numLensFlares; i++) {
+		lensFlare_t* lf;
+
+		lf = &lfeff->lensFlares[i];
+
+		lf->intensityThreshold = 1 / (1 - lf->intensityThreshold) - 1;
+	}
+}
+#endif
+
+/*
+=================
+JUHOX: CG_ParseLensFlareEffect
+=================
+*/
+#if MAPLENSFLARES
+static qboolean CG_ParseLensFlareEffect(char** p, lensFlareEffect_t* lfe) {
+	char* token;
+	char* name;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_ParseLensFlareEffect()");
+#endif
+	ParseEffect:
+	token = COM_Parse(p);
+	if (!token[0]) {
+		if (CG_PopFile()) {
+			*p = lfbuf;
+			goto ParseEffect;
+		}
+		return qfalse;
+	}
+
+	if (!Q_stricmp(token, "import")) {
+		CG_PushFile("flares/import/", COM_Parse(p));
+		goto ParseEffect;
+	}
+
+	if (!Q_stricmp(token, "sunparm")) {
+		token = COM_Parse(p);
+		Q_strncpyz(cgs.sunFlareEffect, token, sizeof(cgs.sunFlareEffect));
+
+		token = COM_Parse(p);
+		cgs.sunFlareYaw = atof(token);
+
+		token = COM_Parse(p);
+		cgs.sunFlarePitch = atof(token);
+
+		token = COM_Parse(p);
+		cgs.sunFlareDistance = atof(token);
+		goto ParseEffect;
+	}
+
+	name = va("%s%s", lfNameBase, token);
+	if (CG_FindLensFlareEffect(name)) {
+		SkipBracedSection(p);
+		goto ParseEffect;
+	}
+
+	Q_strncpyz(lfe->name, name, sizeof(lfe->name));
+
+	token = COM_Parse(p);
+	if (Q_stricmp(token, "{")) {
+		CG_Printf(S_COLOR_YELLOW "read '%s', expected '{' in '%s'\n", token, lfe->name);
+		return qfalse;
+	}
+
+	// set non-zero default values
+	lfe->range = 400;
+	lfe->fadeAngle = 20;
+
+	while (1) {
+		token = COM_Parse(p);
+		if (!token[0]) {
+			CG_Printf(S_COLOR_YELLOW "unexpected end of lens flare effect '%s'\n", lfe->name);
+			return qfalse;
+		}
+
+		if (!Q_stricmp(token, "}")) break;
+
+		if (!Q_stricmp(token, "{")) {
+			if (lfe->numLensFlares >= MAX_LENSFLARES_PER_EFFECT) {
+				CG_Printf(S_COLOR_YELLOW "too many lensflares in '%s' (max=%d)\n", lfe->name, MAX_LENSFLARES_PER_EFFECT);
+				return qfalse;
+			}
+
+			if (!CG_ParseLensFlare(p, &lfe->lensFlares[lfe->numLensFlares], lfe->name)) return qfalse;
+			lfe->numLensFlares++;
+		}
+		else if (!Q_stricmp(token, "range")) {
+			token = COM_Parse(p);
+			lfe->range = atof(token);
+			lfe->rangeSqr = Square(lfe->range);
+		}
+		else if (!Q_stricmp(token, "fadeAngle")) {
+			token = COM_Parse(p);
+			lfe->fadeAngle = Com_Clamp(0, 180, atof(token));
+		}
+		else {
+			CG_Printf(S_COLOR_YELLOW "unexpected token '%s' in '%s'\n", token, lfe->name);
+			return qfalse;
+		}
+	}
+
+	CG_FinalizeLensFlareEffect(lfe);
+
+	return qtrue;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_LoadLensFlares
+=================
+*/
+#if MAPLENSFLARES
+void CG_LoadLensFlares(void) {
+	char* p;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_LoadLensFlares()");
+#endif
+	cgs.numLensFlareEffects = 0;
+	memset(&cgs.lensFlareEffects, 0, sizeof(cgs.lensFlareEffects));
+
+	CG_PushFile("flares/", va("%s.lfs", Info_ValueForKey(CG_ConfigString(CS_SERVERINFO), "mapname")));
+	if (!CG_PopFile()) return;
+	lfNameBase[0] = 0;
+
+	p = lfbuf;
+
+	// parse all lens flare effects
+	while (cgs.numLensFlareEffects < MAX_LENSFLARE_EFFECTS && p) {
+		if (!CG_ParseLensFlareEffect(&p, &cgs.lensFlareEffects[cgs.numLensFlareEffects])) {
+			break;
+		}
+		cgs.numLensFlareEffects++;
+	}
+	CG_Printf("%d lens flare effects loaded\n", cgs.numLensFlareEffects);
+}
+#endif
+
+/*
+=================
+JUHOX: CG_LoadMissileLensFlares
+=================
+*/
+#if MAPLENSFLARES
+static void CG_LoadMissileLensFlares(void) {
+	char* p;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_LoadMissileLensFlares()");
+#endif
+	cgs.numMissileLensFlareEffects = 0;
+	memset(&cgs.missileLensFlareEffects, 0, sizeof(cgs.missileLensFlareEffects));
+
+	CG_PushFile("flares/", "missiles.lfs");
+	if (!CG_PopFile()) return;
+	lfNameBase[0] = 0;
+
+	p = lfbuf;
+
+	// parse all lens flare effects
+	while (cgs.numMissileLensFlareEffects < MAX_MISSILE_LENSFLARE_EFFECTS && p) {
+		if (!CG_ParseLensFlareEffect(&p, &cgs.missileLensFlareEffects[cgs.numMissileLensFlareEffects])) {
+			break;
+		}
+		cgs.numMissileLensFlareEffects++;
+	}
+	CG_Printf("%d missile lens flare effects loaded\n", cgs.numMissileLensFlareEffects);
+
+	cgs.lensFlareEffectBFG = CG_FindMissileLensFlareEffect("missile_bfg");
+	cgs.lensFlareEffectRocketLauncher = CG_FindMissileLensFlareEffect("missile_rocket_launcher");
+}
+#endif
+
+/*
+=================
+JUHOX: CG_ComputeMaxVisAngle
+=================
+*/
+#if MAPLENSFLARES
+void CG_ComputeMaxVisAngle(lensFlareEntity_t* lfent) {
+	const lensFlareEffect_t* lfeff;
+	int i;
+	float maxVisAngle;
+
+	lfeff = lfent->lfeff;
+	if (lfent->angle >= 0 && lfeff) {
+		maxVisAngle = 0.0;
+		for (i = 0; i < lfeff->numLensFlares; i++) {
+			const lensFlare_t* lf;
+			float visAngle;
+
+			lf = &lfeff->lensFlares[i];
+			visAngle = lfent->angle * lf->entityAngleFactor + lfeff->fadeAngle * lf->fadeAngleFactor;
+			if (visAngle > maxVisAngle) maxVisAngle = visAngle;
+		}
+	}
+	else {
+		maxVisAngle = 999.0;
+	}
+	lfent->maxVisAngle = maxVisAngle;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_ParseLensFlareEntity
+=================
+*/
+#if MAPLENSFLARES
+static qboolean CG_ParseLensFlareEntity(char** p, lensFlareEntity_t* lfent) {
+	char* token;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_ParseLensFlareEntity()");
+#endif
+	token = COM_Parse(p);
+	if (!token[0]) return qfalse;
+
+	if (Q_stricmp(token, "{")) {
+		CG_Printf(S_COLOR_YELLOW "read '%s', expected '{'\n", token);
+		return qfalse;
+	}
+
+	token = COM_Parse(p);
+	if (!token[0]) {
+		CG_Printf(S_COLOR_YELLOW "unexpected end of file\n");
+		return qfalse;
+	}
+	lfent->lfeff = CG_FindLensFlareEffect(token);
+	if (!lfent->lfeff) {
+		CG_Printf(S_COLOR_YELLOW "undefined lens flare effect '%s'\n", token);
+		//return qfalse;
+	}
+
+	lfent->origin[0] = atof(COM_Parse(p));
+	lfent->origin[1] = atof(COM_Parse(p));
+	lfent->origin[2] = atof(COM_Parse(p));
+
+	lfent->radius = atof(COM_Parse(p));
+
+	lfent->dir[0] = atof(COM_Parse(p));
+	lfent->dir[1] = atof(COM_Parse(p));
+	lfent->dir[2] = atof(COM_Parse(p));
+	if (VectorLength(lfent->dir) < 0.1) {
+		lfent->dir[0] = 1;
+	}
+	VectorNormalize(lfent->dir);
+
+	lfent->angle = atof(COM_Parse(p));
+	if (lfent->angle < 0) lfent->angle = -1;
+	if (lfent->angle > 180) lfent->angle = 180;
+
+	CG_ComputeMaxVisAngle(lfent);
+
+	while (1) {
+		token = COM_Parse(p);
+		if (!token[0]) {
+			CG_Printf(S_COLOR_YELLOW "unexpected end of file\n");
+			return qfalse;
+		}
+		if (!Q_stricmp(token, "}")) {
+			break;
+		}
+		else if (!Q_stricmp(token, "lr")) {
+			lfent->lightRadius = atof(COM_Parse(p));
+			if (lfent->lightRadius > lfent->radius) {
+				lfent->lightRadius = lfent->radius;
+			}
+		}
+		else if (!Q_stricmp(token, "mv")) {
+			int entnum;
+
+			entnum = atoi(COM_Parse(p));
+			if (entnum >= MAX_CLIENTS && entnum < ENTITYNUM_WORLD) {
+				lfent->lock = &cg_entities[entnum];
+			}
+		}
+		else {
+			CG_Printf(S_COLOR_YELLOW "unexpected token '%s'\n", token);
+			return qfalse;
+		}
+	}
+
+	return qtrue;
+}
+#endif
+
+/*
+=================
+JUHOX: CG_LoadLensFlareEntities
+=================
+*/
+#if MAPLENSFLARES
+void CG_LoadLensFlareEntities(void) {
+	char name[256];
+	fileHandle_t f;
+	int len;
+	char* p;
+
+#if LFDEBUG
+	CG_LoadingString("LF: CG_LoadLensFlareEntities()");
+#endif
+	cgs.numLensFlareEntities = 0;
+	memset(&cgs.lensFlareEntities, 0, sizeof(cgs.lensFlareEntities));
+
+	if (cgs.sunFlareEffect[0]) {
+		lensFlareEntity_t* lfent;
+		vec3_t angles;
+		vec3_t sunDir;
+
+		lfent = &cgs.sunFlare;
+
+		lfent->lfeff = CG_FindLensFlareEffect(cgs.sunFlareEffect);
+		if (!lfent->lfeff) {
+			CG_Printf(S_COLOR_YELLOW "undefined sun flare effect '%s'\n", cgs.sunFlareEffect);
+		}
+
+		angles[YAW] = cgs.sunFlareYaw;
+		angles[PITCH] = -cgs.sunFlarePitch;
+		angles[ROLL] = 0;
+		AngleVectors(angles, sunDir, NULL, NULL);
+		VectorScale(sunDir, cgs.sunFlareDistance, lfent->origin);
+
+		lfent->radius = 150;
+		lfent->lightRadius = 100;
+		lfent->angle = -2;
+
+		CG_ComputeMaxVisAngle(lfent);
+
+		CG_Printf("sun flare entity created\n");
+	}
+
+	Com_sprintf(name, sizeof(name), "flares/%s.lfe", Info_ValueForKey(CG_ConfigString(CS_SERVERINFO), "mapname"));
+
+	len = trap_FS_FOpenFile(name, &f, FS_READ);
+	if (!f) {
+		CG_Printf("'%s' not found\n", name);
+		return;
+	}
+	if (len >= sizeof(lfbuf)) {
+		CG_Printf(S_COLOR_YELLOW "file too large: '%s' > %d\n", name, sizeof(lfbuf)-1);
+		return;
+	}
+	CG_Printf("reading '%s'...\n", name);
+#if LFDEBUG
+	CG_LoadingString(va("%s", name));
+#endif
+
+	trap_FS_Read(lfbuf, len, f);
+	lfbuf[len] = 0;
+	trap_FS_FCloseFile(f);
+
+	COM_Compress(lfbuf);
+
+	p = lfbuf;
+
+	// parse all lens flare entities
+	while (cgs.numLensFlareEntities < MAX_LIGHTS_PER_MAP && p) {
+		if (!CG_ParseLensFlareEntity(&p, &cgs.lensFlareEntities[cgs.numLensFlareEntities])) {
+			break;
+		}
+		cgs.numLensFlareEntities++;
+	}
+
+	CG_Printf("%d lens flare entities loaded\n", cgs.numLensFlareEntities);
+#if LFDEBUG
+	CG_LoadingString("LF: CG_LoadLensFlareEntities() ready");
+#endif
+}
+#endif
+
+/*
 =================
 CG_RegisterGraphics
 
@@ -867,6 +1633,18 @@ static void CG_RegisterGraphics( void ) {
 	CG_LoadingString( cgs.mapname );
 
 	trap_R_LoadWorldMap( cgs.mapname );
+
+#if MAPLENSFLARES	// JUHOX: load map lens flares
+	CG_LoadingString("lens flares");
+	CG_InitFileStack();
+	CG_LoadLensFlares();
+	CG_LoadMissileLensFlares();
+	CG_LoadLensFlareEntities();
+#endif
+#if LFEDITOR	// JUHOX: init
+	cg.lfEditor.copyOptions = -1;
+	cg.lfEditor.copiedLFEnt.dir[0] = 1;
+#endif
 
 	// precache status bar pics
 	CG_LoadingString( "game media" );
@@ -995,7 +1773,6 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.blueKamikazeShader = trap_R_RegisterShader( "models/weaphits/kamikblu" );
 #endif
 	}
-
 	cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
 	cgs.media.armorModel = trap_R_RegisterModel( "models/powerups/armor/armor_yel.md3" );
 	cgs.media.armorIcon  = trap_R_RegisterShaderNoMip( "icons/iconr_yellow" );
@@ -1174,6 +1951,9 @@ CG_RegisterClients
 static void CG_RegisterClients( void ) {
 	int		i;
 
+#if LFEDITOR	// JUHOX: don't load client models in lens flare editor
+	if (cgs.editMode == EM_mlf) return;
+#endif
 	CG_LoadingClient(cg.clientNum);
 	CG_NewClientInfo(cg.clientNum);
 

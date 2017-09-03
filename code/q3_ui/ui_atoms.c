@@ -989,6 +989,31 @@ void UI_Cache_f( void ) {
 	UI_ModsMenu_Cache();
 }
 
+/*
+=================
+JUHOX: UI_LFEdit_f
+=================
+*/
+#if LFEDITOR
+static void UI_LFEdit_f(void) {
+	const char* mapname;
+
+	if (trap_Argc() != 2) return;
+
+	mapname = UI_Argv(1);
+	if (!mapname) return;
+	if (!mapname[0]) return;
+
+	trap_Cvar_SetValue("sv_maxclients", 1);
+	trap_Cvar_SetValue("dedicated", 0);
+	trap_Cvar_SetValue("sv_pure", 0);
+	trap_Cvar_SetValue("g_editmode", EM_mlf);
+	trap_Cvar_SetValue("g_gametype", 0);
+
+	// the wait commands will allow the dedicated to take effect
+	trap_Cmd_ExecuteText(EXEC_APPEND, va( "wait ; wait ; devmap %s\n", mapname));
+}
+#endif
 
 /*
 =================
@@ -1045,6 +1070,13 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		UI_CDKeyMenu_f();
 		return qtrue;
 	}
+
+#if LFEDITOR	// JUHOX: commands for map lens flares
+	if (Q_stricmp(cmd, "lfedit") == 0) {
+		UI_LFEdit_f();
+		return qtrue;
+	}
+#endif
 
 	return qfalse;
 }

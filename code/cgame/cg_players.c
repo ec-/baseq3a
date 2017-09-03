@@ -914,6 +914,10 @@ static void CG_SetDeferredClientInfo( clientInfo_t *ci ) {
 	int		i;
 	clientInfo_t	*match;
 
+#if LFEDITOR	// JUHOX: don't care about client models in lens flare editor
+	if (cgs.editMode == EM_mlf) return;
+#endif
+
 	// if someone else is already the same models and skins we
 	// can just load the client info
 	for ( i = 0 ; i < cgs.maxclients ; i++ ) {

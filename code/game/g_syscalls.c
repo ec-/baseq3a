@@ -125,7 +125,7 @@ void trap_SetBrushModel( gentity_t *ent, const char *name ) {
 	syscall( G_SET_BRUSH_MODEL, ent, name );
 }
 
-void trap_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask ) {
+void	trap_Trace( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask ) {
 	syscall( G_TRACE, results, start, mins, maxs, end, passEntityNum, contentmask );
 }
 

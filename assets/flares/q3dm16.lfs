@@ -1,0 +1,120 @@
+gnc/light_lens00
+{
+	range -200
+	fadeAngle 0
+	{
+		shader gnc_glare0
+		mode glare	
+		size 5
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 1.7
+	}
+	{
+		shader gnc_disc0
+		pos 0.7
+		size .5
+		color .1 .8 .6
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size .5
+		color .5 .4 .8
+	}
+	{
+		shader gnc_disc0
+		pos 0.5
+		size .5
+		color .3 .6 .4
+	}
+	{
+		shader gnc_disc2
+		alpha 2.5
+		pos -0.4
+		size 2.5
+		color .8 .7 .4
+	}
+	{
+		shader gnc_ring0
+		pos -0.8
+		size 4
+		alpha .7
+		color 1 0.7 0.85
+	}
+}
+
+gnc/light_lens01
+{
+	range -500
+	{
+		shader gnc_star0
+		mode star
+		rotation 0 0.5 0.5 0
+		size 0.3
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.1
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 2
+		alpha .3
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.5
+		color 1 1 0.9
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.9 0.7 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.25
+		size 0.23
+		color 0.9 1 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.35
+		size 0.17
+		color 0.9 0.8 0.4
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.8
+		size 0.45
+		color 1 0.7 0.65
+		alpha 0.25
+	}
+}
+
+gnc/WhiteNeonHalo01
+{
+	range 1000
+	fadeangle 45
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.1
+	}
+	{
+		shader gnc_glare0
+		size 1.3
+		alpha .7
+	}
+}

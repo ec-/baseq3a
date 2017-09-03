@@ -1,0 +1,107 @@
+missile_rocket_launcher
+// this is a directed light (spotlight)
+{
+	range -220
+	fadeAngle 15
+	{
+		shader bfglfglare
+		mode glare
+		rotation 0 0 0 0
+		size 0.125
+	}
+}
+
+missile_bfg
+// this is an undirected light
+{
+	range -220
+
+	{
+		shader bfglfstar
+		mode star
+		rotation 0 0 0 0
+		size 0.5
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 10
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 2
+	}
+	{
+		shader bfglfline
+		size 15
+		rotation 90 1 0 0
+	}
+
+	{
+		shader bfglfring
+		pos 3
+		size 1.7
+		color 1 1 1
+	}
+	{
+		shader bfglfdisc
+		pos 1.5
+		size 0.9
+		color 1 0.67 0.67
+	}
+	{
+		shader bfglfdisc
+		pos 0.5
+		size 1.5
+		color 0.67 1 1
+	}
+	{
+		shader bfglfring
+		pos 0.3
+		size 1
+		color 0.75 1 0.75
+	}
+	{
+		shader bfglfdisc
+		pos 0.07
+		size 0.7
+		color 0.82 1 0.92
+	}
+	{
+		shader bfglfring
+		pos -0.25
+		size 1.4
+		color 0.9 1 1
+	}
+	{
+		shader bfglfdisc
+		pos -0.45
+		size 0.2
+		color 0.75 1 1
+	}
+	{
+		shader bfglfdisc
+		pos -0.6
+		size 0.4
+		color 1 0.78 1
+	}
+	{
+		shader bfglfdisc
+		pos -0.72
+		size 1.1
+		color 1 0.78 0.67
+	}
+	{
+		shader bfglfring
+		pos -1
+		size 2
+		color 1 1 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -3.4
+		size 1.3
+		color 0.92 0.96 1
+	}
+}

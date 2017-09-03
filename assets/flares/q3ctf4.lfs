@@ -1,0 +1,180 @@
+gnc/light_lens00
+{
+	range -200
+	fadeAngle 45
+	{
+		shader gnc_glare0
+		mode glare
+		size 1.7
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 1
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.5 0.7 1
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+
+	}
+	{
+		shader gnc_disc2
+		pos -0.8
+		size 2.5
+		color 1 0.7 0.85
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+
+	}
+}
+
+gnc/light_lens01
+{
+	range 500
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.1
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.5
+		color 1 1 0.9
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.9 0.7 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.25
+		size 0.23
+		color 0.9 1 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.35
+		size 0.17
+		color 0.9 0.8 0.4
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.8
+		size 0.45
+		color 1 0.7 0.65
+		alpha 0.25
+	}
+	{
+		shader gnc_disc2
+		pos -0.8
+		size 2
+		color 1 .1 .1
+		alpha 0.5
+	}
+}
+
+gnc/light_lens02
+{
+	range 500
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.1
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.5
+		color 1 1 0.9
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.9 0.7 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.25
+		size 0.23
+		color 0.9 1 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.35
+		size 0.17
+		color 0.9 0.8 0.4
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.8
+		size 0.45
+		color 1 0.7 0.65
+		alpha 0.25
+	}
+	{
+		shader gnc_disc2
+		pos -0.8
+		size 2
+		color .1 .1 1
+		alpha 0.5
+	}
+}
+
+gnc/light_halo_red
+{
+	range -1500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		mode glare
+		size .2
+		alpha 0.45
+		color 1 .1 .1
+	}
+	{
+		shader gnc_glare0
+		size .2
+		alpha 0.45
+		color 1 .1 .1
+	}
+}
+
+gnc/light_halo_blue
+{
+	range -1500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		mode glare
+		size .2
+		alpha 0.45
+		color .1 .1 1
+	}
+	{
+		shader gnc_glare0
+		size .2
+		alpha 0.45
+		color .1 .1 1
+	}
+}

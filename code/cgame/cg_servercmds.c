@@ -142,6 +142,11 @@ void CG_ParseServerinfo( void ) {
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
 	Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redTeam" ), sizeof(cgs.redTeam) );
 	Q_strncpyz( cgs.blueTeam, Info_ValueForKey( info, "g_blueTeam" ), sizeof(cgs.blueTeam) );
+#if LFEDITOR	// JUHOX: parse serverinfo cvars for map lens flares
+	cgs.editMode = atoi(Info_ValueForKey(info, "g_editmode"));
+	if (cgs.maxclients > 1) cgs.editMode = EM_none;
+	if (atoi(Info_ValueForKey(CG_ConfigString(CS_SYSTEMINFO), "sv_cheats")) != 1) cgs.editMode = EM_none;
+#endif
 }
 
 

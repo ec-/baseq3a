@@ -1,0 +1,29 @@
+halo_white
+{
+	range 500
+	{
+		shader bfglfglare
+		mode glare
+		size 0.13
+		alpha 2
+	}
+}
+
+small_ly_halo
+{
+	range 300
+	{
+		shader bfglfglare
+		mode glare
+		size 0.05
+		alpha 2
+		color 0.95 1 0.9
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 0.015
+		alpha 2
+		intensitythreshold 0.5
+	}
+}

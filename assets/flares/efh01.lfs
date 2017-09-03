@@ -1,0 +1,90 @@
+sunparm sun_flare 
+   290 		// sun yaw
+   50		// sun pitch
+   1000		// sun distance
+
+sun_flare
+{
+	range -2000
+	{
+		shader bfglfstar
+		mode star
+		rotation 0 0.5 0.5 0
+		size 7
+		color 1 0.95 0.8
+		intensitythreshold 0.2
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 15
+		color 1 0.95 0.8
+	}
+	{
+		shader lfdisc1
+		pos 2.1
+		rotation 180 0 0 1
+		size 1.16
+		color 1 0.4 1
+		alpha 0.35
+	}
+	{
+		shader bfglfdisc
+		pos 1.5
+		size 0.4
+		color 1 0.1 0
+		alpha 0.25
+	}
+	{
+		shader lfdisc1
+		rotation 0 0 0 1
+		pos 0.55
+		size 0.7
+		color 0.5 1.0 0.4
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -0.51
+		size 0.33
+		color 1 0.15 0.1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -0.73
+		size 0.17
+		color 1 0.98 0.9
+		alpha 0.5
+	}
+	{
+		shader bfglfring
+		pos -1.1
+		size 1.5
+		color 1 0.8 0.5
+		alpha 0.3
+	}
+	{
+		shader bfglfdisc
+		pos -1.65
+		size 0.3
+		color 0.8 0.9 1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -2.11
+		size 0.19
+		color 1 0.6 0.9
+		alpha 0.35
+	}
+	{
+		shader lfarc1
+		rotation 0 0 0 1
+		pos -2.74
+		size 1.41
+		color 0.6 0.7 0.85
+		alpha 0.4
+	}
+}
+

@@ -1,0 +1,262 @@
+import juhox/neon.lfs
+import juhox/fire.lfs
+
+juhox/q3dm11/sqrceillamp_small
+{
+	range 800
+	fadeAngle 20
+	{
+		shader bfglfstar
+		mode star
+		rotation 40 -1.2 0.8 0
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 0.3
+	}
+	{
+		shader bfglfglare
+		mode glare
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 1
+	}
+	{
+		shader bfglfdisc
+		pos 0.7
+		size 1.2
+		color 1 0.6 0.8
+		alpha 0.5
+	}
+	{
+		shader lfdisc1
+		pos 0.4
+		size 1.5
+		color 0.9 0.8 1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos 0.25
+		size 0.7
+		color 0.8 0.9 1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos 0.067
+		size 0.3
+		color 1 0.7 0.9
+		alpha 0.5
+	}
+	{
+		shader lfarc1
+		pos -0.15
+		size 0.6
+		color 0.9 0.7 0.85
+		alpha 0.5
+	}
+	{
+		shader lfring1
+		pos -0.15
+		size 1
+		color 0.9 0.7 0.85
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -0.3
+		size 0.3
+		color 0.9 0.7 1
+		alpha 0.5
+	}
+}
+
+juhox/q3dm11/sqrceillamp_large
+{
+	range -200
+	fadeAngle 20
+	{
+		shader bfglfstar
+		mode star
+		rotation 40 -1.2 0.8 0
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 1
+	}
+	{
+		shader bfglfglare
+		mode glare
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 1
+	}
+	{
+		shader bfglfdisc
+		pos 0.7
+		size 1.1
+		color 1 0.6 0.8
+		alpha 0.5
+	}
+	{
+		shader lfdisc1
+		pos 0.4
+		size 1.6
+		color 0.9 0.8 1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos 0.25
+		size 1.05
+		color 0.8 0.9 1
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos 0.067
+		size 0.45
+		color 1 0.7 0.9
+		alpha 0.5
+	}
+	{
+		shader lfarc1
+		pos -0.15
+		size 0.9
+		color 0.9 0.7 0.85
+		alpha 0.5
+	}
+	{
+		shader lfring1
+		pos -0.15
+		size 1.5
+		color 0.9 0.7 0.85
+		alpha 0.5
+	}
+	{
+		shader bfglfdisc
+		pos -0.3
+		size 0.45
+		color 0.9 0.7 1
+		alpha 0.5
+	}
+}
+
+juhox/q3dm6/whitehalo01
+{
+	range 500
+	{
+		shader bfglfglare
+		mode glare
+		size 0.13
+		alpha 2
+	}
+	{
+		shader bfglfdisc
+		pos 0.6
+		size 0.85
+		color 1 0.25 0.3
+		alpha 0.3
+	}
+	{
+		shader bfglfdisc
+		pos 0.1
+		size 1.2
+		color 0 0.75 1
+		alpha 0.3
+	}
+}
+
+juhox/q3dm11/blue_spot
+{
+	range -150
+	fadeAngle 20
+	{
+		shader bfglfstar
+		mode star
+		rotation 10 0.3 -0.7 0
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 0.3
+	}
+	{
+		shader bfglfglare
+		mode glare
+		entityAngleFactor 0.5
+		fadeAngleFactor 0.5
+		size 0.4
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 0.2
+	}
+	{
+		shader bfglfdisc
+		pos 0.65
+		size 0.15
+		color 0 0.5 1
+		alpha 0.3
+	}
+	{
+		shader lfdisc1
+		pos 0.35
+		size 0.25
+		color 0.5 0.2 1
+		alpha 0.3
+	}
+	{
+		shader lfdisc1
+		pos 0.1
+		size 0.22
+		color 0.3 0.4 0.8
+		alpha 0.3
+	}
+	{
+		shader lfarc1
+		pos -0.3
+		size 1.6
+		color 1 0.4 0.7
+		alpha 0.3
+	}
+}
+
+juhox/q3dm11/neon
+{
+	range 1000
+	{
+		shader bfglfglare
+		mode glare
+		size 0.13
+		alpha 2
+	}
+	{
+		shader lfdisc1
+		pos 0.8
+		size 0.9
+		color 1 0.95 0.9
+		alpha 0.3
+	}
+	{
+		shader lfarc1
+		rotation 0 0 0 1
+		pos 0.55
+		size 1.1
+		color 0.9 0.95 1
+		alpha 0.3
+	}
+	{
+		shader lfdisc1
+		pos 0.35
+		size 0.4
+		color 0.95 0.9 1
+		alpha 0.3
+	}
+	{
+		shader lfdisc1
+		rotation 0 0 0 1
+		pos -0.2
+		size 0.7
+		color 0.95 1 0.9
+		alpha 0.3
+	}
+}
