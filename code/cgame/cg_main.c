@@ -104,6 +104,7 @@ vmCvar_t	cg_drawCrosshair;
 vmCvar_t	cg_drawCrosshairNames;
 vmCvar_t	cg_drawRewards;
 vmCvar_t	cg_drawWeaponSelect;
+vmCvar_t	cg_drawStatusBackground;
 vmCvar_t	cg_crosshairSize;
 vmCvar_t	cg_crosshairX;
 vmCvar_t	cg_crosshairY;
@@ -232,6 +233,7 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
 	{ &cg_drawRewards, "cg_drawRewards", "1", CVAR_ARCHIVE },
 	{ &cg_drawWeaponSelect, "cg_drawWeaponSelect", "1", CVAR_ARCHIVE },
+	{ &cg_drawStatusBackground, "cg_drawStatusBackground", "1", CVAR_ARCHIVE },
 	{ &cg_crosshairSize, "cg_crosshairSize", "24", CVAR_ARCHIVE },
 	{ &cg_crosshairHealth, "cg_crosshairHealth", "1", CVAR_ARCHIVE },
 	{ &cg_crosshairX, "cg_crosshairX", "0", CVAR_ARCHIVE },
@@ -989,12 +991,12 @@ static void CG_RegisterGraphics( void ) {
 	if ( cgs.gametype >= GT_TEAM || cg_buildScript.integer ) {
 		cgs.media.friendShader = trap_R_RegisterShader( "sprites/foe" );
 		cgs.media.redQuadShader = trap_R_RegisterShader("powerups/blueflag" );
-		cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
 #ifdef MISSIONPACK
 		cgs.media.blueKamikazeShader = trap_R_RegisterShader( "models/weaphits/kamikblu" );
 #endif
 	}
 
+	cgs.media.teamStatusBar = trap_R_RegisterShader( "gfx/2d/colorbar.tga" );
 	cgs.media.armorModel = trap_R_RegisterModel( "models/powerups/armor/armor_yel.md3" );
 	cgs.media.armorIcon  = trap_R_RegisterShaderNoMip( "icons/iconr_yellow" );
 

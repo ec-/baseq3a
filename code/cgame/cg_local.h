@@ -1158,6 +1158,7 @@ extern	vmCvar_t		cg_drawRewards;
 extern	vmCvar_t		cg_drawTeamOverlay;
 extern	vmCvar_t		cg_teamOverlayUserinfo;
 extern	vmCvar_t		cg_drawWeaponSelect;
+extern	vmCvar_t		cg_drawStatusBackground;
 extern	vmCvar_t		cg_crosshairX;
 extern	vmCvar_t		cg_crosshairY;
 extern	vmCvar_t		cg_crosshairSize;

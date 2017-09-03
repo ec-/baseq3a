@@ -532,20 +532,21 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
 {
 	vec4_t		hcolor;
 
+	hcolor[0] = 0;
+	hcolor[1] = 0;
+	hcolor[2] = 0;
 	hcolor[3] = alpha;
 	if ( team == TEAM_RED ) {
 		hcolor[0] = 1;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
 	} else if ( team == TEAM_BLUE ) {
-		hcolor[0] = 0;
-		hcolor[1] = 0;
 		hcolor[2] = 1;
-	} else {
+	} else if ( team == TEAM_SPECTATOR ) {
 		return;
 	}
 	trap_R_SetColor( hcolor );
+	if ( cg_drawStatusBackground.integer == 2 || cg_drawStatusBackground.integer == 1 && team != TEAM_FREE ) {
 	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
+	}
 	trap_R_SetColor( NULL );
 }
 
@@ -1005,7 +1006,9 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 		hcolor[3] = 0.33f;
 	}
 	trap_R_SetColor( hcolor );
+	if ( cg_drawStatusBackground.integer >= 1 ) {
 	CG_DrawPic( x, y, w, h, cgs.media.teamStatusBar );
+	}
 	trap_R_SetColor( NULL );
 
 	for (i = 0; i < count; i++) {
@@ -1270,7 +1273,7 @@ static float CG_DrawScores( float y ) {
 			if ( !spectator && score == s1 ) {
 				color[0] = 0.0f;
 				color[1] = 0.0f;
-				color[2] = 1.0f;
+				color[2] = 0.0f;
 				color[3] = 0.33f;
 				CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
 				CG_DrawPic( x, y-4, w, BIGCHAR_HEIGHT+8, cgs.media.selectShader );
