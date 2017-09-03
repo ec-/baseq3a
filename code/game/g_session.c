@@ -104,6 +104,12 @@ void G_InitSessionData( gclient_t *client, const char *team, qboolean isBot ) {
 	sess = &client->sess;
 
 	// initial team determination
+#if LFEDITOR	// JUHOX: in lf edit mode always join as a spectator
+	if (g_editmode.integer == EM_mlf) {
+		sess->sessionTeam = TEAM_SPECTATOR;
+	}
+	else
+#endif
 	if ( g_gametype.integer >= GT_TEAM ) {
 		if ( team[0] == 's' || team[0] == 'S' ) {
 			// a willing spectator, not a waiting-in-line

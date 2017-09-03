@@ -269,6 +269,13 @@ qboolean G_CallSpawn( gentity_t *ent ) {
 	// check item spawn functions
 	for ( item=bg_itemlist+1 ; item->classname ; item++ ) {
 		if ( !strcmp(item->classname, ent->classname) ) {
+#if LFEDITOR	// JUHOX: no items in lens flare editor
+			if (g_editmode.integer == EM_mlf) {
+				// don't remove, otherwise movers could change their entity number
+				ent->s.eType = ET_INVISIBLE;
+				return qtrue;
+			}
+#endif
 			G_SpawnItem( ent, item );
 			return qtrue;
 		}

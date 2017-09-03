@@ -814,6 +814,17 @@ void CG_RegisterWeapon( int weaponNum ) {
 		cgs.media.bfgExplosionShader = trap_R_RegisterShader( "bfgExplosion" );
 		weaponInfo->missileModel = trap_R_RegisterModel( "models/weaphits/bfg.md3" );
 		weaponInfo->missileSound = trap_S_RegisterSound( "sound/weapons/rocket/rockfly.wav", qfalse );
+#if !MISSILELENSFLARES	// JUHOX: use new BFG missile media
+		weaponInfo->missileModel = trap_R_RegisterModel( "models/weaphits/bfg.md3" );
+#else
+		cgs.media.bfgLFGlareShader = trap_R_RegisterShader("bfgLFGlare");
+		cgs.media.bfgLFDiscShader = trap_R_RegisterShader("bfgLFDisc");
+		cgs.media.bfgLFRingShader = trap_R_RegisterShader("bfgLFRing");
+		cgs.media.bfgLFStarShader = trap_R_RegisterShader("bfgLFStar");
+		cgs.media.bfgLFLineShader = trap_R_RegisterShader("bfgLFLine");
+		weaponInfo->missileDlight = 400;
+		MAKERGB(weaponInfo->missileDlightColor, 1, 1, 1);
+#endif
 		break;
 
 	 default:
@@ -1413,7 +1424,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t	hand;
 	centity_t	*cent;
 	clientInfo_t	*ci;
-	float		fovOffset;
+	vec3_t		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
 
@@ -1450,11 +1461,21 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		return;
 	}
 
-	// drop gun lower at higher fov
-	if ( cgs.fov > 90.0 ) {
-		fovOffset = -0.2 * ( cgs.fov - 90.0 );
-	} else {
-		fovOffset = 0;
+	VectorClear(fovOffset);
+
+	if ( cg_fovStyle.integer ) {
+		if ( cg.fov > 90 ) {
+			// drop gun lower at higher fov
+
+
+			fovOffset[2] = -0.2 * ( cg.fov - 90 ) * cg.refdef.fov_x / cg.fov;
+		} else if ( cg.fov < 90 ) {
+			// move gun forward at lowerer fov
+			fovOffset[0] = -0.2 * ( cg.fov - 90 ) * cg.refdef.fov_x / cg.fov;
+		}
+	} else if ( cg_fov.integer > 90 ) {
+		// Q3A's auto adjust
+		fovOffset[2] = -0.2 * ( cg_fov.integer - 90 );
 	}
 
 	cent = &cg.predictedPlayerEntity;	// &cg_entities[cg.snap->ps.clientNum];
@@ -1466,9 +1487,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	VectorMA( hand.origin, cg_gun_x.value, cg.refdef.viewaxis[0], hand.origin );
-	VectorMA( hand.origin, cg_gun_y.value, cg.refdef.viewaxis[1], hand.origin );
-	VectorMA( hand.origin, (cg_gun_z.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
+	VectorMA( hand.origin, (cg_gun_x.value+fovOffset[0]), cg.refdef.viewaxis[0], hand.origin );
+	VectorMA( hand.origin, (cg_gun_y.value+fovOffset[1]), cg.refdef.viewaxis[1], hand.origin );
+	VectorMA( hand.origin, (cg_gun_z.value+fovOffset[2]), cg.refdef.viewaxis[2], hand.origin );
 
 	AnglesToAxis( angles, hand.axis );
 
@@ -1630,6 +1651,17 @@ void CG_NextWeapon_f( void ) {
 
 	cg.weaponSelectTime = cg.time;
 
+#if LFEDITOR	// JUHOX: select effect in lens flare editor
+	if (cgs.editMode == EM_mlf) {
+		cg.lfEditor.selectedEffect++;
+		if (cg.lfEditor.selectedEffect < 0) cg.lfEditor.selectedEffect = 0;
+		if (cg.lfEditor.selectedEffect >= cgs.numLensFlareEffects) {
+			cg.lfEditor.selectedEffect = cgs.numLensFlareEffects - 1;
+		}
+		return;
+	}
+#endif	
+
 	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
 		return;
 	}
@@ -1668,6 +1700,17 @@ void CG_PrevWeapon_f( void ) {
 	}
 
 	cg.weaponSelectTime = cg.time;
+	
+#if LFEDITOR	// JUHOX: select effect in lens flare editor
+	if (cgs.editMode == EM_mlf) {
+		cg.lfEditor.selectedEffect--;
+		if (cg.lfEditor.selectedEffect < 0) cg.lfEditor.selectedEffect = 0;
+		if (cg.lfEditor.selectedEffect >= cgs.numLensFlareEffects) {
+			cg.lfEditor.selectedEffect = cgs.numLensFlareEffects - 1;
+		}
+		return;
+	}
+#endif
 
 	if ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) {
 		return;
@@ -1692,6 +1735,233 @@ void CG_PrevWeapon_f( void ) {
 	}
 }
 
+/*
+===============
+JUHOX: CG_AddLensFlareEntity
+===============
+*/
+#if LFEDITOR
+static lensFlareEntity_t* CG_AddLensFlareEntity(const lensFlareEntity_t* model) {
+	int entnum;
+	lensFlareEntity_t* lfent;
+
+	if (cgs.numLensFlareEntities >= MAX_LIGHTS_PER_MAP) return NULL;
+
+	entnum = cgs.numLensFlareEntities++;
+	lfent = &cgs.lensFlareEntities[entnum];
+
+	memset(lfent, 0, sizeof(*lfent));
+	VectorCopy(cg.snap->ps.origin, lfent->origin);
+	if (model) {
+		lfent->radius = model->radius;
+		lfent->lightRadius = model->lightRadius;
+		lfent->lfeff = model->lfeff;
+		VectorCopy(model->dir, lfent->dir);
+		lfent->angle = model->angle;
+	}
+	else {
+		lfent->radius = 5.0;
+		lfent->lfeff = &cgs.lensFlareEffects[cg.lfEditor.selectedEffect];
+		lfent->dir[0] = 1.0;
+		lfent->angle = -1;
+	}
+	CG_ComputeMaxVisAngle(lfent);
+
+	cg.lfEditor.originalLFEnt = *lfent;
+
+	return lfent;
+}
+#endif
+
+/*
+===============
+JUHOX: CG_DeleteLensFlareEntity
+===============
+*/
+#if LFEDITOR
+static void CG_DeleteLensFlareEntity(lensFlareEntity_t* lfent) {
+	int lfentnum;
+	int i;
+
+	lfentnum = lfent - cgs.lensFlareEntities;
+	if (lfentnum < 0) return;
+	if (lfentnum >= cgs.numLensFlareEntities) return;
+
+	for (i = lfentnum; i < cgs.numLensFlareEntities-1; i++) {
+		cgs.lensFlareEntities[i] = cgs.lensFlareEntities[i+1];
+	}
+	cgs.numLensFlareEntities--;
+}
+#endif
+
+/*
+=========================
+JUHOX: CG_FindNextEntityByEffect
+=========================
+*/
+#if LFEDITOR
+static int CG_FindNextEntityByEffect(void) {
+	const lensFlareEffect_t* lfeff;
+	int start;
+	int i;
+
+	lfeff = &cgs.lensFlareEffects[cg.lfEditor.selectedEffect];
+	start = -1;
+	if (cg.lfEditor.selectedLFEnt) {
+		start = cg.lfEditor.selectedLFEnt - cgs.lensFlareEntities;
+	}
+	for (i = 1; i <= cgs.numLensFlareEntities; i++) {
+		int j;
+		const lensFlareEntity_t* lfent;
+
+		j = (start + i) % cgs.numLensFlareEntities;
+		lfent = &cgs.lensFlareEntities[j];
+		if (lfent->lfeff == lfeff) return j;
+	}
+	return -1;
+}
+#endif
+
+/*
+=========================
+JUHOX: CG_EvaluateViewDir
+=========================
+*/
+#if LFEDITOR
+#define MAX_VIEWTESTS 200
+static vec3_t viewDirList[MAX_VIEWTESTS];
+static float CG_EvaluateViewDir(const vec3_t viewDir, int listSize) {
+	float evaluation;
+	int i;
+
+	evaluation = 0;
+	for (i = 0; i < listSize; i++) {
+		float d;
+
+		d = DotProduct(viewDir, viewDirList[i]);
+		if (d <= 0) continue;
+
+		evaluation += d;
+	}
+	return evaluation;
+}
+#endif
+
+/*
+=========================
+JUHOX: CG_FindBestViewOrg
+=========================
+*/
+#if LFEDITOR
+static void CG_FindBestViewOrg(const lensFlareEntity_t* lfent, vec3_t viewOrg) {
+	vec3_t origin;
+	float viewDistance;
+	int i;
+	int listSize;
+	float bestEvaluation;
+	int bestDir;
+
+	CG_LFEntOrigin(lfent, origin);
+	VectorCopy(origin, viewOrg);
+
+	viewDistance = 3 * lfent->radius + 100;
+	listSize = 0;
+
+	for (i = 0; i < MAX_VIEWTESTS; i++) {
+		vec3_t dir;
+		vec3_t start;
+		vec3_t end;
+		trace_t trace;
+		vec3_t candidate;
+
+		dir[0] = crandom();
+		dir[1] = crandom();
+		dir[2] = crandom();
+		if (VectorNormalize(dir) < 0.001) continue;
+
+		VectorMA(origin, lfent->radius, dir, start);
+		VectorMA(origin, viewDistance, dir, end);
+		CG_Trace(&trace, start, NULL, NULL, end, -1, MASK_OPAQUE|CONTENTS_BODY);
+		if (trace.fraction < 0.1) continue;
+		
+		VectorMA(trace.endpos, -10, dir, candidate);
+		CG_Trace(&trace, candidate, NULL, NULL, start, -1, MASK_OPAQUE|CONTENTS_BODY);
+		if (trace.fraction < 1) continue;
+
+		VectorSubtract(candidate, origin, viewDirList[listSize]);
+		listSize++;	// CAUTION: don't add this to the line above -- VectorSubtract() is a macro!
+	}
+
+	bestEvaluation = 0;
+	bestDir = -1;
+	for (i = 0; i < listSize; i++) {
+		float evaluation;
+
+		evaluation = CG_EvaluateViewDir(viewDirList[i], listSize);
+		if (evaluation <= bestEvaluation) continue;
+
+		bestEvaluation = evaluation;
+		bestDir = i;
+	}
+
+	if (bestDir >= 0) {
+		VectorAdd(origin, viewDirList[bestDir], viewOrg);
+	}
+}
+#endif
+
+/*
+=========================
+JUHOX: CG_NextMover
+=========================
+*/
+#if LFEDITOR
+static centity_t* CG_NextMover(centity_t* current) {
+	int start, i;
+
+	if (!current) current = &cg_entities[0];
+
+	start = current - cg_entities;
+	for (i = 1; i <= MAX_GENTITIES; i++) {
+		current = &cg_entities[(start + i) % MAX_GENTITIES];
+		if (current->currentState.eType != ET_MOVER) continue;
+		if (!current->currentValid) continue;
+
+		return current;
+	}
+	return NULL;
+}
+#endif
+
+/*
+=========================
+JUHOX: CG_HandleCopyOptions
+=========================
+*/
+#if LFEDITOR
+static void CG_HandleCopyOptions(int command) {
+	switch (command) {
+	case 1:	// cancel
+		cg.lfEditor.cmdMode = LFECM_main;
+		break;
+	case 2:	// effect
+		cg.lfEditor.copyOptions ^= LFECO_EFFECT;
+		break;
+	case 3:	// vis radius
+		cg.lfEditor.copyOptions ^= LFECO_VISRADIUS;
+		break;
+	case 4:	// light radius
+		cg.lfEditor.copyOptions ^= LFECO_LIGHTRADIUS;
+		break;
+	case 5:	// spot light direction
+		cg.lfEditor.copyOptions ^= LFECO_SPOT_DIR;
+		break;
+	case 6:	// spot light entity angle
+		cg.lfEditor.copyOptions ^= LFECO_SPOT_ANGLE;
+		break;
+	}
+}
+#endif
 
 /*
 ===============
@@ -1717,6 +1987,233 @@ void CG_Weapon_f( void ) {
 		return;
 	}
 
+#if LFEDITOR	// JUHOX: in lens flare editor weapon chooses a command
+	if (cgs.editMode == EM_mlf) {
+		if (num != 3) cg.lfEditor.delAck = qfalse;
+
+		if (cg.lfEditor.cmdMode == LFECM_copyOptions) {
+			CG_HandleCopyOptions(num);
+			return;
+		}
+
+		switch (num) {
+		case 1:	// cancel
+			if (cg.lfEditor.selectedLFEnt) {
+				*cg.lfEditor.selectedLFEnt = cg.lfEditor.originalLFEnt;
+			}
+			cg.lfEditor.selectedLFEnt = NULL;
+			cg.lfEditor.editMode = LFEEM_none;
+			CG_SetLFEdMoveMode(LFEMM_coarse);
+			break;
+		case 2:	// add lens flare entity / switch mover state
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (cg.lfEditor.editMode == LFEEM_none) {
+					cg.lfEditor.selectedLFEnt = CG_AddLensFlareEntity(cg.lfEditor.selectedLFEnt);
+					if (cg.lfEditor.selectedLFEnt) {
+						cg.lfEditor.editMode = LFEEM_pos;
+						CG_SetLFEdMoveMode(LFEMM_coarse);
+					}
+				}
+			}
+			else {
+				cg.lfEditor.moversStopped = !cg.lfEditor.moversStopped;
+			}
+			break;
+		case 3: // delete lens flare entity / select mover
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (cg.lfEditor.selectedLFEnt) {
+					if (!cg.lfEditor.delAck) {
+						cg.lfEditor.delAck = qtrue;
+					}
+					else {
+						cg.lfEditor.delAck = qfalse;
+						CG_DeleteLensFlareEntity(cg.lfEditor.selectedLFEnt);
+						cg.lfEditor.selectedLFEnt = NULL;
+						cg.lfEditor.editMode = LFEEM_none;
+						CG_SetLFEdMoveMode(LFEMM_coarse);
+					}
+				}
+			}
+			else if (cg.lfEditor.moversStopped) {
+				cg.lfEditor.selectedMover = CG_NextMover(cg.lfEditor.selectedMover);
+			}
+			break;
+		case 4:	// edit position & vis radius / lock to mover
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (cg.lfEditor.selectedLFEnt) {
+					if (cg.lfEditor.editMode == LFEEM_pos) {
+						cg.lfEditor.editMode = LFEEM_none;
+						CG_SetLFEdMoveMode(LFEMM_coarse);
+					}
+					else {
+						cg.lfEditor.editMode = LFEEM_pos;
+						CG_SetLFEdMoveMode(LFEMM_fine);
+					}
+				}
+			}
+			else if (cg.lfEditor.selectedLFEnt) {
+				if (cg.lfEditor.selectedLFEnt->lock) {
+					VectorAdd(
+						cg.lfEditor.selectedLFEnt->origin,
+						cg.lfEditor.selectedLFEnt->lock->lerpOrigin,
+						cg.lfEditor.selectedLFEnt->origin
+					);
+					cg.lfEditor.selectedLFEnt->lock = NULL;
+				}
+				else {
+					if (cg.lfEditor.selectedMover && cg.lfEditor.moversStopped) {
+						cg.lfEditor.selectedLFEnt->lock = cg.lfEditor.selectedMover;
+						VectorSubtract(
+							cg.lfEditor.selectedLFEnt->origin,
+							cg.lfEditor.selectedLFEnt->lock->lerpOrigin,
+							cg.lfEditor.selectedLFEnt->origin
+						);
+					}
+					else {
+						CG_Printf("no mover selected\n");
+					}
+				}
+			}
+			break;
+		case 5:	// edit target & angle / search entity
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (cg.lfEditor.selectedLFEnt) {
+					if (cg.lfEditor.editMode == LFEEM_target) {
+						cg.lfEditor.editMode = LFEEM_none;
+						CG_SetLFEdMoveMode(LFEMM_coarse);
+					}
+					else {
+						cg.lfEditor.editMode = LFEEM_target;
+						CG_SetLFEdMoveMode(LFEMM_fine);
+						cg.lfEditor.editTarget = qtrue;
+					}
+				}
+			}
+			else {
+				int nextLFEnt;
+
+				nextLFEnt = CG_FindNextEntityByEffect();
+				if (nextLFEnt >= 0) {
+					const lensFlareEntity_t* lfent;
+					vec3_t viewOrg;
+					vec3_t dir;
+					vec3_t angles;
+
+					CG_SelectLFEnt(nextLFEnt);
+					
+					lfent = &cgs.lensFlareEntities[nextLFEnt];
+					CG_FindBestViewOrg(lfent, viewOrg);
+					CG_LFEntOrigin(lfent, dir);
+					VectorSubtract(dir, viewOrg, dir);
+					vectoangles(dir, angles);
+					trap_SendClientCommand(
+						va(
+							"lfemm %d %f %f %f %f %f %f",
+							cg.lfEditor.moveMode,
+							viewOrg[0], viewOrg[1], viewOrg[2],
+							angles[0], angles[1], angles[3]
+						)
+					);
+				}
+				else {
+					CG_Printf("No flare entity found with '%s'\n", cgs.lensFlareEffects[cg.lfEditor.selectedEffect]);
+				}
+			}
+			break;
+		case 6:	// edit light size & vis radius / copy options
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (cg.lfEditor.selectedLFEnt) {
+					if (cg.lfEditor.editMode == LFEEM_radius) {
+						cg.lfEditor.editMode = LFEEM_none;
+						CG_SetLFEdMoveMode(LFEMM_coarse);
+					}
+					else {
+						cg.lfEditor.editMode = LFEEM_radius;
+						CG_SetLFEdMoveMode(LFEMM_fine);
+					}
+				}
+			}
+			else {
+				cg.lfEditor.cmdMode = LFECM_copyOptions;
+			}
+			break;
+		case 7:	// assign effect / paste lf entity
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (
+					cg.lfEditor.selectedLFEnt &&
+					cg.lfEditor.selectedEffect >= 0 &&
+					cg.lfEditor.selectedEffect < cgs.numLensFlareEffects
+				) {
+					cg.lfEditor.selectedLFEnt->lfeff = &cgs.lensFlareEffects[cg.lfEditor.selectedEffect];
+					CG_ComputeMaxVisAngle(cg.lfEditor.selectedLFEnt);
+				}
+			}
+			else if (cg.lfEditor.selectedLFEnt) {
+				lensFlareEntity_t* lfent;
+
+				lfent = cg.lfEditor.selectedLFEnt;
+				if (cg.lfEditor.copyOptions & LFECO_EFFECT) {
+					if (cg.lfEditor.copiedLFEnt.lfeff) {
+						lfent->lfeff = cg.lfEditor.copiedLFEnt.lfeff;
+						CG_ComputeMaxVisAngle(lfent);
+					}
+				}
+				if (cg.lfEditor.copyOptions & LFECO_VISRADIUS) {
+					lfent->radius = cg.lfEditor.copiedLFEnt.radius;
+					if (lfent->lightRadius > lfent->radius) {
+						lfent->lightRadius = lfent->radius;
+					}
+				}
+				if (cg.lfEditor.copyOptions & LFECO_LIGHTRADIUS) {
+					lfent->lightRadius = cg.lfEditor.copiedLFEnt.lightRadius;
+					if (lfent->radius < lfent->lightRadius) {
+						lfent->radius = lfent->lightRadius;
+					}
+				}
+				if (cg.lfEditor.copyOptions & LFECO_SPOT_DIR) {
+					VectorCopy(cg.lfEditor.copiedLFEnt.dir, lfent->dir);
+				}
+				if (cg.lfEditor.copyOptions & LFECO_SPOT_ANGLE) {
+					lfent->angle = cg.lfEditor.copiedLFEnt.angle;
+				}
+			}
+			break;
+		case 8:	// note effect / copy lf entity
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				if (
+					cg.lfEditor.selectedLFEnt &&
+					cg.lfEditor.selectedLFEnt->lfeff &&
+					cgs.numLensFlareEffects > 0
+				) {
+					cg.lfEditor.selectedEffect = cg.lfEditor.selectedLFEnt->lfeff - cgs.lensFlareEffects;
+				}
+			}
+			else {
+				if (cg.lfEditor.selectedLFEnt) {
+					cg.lfEditor.copiedLFEnt = *(cg.lfEditor.selectedLFEnt);
+				}
+			}
+			break;
+		case 9:	// draw mode / cursor size
+			if (!(cg.lfEditor.oldButtons & BUTTON_WALKING)) {
+				cg.lfEditor.drawMode++;
+				if (cg.lfEditor.drawMode < 0 || cg.lfEditor.drawMode > LFEDM_none) {
+					cg.lfEditor.drawMode = 0;
+				}
+			}
+			else {
+				if (cg.lfEditor.selectedLFEnt) {
+					cg.lfEditor.cursorSize++;
+					if (cg.lfEditor.cursorSize < 0 || cg.lfEditor.cursorSize > LFECS_visRadius) {
+						cg.lfEditor.cursorSize = 0;
+					}
+				}
+			}
+			break;
+		}
+		return;
+	}
+#endif
 	if ( ! ( cg.snap->ps.stats[STAT_WEAPONS] & ( 1 << num ) ) ) {
 		return;		// don't have the weapon
 	}

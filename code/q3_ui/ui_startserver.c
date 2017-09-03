@@ -757,6 +757,9 @@ static void ServerOptions_Start( void ) {
 		break;
 	}
 
+#if LFEDITOR	// JUHOX: reset edit mode
+	trap_Cvar_SetValue("g_editmode", 0);
+#endif
 	trap_Cvar_SetValue( "sv_maxclients", Com_Clamp( 0, 12, maxclients ) );
 	trap_Cvar_SetValue( "dedicated", Com_Clamp( 0, 2, dedicated ) );
 	trap_Cvar_SetValue ("timelimit", Com_Clamp( 0, timelimit, timelimit ) );

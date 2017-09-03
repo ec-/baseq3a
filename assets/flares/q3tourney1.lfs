@@ -1,0 +1,406 @@
+// sml_spot
+// white / yellow / flame halo
+// 3 big lens
+
+import gnc/gnc_bigflare1.lfs
+
+// sun
+sunparm moon
+	-41
+	58
+	500
+
+moon
+{
+	range 1000
+	{
+		shader gnc_disc0
+		alpha .4
+		color 1 .9 .9
+		size 4
+		pos -0.8
+	}
+	{
+		shader gnc_disc2
+		alpha .5
+		size 3
+		pos 1.2
+	}
+	{
+		shader gnc_disc0
+		pos .7
+		size .5
+		alpha .3
+	}
+}
+
+// common
+gnc/flameflare_sml
+{
+	range -500
+	fadeangle 0
+		{
+			shader gnc_fflare1
+			pos 1
+			size 2
+		}
+		{
+			shader gnc_glare0
+			mode glare
+			size 3
+			alpha .1
+		}
+}
+
+gnc/light_halo0
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+	}
+}
+
+gnc/light_halo0_yellow
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+		color 1 .9 .3
+	}
+}
+
+gnc/light_spot01
+{
+	range 300
+	fadeAngle 45
+	{
+		shader gnc_flare2
+		mode star
+		size .5
+		rotation 0 .5 .5 0
+		entityAngleFactor .7
+		fadeAngleFactor .7
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 5
+		entityAngleFactor .3
+		fadeAngleFactor .3
+	}
+	{
+		shader gnc_penta0
+		pos .6
+		size .3
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .33
+		size .7
+		color 1 0 1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .25
+		size .3
+		color .8 .9 .1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos .2
+		size .2
+		color 1 .5 1
+		alpha .5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos -1.25
+		size .5
+		color .5 .75 .75
+		alpha .5
+		rotation 0 0 0 1
+	}
+}
+
+// lens for the statue - no star needed
+gnc/lens_0_statue
+{
+	range -300
+	fadeAngle 15
+	{
+		shader gnc_line1
+		rotation 0 0 0 0
+		size 15
+		color 1 0.95 0.9
+		alpha 15
+		intensitythreshold 0.5
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 5
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 1.7
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.7
+		alpha 0.5
+	}
+	{
+		shader gnc_disc0
+		pos 0.33
+		size 0.17
+		color 1 0.98 0.9
+		alpha 0.5
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.8 0.9 1
+		alpha 0.5
+	}
+	{
+		shader gnc_disc0
+		pos 0.1
+		size 0.19
+		color 1 0.6 0.9
+		alpha 0.5
+	}
+	{
+		shader gnc_disc0
+		pos -0.24
+		size 0.41
+		color 0.6 0.7 0.85
+		alpha 0.5
+	}
+}
+
+// for black demon
+gnc/lens_0_demon
+{
+	range -750
+	{
+		shader gnc_hexa0
+		pos -1.8
+		size 1.2
+		alpha .2
+	}
+	{
+		shader gnc_hexa0
+		pos 1.5
+		size .1
+		color 1 0 0
+		alpha .4
+	}
+	{
+		shader gnc_hexa0
+		pos 1.45
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos 1.4
+		size .2
+		alpha .3
+		color 1 0 1
+	}
+	// star
+	{
+		shader gnc_flare3
+		mode star
+		size .4
+		rotation 45 .1 .9 0
+	}
+	{
+		shader gnc_glare0
+		mode glare
+	}
+	{
+		shader gnc_disc0
+		size 2
+		pos 1.25
+		alpha .2
+	}
+	{
+		shader gnc_disc0
+		size 2.3
+		pos 1.25
+		alpha .2
+		color 1 .5 .5
+	}
+	{
+		shader gnc_hexa0
+		pos .7
+		size .2
+		color 1 0 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos .65
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos .6
+		size .1
+		alpha .4
+		color 1 0 0
+	}
+	{
+		shader gnc_hexa0
+		pos .4
+		size .7
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos -0.3
+		size 1.2
+		alpha .2
+	}
+	{
+		shader gnc_hexa0
+		pos -0.6
+		alpha .3
+		color .5 .5 .7
+		size 2
+	}
+	{
+		shader gnc_hexa0
+		alpha .6
+		pos -0.6
+		color .6 .6 .9
+		size 2.4
+	}
+}
+
+// for xzot
+// now uses imported flare but script's still here
+gnc/lens_0_zot
+{
+	range -750
+	{
+		shader gnc_star0
+		mode star
+		rotation 45 .1 .9 0
+		intensitythreshold 0.5
+	}
+	{	// JUHOX
+		shader gnc_star0
+		mode star
+		size 0.4
+		rotation 45 .1 .9 0
+		intensitythreshold 0.5
+	}
+	{
+		shader gnc_glare0
+		mode glare
+	}
+	{
+		shader gnc_octa0
+		pos -1.4
+		size 3 
+		alpha .4
+	}
+	{
+		shader gnc_octa0
+		pos .4
+		size .8
+		alpha .4
+		color 1 0 1
+	}
+	{
+		shader gnc_octa0
+		pos .2
+		size .6
+		alpha .4
+		color .5 .5 1
+	}
+	{
+		shader gnc_octa0
+		pos 0.1
+		size .4
+		alpha .4
+		color .5 1 .5
+	}
+	{
+		shader gnc_octa0
+		pos -0.3
+		size .5
+		alpha .2
+	}
+	{
+		shader gnc_octa0
+		pos -0.4
+		size .5
+		alpha .2
+	}
+	{
+		shader gnc_octa0
+		pos -0.5
+		size .5
+		alpha .2
+	}
+	{
+		shader gnc_octa0
+		pos -0.9
+		size 3
+		alpha .5
+	}
+	{
+		shader gnc_octa0
+		pos -0.9
+		size 3.4
+		alpha .5
+	}
+	{
+		shader gnc_octa0
+		pos 1.2
+		size .6
+		alpha .4
+		color .5 .5 1
+	}
+	{
+		shader gnc_octa0
+		pos 1.1
+		size .4
+		alpha .4
+		color .5 1 .5
+	}
+	{
+		shader gnc_octa0
+		pos 1.3
+		size .5
+		alpha .2
+	}
+	{
+		shader gnc_octa0
+		pos 1.9
+		size 3.4
+		alpha .5
+	}
+}

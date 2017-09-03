@@ -391,6 +391,45 @@ static void CG_Item( centity_t *cent ) {
 
 /*
 ===============
+JUHOX: CG_AddMissileLensFlare
+===============
+*/
+#if MISSILELENSFLARES
+static void CG_AddMissileLensFlare(centity_t* cent) {
+	lensFlareEntity_t lfent;
+
+	if (!cg_lensFlare.integer) return;
+	if (!cg_missileFlare.integer) return;
+
+	switch (cent->currentState.weapon) {
+	case WP_ROCKET_LAUNCHER:
+		memset(&lfent, 0, sizeof(lfent));
+		lfent.lfeff = cgs.lensFlareEffectRocketLauncher;
+		lfent.angle = 90;
+		VectorNegate(cent->currentState.pos.trDelta, lfent.dir);
+		VectorNormalize(lfent.dir);
+		break;
+	case WP_BFG:
+		memset(&lfent, 0, sizeof(lfent));
+		lfent.lfeff = cgs.lensFlareEffectBFG;
+		lfent.angle = -1;
+		break;
+	default:
+		return;
+	}
+
+	if (!lfent.lfeff) return;
+
+	VectorCopy(cent->lerpOrigin, lfent.origin);
+
+	CG_ComputeMaxVisAngle(&lfent);
+
+	CG_AddLensFlare(&lfent, 1);
+}
+#endif
+
+/*
+===============
 CG_Missile
 ===============
 */
@@ -460,6 +499,31 @@ static void CG_Missile( centity_t *cent ) {
 		trap_R_AddRefEntityToScene( &ent );
 		return;
 	}
+
+#if MISSILELENSFLARES	// JUHOX: draw BFG missile lens flare effects
+	CG_AddMissileLensFlare(cent);
+
+	if (cent->currentState.weapon == WP_BFG) {
+		ent.reType = RT_SPRITE;
+		ent.radius = 30.0;
+		ent.rotation = 0;
+		ent.customShader = cgs.media.bfgLFGlareShader;
+		ent.shaderRGBA[0] = 255;
+		ent.shaderRGBA[1] = 255;
+		ent.shaderRGBA[2] = 255;
+		ent.shaderRGBA[3] = 255;
+		trap_R_AddRefEntityToScene(&ent);
+
+		ent.radius = 50.0;
+		ent.shaderRGBA[0] = 0;
+		ent.shaderRGBA[1] = 100;
+		ent.shaderRGBA[2] = 255;
+		ent.shaderRGBA[3] = 255;
+		trap_R_AddRefEntityToScene(&ent);
+
+		return;
+	}
+#endif
 
 	// flicker between two skins
 	ent.skinNum = cg.clientFrame & 1;
@@ -560,7 +624,11 @@ static void CG_Grapple( centity_t *cent ) {
 CG_Mover
 ===============
 */
-static void CG_Mover( const centity_t *cent ) {
+#if !LFEDITOR	// JUHOX: we need CG_Mover() in CG_DrawActive() (cg_draw.c)
+static void CG_Mover( centity_t *cent ) {
+#else
+void CG_Mover( centity_t *cent ) {
+#endif
 	refEntity_t			ent;
 	const entityState_t	*s1;
 

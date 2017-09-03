@@ -51,8 +51,8 @@
 #define	CHAR_HEIGHT			48
 #define	TEXT_ICON_SPACE		4
 
-#define PICKUP_ICON_SIZE	32
-#define PICKUP_TEXT_SIZE	12
+#define PICKUP_ICON_SIZE	48
+#define PICKUP_TEXT_SIZE	16
 
 #define	TEAMCHAT_WIDTH		80
 #define TEAMCHAT_HEIGHT		8
@@ -452,6 +452,116 @@ typedef struct {
 #define MAX_REWARDSTACK		10
 #define MAX_SOUNDBUFFER		20
 
+#if MAPLENSFLARES	// JUHOX: definitions used for map lens flares
+#define MAX_LENSFLARE_EFFECTS 200
+#define MAX_MISSILE_LENSFLARE_EFFECTS 16
+#define MAX_LENSFLARES_PER_EFFECT 32
+typedef enum {
+	LFM_reflexion,
+	LFM_glare,
+	LFM_star
+} lensFlareMode_t;
+typedef struct {
+	qhandle_t shader;
+	lensFlareMode_t mode;
+	float pos;	// position at light axis
+	float size;
+	float rgba[4];
+	float rotationOffset;
+	float rotationYawFactor;
+	float rotationPitchFactor;
+	float rotationRollFactor;
+	float fadeAngleFactor;		// for spotlights
+	float entityAngleFactor;	// for spotlights
+	float intensityThreshold;
+} lensFlare_t;
+typedef struct {
+	char name[64];
+	float range;
+	float rangeSqr;
+	float fadeAngle;	// for spotlights
+	int numLensFlares;
+	lensFlare_t lensFlares[MAX_LENSFLARES_PER_EFFECT];
+} lensFlareEffect_t;
+
+#define MAX_LIGHTS_PER_MAP 1024
+#define LIGHT_INTEGRATION_BUFFER_SIZE 8	// must be a power of 2
+typedef struct {
+	float light;
+	vec3_t origin;
+} lightSample_t;
+typedef struct {
+	vec3_t origin;
+	centity_t* lock;
+	float radius;
+	float lightRadius;
+	vec3_t dir;		// for spotlights
+	float angle;	// for spotlights, -1 = non-spotlight, -2 = sun
+	float maxVisAngle;
+	const lensFlareEffect_t* lfeff;
+	int libPos;
+	int libNumEntries;
+	lightSample_t lib[LIGHT_INTEGRATION_BUFFER_SIZE];	// lib = light integration buffer
+} lensFlareEntity_t;
+#endif
+
+#if LFEDITOR	// JUHOX: definitions
+typedef enum {
+	LFEEM_none,
+	LFEEM_pos,
+	LFEEM_target,
+	LFEEM_radius
+} lfeEditMode_t;
+typedef enum {
+	LFEDM_normal,
+	LFEDM_marks,
+	LFEDM_none
+} lfeDrawMode_t;
+typedef enum {
+	LFEMM_coarse,
+	LFEMM_fine
+} lfeMoveMode_t;
+typedef enum {
+	LFECS_small,
+	LFECS_lightRadius,
+	LFECS_visRadius
+} lfeCursorSize_t;
+typedef enum {
+	LFECM_main,
+	LFECM_copyOptions
+} lfeCommandMode_t;
+
+// lens flare editor copy options
+#define LFECO_EFFECT		1
+#define LFECO_VISRADIUS		2
+#define LFECO_LIGHTRADIUS	4
+#define LFECO_SPOT_DIR		8
+#define LFECO_SPOT_ANGLE	16
+
+typedef struct {
+	lensFlareEntity_t* selectedLFEnt;	// NULL = none
+	lfeDrawMode_t drawMode;
+	lfeEditMode_t editMode;
+	lfeMoveMode_t moveMode;
+	lfeCursorSize_t cursorSize;
+	float fmm_distance;	// fmm = fine move mode
+	vec3_t fmm_offset;	// fmm = fine move mode
+	qboolean delAck;
+	int selectedEffect;
+	int markedLFEnt;	// -1 = none
+	lensFlareEntity_t originalLFEnt;	// backup for undo
+	int oldButtons;
+	int lastClick;
+	qboolean editTarget;
+	vec3_t targetPosition;
+	lfeCommandMode_t cmdMode;
+	int copyOptions;
+	lensFlareEntity_t copiedLFEnt;	// for copy / paste
+	qboolean moversStopped;
+	centity_t* selectedMover;
+} lfEditor_t;
+#endif
+
 //======================================================================
 
 // all cg.stepTime, cg.duckTime, cg.landTime, etc are set to cg.time when the action
@@ -534,7 +644,17 @@ typedef struct {
 	// view rendering
 	refdef_t	refdef;
 	vec3_t		refdefViewAngles;		// will be converted to refdef.viewaxis
+	float		fov;					// either range checked cg_fov or forced value
 
+#if MAPLENSFLARES	// JUHOX: variables for map lens flares
+	vec3_t		lastViewOrigin;
+	float		viewMovement;
+	int			numFramesWithoutViewMovement;
+#endif
+
+#if LFEDITOR	// JUHOX: lens flare editor variables
+	lfEditor_t lfEditor;
+#endif
 	// zoom key
 	qboolean	zoomed;
 	int			zoomTime;
@@ -775,6 +895,13 @@ typedef struct {
 #ifdef MISSIONPACK
 	qhandle_t	nailPuffShader;
 	qhandle_t	blueProxMine;
+#endif
+#if MISSILELENSFLARES
+	qhandle_t	bfgLFGlareShader;	// JUHOX
+	qhandle_t	bfgLFDiscShader;	// JUHOX
+	qhandle_t	bfgLFRingShader;	// JUHOX
+	qhandle_t	bfgLFLineShader;	// JUHOX
+	qhandle_t	bfgLFStarShader;	// JUHOX
 #endif
 
 	qhandle_t	numberShaders[11];
@@ -1053,6 +1180,15 @@ typedef struct {
 	char			mapname[MAX_QPATH];
 	char			redTeam[MAX_QPATH];
 	char			blueTeam[MAX_QPATH];
+#if LFEDITOR		// JUHOX: serverinfo cvars
+	editMode_t		editMode;
+#endif
+#if MAPLENSFLARES	// JUHOX: serverinfo cvars
+	char			sunFlareEffect[128];
+	float			sunFlareYaw;
+	float			sunFlarePitch;
+	float			sunFlareDistance;
+#endif
 
 	int				voteTime;
 	int				voteYes;
@@ -1112,6 +1248,21 @@ typedef struct {
 	char acceptVoice[MAX_NAME_LENGTH];
 #endif
 
+#if MAPLENSFLARES	// JUHOX: variables for map lens flares
+	int numLensFlareEffects;
+	lensFlareEffect_t lensFlareEffects[MAX_LENSFLARE_EFFECTS];
+
+	int numLensFlareEntities;
+	lensFlareEntity_t sunFlare;
+	lensFlareEntity_t lensFlareEntities[MAX_LIGHTS_PER_MAP];
+#endif
+#if MISSILELENSFLARES	// JUHOX: variables for missile lens flares
+	int numMissileLensFlareEffects;
+	lensFlareEffect_t missileLensFlareEffects[MAX_MISSILE_LENSFLARE_EFFECTS];
+	const lensFlareEffect_t* lensFlareEffectBFG;
+	const lensFlareEffect_t* lensFlareEffectRocketLauncher;
+#endif
+
 	// media
 	cgMedia_t		media;
 
@@ -1157,6 +1308,7 @@ extern	vmCvar_t		cg_drawRewards;
 extern	vmCvar_t		cg_drawTeamOverlay;
 extern	vmCvar_t		cg_teamOverlayUserinfo;
 extern	vmCvar_t		cg_drawWeaponSelect;
+extern	vmCvar_t		cg_drawStatusBackground;
 extern	vmCvar_t		cg_crosshairX;
 extern	vmCvar_t		cg_crosshairY;
 extern	vmCvar_t		cg_crosshairSize;
@@ -1189,6 +1341,7 @@ extern	vmCvar_t		cg_autoswitch;
 extern	vmCvar_t		cg_ignore;
 extern	vmCvar_t		cg_simpleItems;
 extern	vmCvar_t		cg_fov;
+extern	vmCvar_t		cg_fovStyle;
 extern	vmCvar_t		cg_zoomFov;
 extern	vmCvar_t		cg_thirdPersonRange;
 extern	vmCvar_t		cg_thirdPersonAngle;
@@ -1227,6 +1380,16 @@ extern	vmCvar_t		cg_oldRail;
 extern	vmCvar_t		cg_oldRocket;
 extern	vmCvar_t		cg_oldPlasma;
 extern	vmCvar_t		cg_trueLightning;
+#if LENSFLARES
+extern	vmCvar_t		cg_lensFlare;		// JUHOX
+#endif
+#if MISSILELENSFLARES
+extern	vmCvar_t		cg_missileFlare;	// JUHOX
+#endif
+#if MAPLENSFLARES
+extern	vmCvar_t		cg_mapFlare;		// JUHOX
+extern	vmCvar_t		cg_sunFlare;		// JUHOX
+#endif
 #ifdef MISSIONPACK
 extern	vmCvar_t		cg_redTeamName;
 extern	vmCvar_t		cg_blueTeamName;
@@ -1280,6 +1443,19 @@ score_t *CG_GetSelectedScore( void );
 #endif
 void CG_BuildSpectatorString( void );
 
+#if LFEDITOR	// JUHOX: prototypes
+void CG_SetLFEntOrigin(lensFlareEntity_t* lfent, const vec3_t origin);
+void CG_SetLFEdMoveMode(lfeMoveMode_t mode);
+void CG_SelectLFEnt(int lfentnum);
+void CG_AddLFEditorCursor(void);
+#endif
+#if MAPLENSFLARES	// JUHOX: prototypes
+void CG_LFEntOrigin(const lensFlareEntity_t* lfent, vec3_t origin);
+void CG_LoadLensFlares(void);
+void CG_ComputeMaxVisAngle(lensFlareEntity_t* lfent);
+void CG_LoadLensFlareEntities(void);
+#endif
+
 
 //
 // cg_view.c
@@ -1295,6 +1471,9 @@ void CG_ZoomUp_f( void );
 void CG_AddBufferedSound( sfxHandle_t sfx);
 
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback );
+#if MAPLENSFLARES
+void CG_AddLensFlare(lensFlareEntity_t* lfent, int quality);	// JUHOX
+#endif
 
 
 //
@@ -1382,6 +1561,9 @@ qhandle_t CG_StatusHandle(int task);
 void CG_ForceModelChange( void );
 void CG_TrackClientTeamChange( void );
 
+#if LFEDITOR
+void CG_Mover(centity_t* cent);	// JUHOX
+#endif
 //
 // cg_player.c
 //
@@ -1396,8 +1578,15 @@ sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 //
 void CG_BuildSolidList( void );
 int	CG_PointContents( const vec3_t point, int passEntityNum );
-void CG_Trace( trace_t *result, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, 
+void CG_Trace( trace_t *result, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, 
 					 int skipNumber, int mask );
+#if MAPLENSFLARES	// JUHOX: prototype for CG_SmoothTrace()
+void CG_SmoothTrace(
+	trace_t *result,
+	const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, 
+	int skipNumber, int mask
+);
+#endif
 void CG_PredictPlayerState( void );
 void CG_LoadDeferredPlayers( void );
 
@@ -1614,7 +1803,7 @@ clipHandle_t trap_CM_TempBoxModel( const vec3_t mins, const vec3_t maxs );
 int			trap_CM_PointContents( const vec3_t p, clipHandle_t model );
 int			trap_CM_TransformedPointContents( const vec3_t p, clipHandle_t model, const vec3_t origin, const vec3_t angles );
 void		trap_CM_BoxTrace( trace_t *results, const vec3_t start, const vec3_t end,
-					  const vec3_t mins, const vec3_t maxs,
+					  vec3_t mins, vec3_t maxs,
 					  clipHandle_t model, int brushmask );
 void		trap_CM_CapsuleTrace( trace_t *results, const vec3_t start, const vec3_t end,
 					  const vec3_t mins, const vec3_t maxs,

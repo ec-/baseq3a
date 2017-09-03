@@ -1,0 +1,316 @@
+// common
+gnc/flameflare_sml
+{
+	range -500
+	fadeangle 0
+		{
+			shader gnc_fflare1
+			pos 1
+			size .75
+			intensityThreshold .5
+		}
+		{
+			shader gnc_fflare1
+			mode glare
+			pos 1
+			size 2
+			intensityThreshold .5
+		}
+}
+
+gnc/light_halo0
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+		alpha .2
+		color .8 1 .8
+	}
+	{
+		shader gnc_glare0
+		size 4
+		alpha .3
+		mode glare
+	}
+
+}
+
+gnc/light_halo1
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 4
+		mode glare
+		color 1 .6 .2
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size .5
+		alpha .5
+		mode glare
+		color 1 .6 .2
+	}
+}
+
+gnc/light_lens01
+{
+	range -750
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.1
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.5
+		color 1 1 0.9
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.3
+		color 0.9 0.7 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos -0.25
+		size 0.23
+		color 0.9 1 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 1.6
+		size 0.5
+		color 1 1 0.9
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 1.25
+		size 0.3
+		color 0.9 0.7 0.5
+		alpha 0.25
+	}
+	{
+		shader gnc_disc0
+		pos 1.75
+		size 0.23
+		color 0.9 1 0.5
+		alpha 0.25
+	}
+
+	{
+		shader gnc_disc0
+		pos -0.35
+		size 0.17
+		color 1 .5 .3
+		alpha 0.25
+	}
+	{
+		shader gnc_disc2
+		pos -0.6
+		size 2
+		color 1 0.7 0.3
+	}
+	{
+		shader gnc_glare0
+		size 8
+		color 1 0.7 0.3
+		alpha .4
+	}
+	{
+		shader gnc_line1
+		size 16
+		rotation 0 0 0 0
+		alpha 1.2
+	}
+}
+
+// for black demon
+gnc/lens_0_demon
+{
+	range -250
+	{
+		shader gnc_hexa0
+		pos -1.8
+		size 1.2
+		alpha .2
+	}
+	{
+		shader gnc_hexa0
+		pos 1.5
+		size .1
+		color 1 0 0
+		alpha .4
+	}
+	{
+		shader gnc_hexa0
+		pos 1.45
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos 1.4
+		size .2
+		alpha .3
+		color 1 0 1
+	}
+	// star
+	{
+		shader gnc_flare3
+		mode star
+		size .4
+		rotation 45 .1 .9 0
+	}
+	{
+		shader gnc_glare0
+		mode glare
+	}
+	{
+		shader gnc_disc0
+		size 2
+		pos 1.25
+		alpha .2
+	}
+	{
+		shader gnc_disc0
+		size 2.3
+		pos 1.25
+		alpha .2
+		color 1 .5 .5
+	}
+	{
+		shader gnc_hexa0
+		pos .7
+		size .2
+		color 1 0 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos .65
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos .6
+		size .1
+		alpha .4
+		color 1 0 0
+	}
+	{
+		shader gnc_hexa0
+		pos .4
+		size .7
+		alpha .3
+	}
+	{
+		shader gnc_hexa0
+		pos -0.3
+		size 1.2
+		alpha .2
+	}
+}
+
+// for wall q3image
+gnc/lens_1
+{
+	range -250
+	{
+		shader gnc_octa0
+		pos -1.8
+		size 1.2
+		alpha .2
+	}
+	{
+		shader gnc_octa0
+		pos 1.5
+		size .1
+		color 1 0 0
+		alpha .4
+	}
+	{
+		shader gnc_octa0
+		pos 1.45
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_octa0
+		pos 1.4
+		size .2
+		alpha .3
+		color 1 0 1
+	}
+	// star
+	{
+		shader gnc_flare3
+		mode star
+		size .4
+		rotation 45 .1 .9 0
+	}
+	{
+		shader gnc_glare0
+		mode glare
+	}
+	{
+		shader gnc_disc0
+		size 2
+		pos 1.25
+		alpha .2
+	}
+	{
+		shader gnc_disc0
+		size 2.3
+		pos 1.25
+		alpha .2
+		color 1 .5 .5
+	}
+	{
+		shader gnc_octa0
+		pos .7
+		size .2
+		color 1 0 1
+		alpha .3
+	}
+	{
+		shader gnc_octa0
+		pos .65
+		size .2
+		color .5 .5 1
+		alpha .3
+	}
+	{
+		shader gnc_octa0
+		pos .6
+		size .1
+		alpha .4
+		color 1 0 0
+	}
+	{
+		shader gnc_octa0
+		pos .4
+		size .7
+		alpha .3
+	}
+	{
+		shader gnc_octa0
+		pos -0.3
+		size 1.2
+		alpha .2
+	}
+}

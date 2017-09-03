@@ -1793,6 +1793,50 @@ void Cmd_Stats_f( gentity_t *ent ) {
 
 /*
 =================
+JUHOX: Cmd_LFEMM_f
+=================
+*/
+#if LFEDITOR
+static void Cmd_LFEMM_f(gentity_t* ent) {
+	char arg[16];
+
+	if (trap_Argc() < 2) return;
+	if (g_editmode.integer != EM_mlf) return;
+	if (ent->s.number != 0) return;
+
+	trap_Argv(1, arg, sizeof(arg));
+	level.lfeFMM = atoi(arg);
+
+	if (trap_Argc() >= 5) {
+		vec3_t origin;
+
+		trap_Argv(2, arg, sizeof(arg));
+		origin[0] = atof(arg);
+		trap_Argv(3, arg, sizeof(arg));
+		origin[1] = atof(arg);
+		trap_Argv(4, arg, sizeof(arg));
+		origin[2] = atof(arg);
+		G_SetOrigin(ent, origin);
+		VectorCopy(origin, ent->client->ps.origin);
+		ent->client->ps.eFlags ^= EF_TELEPORT_BIT;
+
+		if (trap_Argc() >= 8) {
+			playerState_t* ps;
+
+			ps = &ent->client->ps;
+			trap_Argv(5, arg, sizeof(arg));
+			ps->delta_angles[0] += ANGLE2SHORT(atof(arg) - ps->viewangles[0]);
+			trap_Argv(6, arg, sizeof(arg));
+			ps->delta_angles[1] += ANGLE2SHORT(atof(arg) - ps->viewangles[1]);
+			trap_Argv(7, arg, sizeof(arg));
+			ps->delta_angles[2] += ANGLE2SHORT(atof(arg) - ps->viewangles[2]);
+		}
+	}
+}
+#endif
+
+/*
+=================
 ClientCommand
 =================
 */
@@ -1806,6 +1850,14 @@ void ClientCommand( int clientNum ) {
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 
+#if LFEDITOR	// JUHOX: don't accept normal client commands in edit mode
+	if (g_editmode.integer > EM_none) {
+		if (!Q_stricmp(cmd, "lfemm")) {
+			Cmd_LFEMM_f(ent);
+		}
+		return;
+	}
+#endif
 	if ( ent->client->pers.connected != CON_CONNECTED ) {
 		if ( ent->client->pers.connected == CON_CONNECTING && g_gametype.integer >= GT_TEAM ) {
 			if ( Q_stricmp( cmd, "team" ) == 0 && !level.restarted ) {

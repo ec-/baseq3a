@@ -263,6 +263,10 @@ void UI_MainMenu( void ) {
 		}
 	}
 	
+#if LFEDITOR	// JUHOX: reset g_editmode
+	trap_Cvar_Set("g_editmode", "0");
+#endif
+
 	memset( &s_main, 0 ,sizeof(mainmenu_t) );
 	memset( &s_errorMessage, 0 ,sizeof(errorMessage_t) );
 

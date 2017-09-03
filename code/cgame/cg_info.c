@@ -233,6 +233,12 @@ void CG_DrawInformation( void ) {
 		y += PROP_HEIGHT;
 	}
 
+#if LFEDITOR	// JUHOX: lens flare editor message
+	if (cgs.editMode == EM_mlf) {
+		UI_DrawProportionalString(320, y, "LENS FLARE EDITOR", UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, colorWhite);
+		return;
+	}
+#endif
 	// cheats warning
 	s = Info_ValueForKey( sysInfo, "sv_cheats" );
 	if ( s[0] == '1' ) {

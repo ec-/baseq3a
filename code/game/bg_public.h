@@ -7,6 +7,16 @@
 
 #define	GAME_VERSION		"baseq3-1"
 
+// JUHOX: lens flare subsystem control
+#define LENSFLARES				1
+#if LENSFLARES
+	#define MAPLENSFLARES		1
+	#define MISSILELENSFLARES	1
+	#if MAPLENSFLARES
+		#define LFEDITOR		1
+	#endif
+#endif
+
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-40
 #define	ARMOR_PROTECTION	0.66
@@ -98,6 +108,13 @@ typedef enum {
 	GT_MAX_GAME_TYPE
 } gametype_t;
 
+#if LFEDITOR	// JUHOX: global definitions
+typedef enum {
+	EM_none,
+	EM_mlf		// map lens flares
+} editMode_t;
+#endif
+
 typedef enum { GENDER_MALE, GENDER_FEMALE, GENDER_NEUTER } gender_t;
 
 /*
@@ -175,7 +192,7 @@ typedef struct {
 
 	// callbacks to test the world
 	// these will be different functions during game and cgame
-	void		(*trace)( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask );
+	void		(*trace)( trace_t *results, const vec3_t start, vec3_t mins, vec3_t maxs, const vec3_t end, int passEntityNum, int contentMask );
 	int			(*pointcontents)( const vec3_t point, int passEntityNum );
 } pmove_t;
 

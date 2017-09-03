@@ -852,6 +852,10 @@ ClearRegisteredItems
 void ClearRegisteredItems( void ) {
 	memset( itemRegistered, 0, sizeof( itemRegistered ) );
 
+#if LFEDITOR	// JUHOX: don't load items for lens flare editor
+	if (g_editmode.integer == EM_mlf) return;
+#endif
+
 	// players always start with the base weapon
 	RegisterItem( BG_FindItemForWeapon( WP_MACHINEGUN ) );
 	RegisterItem( BG_FindItemForWeapon( WP_GAUNTLET ) );

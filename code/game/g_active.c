@@ -225,6 +225,10 @@ void	G_TouchTriggers( gentity_t *ent ) {
 		return;
 	}
 
+#if LFEDITOR	// JUHOX: never touch triggers in lens flare editor
+	if (g_editmode.integer == EM_mlf) return;
+#endif
+
 	// dead clients don't activate triggers!
 	if ( ent->client->ps.stats[STAT_HEALTH] <= 0 ) {
 		return;
@@ -311,6 +315,21 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		pm.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;	// spectators can fly through bodies
 		pm.trace = trap_Trace;
 		pm.pointcontents = trap_PointContents;
+
+#if LFEDITOR	// JUHOX: set player tracemask & speed for lens flare editor
+		if (g_editmode.integer == EM_mlf) {
+			client->ps.pm_type = PM_NOCLIP;
+			if (level.lfeFMM) {
+				client->ps.speed = 30;
+				if (pm.cmd.buttons & BUTTON_WALKING) client->ps.speed = 15;
+			}
+			if (pm.cmd.buttons & BUTTON_ATTACK) {
+				pm.cmd.forwardmove = 0;
+				pm.cmd.rightmove = 0;
+				pm.cmd.upmove = 0;
+			}
+		}
+#endif
 
 		// perform a pmove
 		Pmove (&pm);

@@ -1273,6 +1273,15 @@ static void PM_CheckDuck (void)
 		return;
 	}
 
+#if LFEDITOR	// JUHOX: set specator viewheight to 0
+	if (pm->ps->pm_type == PM_SPECTATOR) {
+		pm->mins[2] = -15;
+		pm->maxs[2] = +15;
+		pm->ps->viewheight = 0;
+		return;
+	}
+#endif
+
 	if (pm->cmd.upmove < 0)
 	{	// duck
 		pm->ps->pm_flags |= PMF_DUCKED;

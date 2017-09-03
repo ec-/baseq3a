@@ -1,0 +1,51 @@
+import juhox/electric.lfs
+import juhox/energy.lfs
+
+juhox/q3dm6/big01
+{
+	range -120
+	fadeAngle 30
+	{
+		shader bfglfstar
+		mode star
+		rotation 0 1.5 0.5 0
+		entityAngleFactor 0.3
+		fadeAngleFactor 0.3
+		size 0.4
+	}
+	{
+		shader bfglfglare
+		mode glare
+		size 1
+	}
+	{
+		shader lfdisc2
+		pos 0.8
+		size 1
+		color 0.5 0.6 1
+	}
+	{
+		shader lfdisc2
+		pos 0.65
+		size 0.45
+		color 1 0.8 0.2
+	}
+	{
+		shader lfdisc2
+		pos -0.7
+		size 0.4
+		color 1 0.7 1
+	}
+	{
+		shader lfdisc2
+		pos -0.9
+		size 0.55
+		color 0.7 1 0.75
+	}
+	{
+		shader lfdisc2
+		pos -1.65
+		size 2.1
+		color 1 0.75 0.85
+	}
+}

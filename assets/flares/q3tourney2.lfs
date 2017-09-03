@@ -1,0 +1,263 @@
+// common
+gnc/flameflare_sml
+{
+	range -500
+	fadeangle 0
+		{
+			shader gnc_fflare1
+			pos 1
+			size .75
+		}
+}
+
+gnc/light_halo0
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+	}
+}
+
+gnc/light_spot01
+{
+	range 300
+	fadeAngle 15
+	{
+		shader gnc_star0
+		mode star
+		rotation 0 0.5 0.5 0
+		entityAngleFactor 0.6
+		fadeAngleFactor 0.6
+		size 0.6
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_line1
+		rotation 67 0.9 0.8 0
+		entityAngleFactor 0.4
+		fadeAngleFactor 0.4
+		size 15
+		color 1 0.95 0.9
+		alpha 15
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 5
+		entityAngleFactor 0.3
+		fadeAngleFactor 0.3
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 1.7
+		color 1 0.95 0.8
+	}
+	{
+		shader gnc_penta0
+		pos 0.6
+		size 0.7
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.33
+		size 0.17
+		color 1 0.98 0.9
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.25
+		size 0.3
+		color 0.8 0.9 1
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos 0.1
+		size 0.19
+		color 1 0.6 0.9
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+	{
+		shader gnc_penta0
+		pos -0.24
+		size 0.41
+		color 0.6 0.7 0.85
+		alpha 0.5
+		rotation 0 0 0 1
+	}
+}
+
+// center
+gnc/light_halo0_yellow
+{
+	range -500
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+		color .9 .8 .3
+	}
+}
+
+gnc/light_halo0_blue
+{
+	range -750
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+		color .2 .3 .9
+	}
+}
+
+gnc/sml_light_spot
+{
+	range 150
+		{
+			shader gnc_glare1
+			size .5
+			color 1 .9 .6
+		}
+		{
+			shader gnc_disc0
+			alpha .7
+			pos .3
+		}
+		{
+			shader gnc_ring0
+			pos .3
+			alpha .7
+		}
+		{
+			shader gnc_disc0
+			pos -0.7
+			alpha .5
+			color .8 .7 .3
+		}
+}
+
+gnc/flicker_xcond
+{
+	range -150
+	{
+		shader gnc_flicker1
+		size 2
+	}
+}
+
+// evil
+gnc/light_halo0_xyellow
+{
+	range -1000 
+	fadeangle 45
+	{
+		shader gnc_glare0
+		size 2
+		color .9 .6 .1
+	}
+}
+
+gnc/lightflare_lens
+{
+	range -750
+	fadeAngle 45
+	{
+		shader gnc_flare2
+		mode star
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.5
+	}
+	{
+		shader gnc_glare0
+		mode glare
+		size 0.15
+	}
+	{
+		shader gnc_disc0
+		pos 0.6
+		size 0.75
+		color 1 1 0.9
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos 0.25
+		size 0.5
+		color 0.9 0.7 0.5
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos 1.25
+		size 2
+		color 0.9 0.6 0.1
+		alpha 0.5
+	}
+	{
+		shader gnc_ring2
+		pos 1.25
+		size 2
+		color 1 .8 .3
+		alpha .5
+	}
+	{
+		shader gnc_disc0
+		pos -0.25
+		size 0.3
+		color 0.9 1 0.5
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos -0.35
+		size 0.25
+		color 0.9 0.8 0.4
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos -0.45
+		size 0.25
+		color 1 0.3 0.1
+		alpha 0.3
+	}
+	{
+		shader gnc_disc0
+		pos -0.8
+		size 0.7
+		color 1 0.7 0.65
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos 1.5
+		size 2.5
+		alpha 0.4
+	}
+	{
+		shader gnc_disc0
+		pos -1.8
+		size 6
+		alpha .7
+	}
+	{
+		shader gnc_ring2
+		pos -1.8
+		size 6
+		alpha .7
+		color .6 .6 .2
+	}
+}	

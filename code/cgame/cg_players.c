@@ -914,6 +914,10 @@ static void CG_SetDeferredClientInfo( clientInfo_t *ci ) {
 	int		i;
 	clientInfo_t	*match;
 
+#if LFEDITOR	// JUHOX: don't care about client models in lens flare editor
+	if (cgs.editMode == EM_mlf) return;
+#endif
+
 	// if someone else is already the same models and skins we
 	// can just load the client info
 	for ( i = 0 ; i < cgs.maxclients ; i++ ) {
@@ -1102,7 +1106,7 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 					newInfo->coloredSkin = qtrue;
 				}
 
-			} else if ( cg_enemyModel.string[0] && myClientNum != clientNum && !allowNativeModel ) {
+			} else if ( cg_enemyModel.string[0] && myClientNum != clientNum && !allowNativeModel && cgs.gametype != GT_SINGLE_PLAYER ) {
 
 				Q_strncpyz( modelName, cg_enemyModel.string, modelNameSize );
 

@@ -18,6 +18,9 @@ typedef struct {
 gentity_t		g_entities[MAX_GENTITIES];
 gclient_t		g_clients[MAX_CLIENTS];
 
+#if LFEDITOR	// JUHOX: cvars for map lens flares
+vmCvar_t	g_editmode;
+#endif
 vmCvar_t	g_gametype;
 vmCvar_t	g_dmflags;
 vmCvar_t	g_fraglimit;
@@ -88,6 +91,10 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
 	{ &g_mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
 	{ &sv_fps, "sv_fps", "30", CVAR_ARCHIVE, 0, qfalse  },
+
+#if LFEDITOR	// JUHOX: cvars for map lens flares
+	{ &g_editmode, "g_editmode", "0", CVAR_SERVERINFO | CVAR_INIT, 0, qfalse },
+#endif
 
 	// latched vars
 	{ &g_gametype, "g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH, 0, qfalse  },
@@ -557,13 +564,20 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ), 
 		&level.clients[0].ps, sizeof( level.clients[0] ) );
 
+#if 0	// JUHOX: we don't want the body queue size affect map entity numbers, so call InitBodyQue() below
 	// reserve some spots for dead player bodies
 	InitBodyQue();
+#endif
 
 	ClearRegisteredItems();
 
 	// parse the key/value pairs and spawn gentities
 	G_SpawnEntitiesFromString();
+
+#if 1	// JUHOX: we don't want the body queue size affect map entity numbers, so call InitBodyQue() here
+	// reserve some spots for dead player bodies
+	InitBodyQue();
+#endif
 
 	// general initialization
 	G_FindTeams();
