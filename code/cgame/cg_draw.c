@@ -466,9 +466,9 @@ static void CG_DrawStatusBarHead( float x ) {
 
 	if ( cg.damageTime && cg.time - cg.damageTime < DAMAGE_TIME ) {
 		frac = (float)(cg.time - cg.damageTime ) / DAMAGE_TIME;
-		size = ICON_SIZE * 1.25 * ( 1.5 - frac * 0.5 );
+		size = ICON_SIZE * 1.125 * ( 1.5 - frac * 0.5 );
 
-		stretch = size - ICON_SIZE * 1.25;
+		stretch = size - ICON_SIZE * 1.125;
 		// kick in the direction of damage
 		x -= stretch * 0.5 + cg.damageX * stretch * 0.5;
 
@@ -491,7 +491,7 @@ static void CG_DrawStatusBarHead( float x ) {
 			cg.headEndPitch = 5 * cos( crandom()*M_PI );
 		}
 
-		size = ICON_SIZE * 1.25;
+		size = ICON_SIZE * 1.125;
 	}
 
 	// if the server was frozen for a while we may have a bad head start time
@@ -504,7 +504,7 @@ static void CG_DrawStatusBarHead( float x ) {
 	angles[YAW] = cg.headStartYaw + ( cg.headEndYaw - cg.headStartYaw ) * frac;
 	angles[PITCH] = cg.headStartPitch + ( cg.headEndPitch - cg.headStartPitch ) * frac;
 
-	CG_DrawHead( x, cgs.screenYmax + 1 - size, size, size, cg.snap->ps.clientNum, angles );
+	CG_DrawHead( x, cgs.screenYmax + 3 - size, size, size, cg.snap->ps.clientNum, angles );
 }
 #endif // MISSIONPACK
 
@@ -557,7 +557,7 @@ CG_DrawStatusBar
 ================
 */
 #ifndef MISSIONPACK
-#define STATUSBAR_HEIGHT 60
+#define STATUSBAR_HEIGHT 48
 static void CG_DrawStatusBar( void ) {
 	int			color;
 	centity_t	*cent;
@@ -618,7 +618,7 @@ static void CG_DrawStatusBar( void ) {
 		origin[1] = 0;
 		origin[2] = -10;
 		angles[YAW] = ( cg.time & 2047 ) * 360 / 2048.0;
-		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, y, ICON_SIZE, ICON_SIZE,
+		CG_Draw3DModel( 370 + CHAR_WIDTH*3 + TEXT_ICON_SPACE, y + 3.5, ICON_SIZE, ICON_SIZE,
 					   cgs.media.armorModel, 0, origin, angles );
 	}
 #ifdef MISSIONPACK
@@ -803,7 +803,7 @@ static float CG_DrawAttacker( float y ) {
 	VectorSet( color, 1, 1, 1 );
 	color[3] = 0.5f;
 
-	CG_DrawString( cgs.screenXmax, y, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_PROPORTIONAL | DS_RIGHT );
+	CG_DrawString( cgs.screenXmax, y, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_PROPORTIONAL | DS_RIGHT );
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -1437,7 +1437,7 @@ static int CG_DrawPickupItem( int y ) {
 		return y;
 	}
 
-	y -= PICKUP_ICON_SIZE;
+	y -= PICKUP_ICON_SIZE + 8;
 
 	value = cg.itemPickup;
 	if ( value ) {
@@ -1447,7 +1447,7 @@ static int CG_DrawPickupItem( int y ) {
 			trap_R_SetColor( fadeColor );
 			CG_DrawPic( cgs.screenXmin + 8, y, PICKUP_ICON_SIZE, PICKUP_ICON_SIZE, cg_items[ value ].icon );
 			if ( cg.itemPickupCount > 1 ) {
-				text = va( "%s x%i", bg_itemlist[ value ].pickup_name, cg.itemPickupCount );
+				text = va( "%s %ix", bg_itemlist[ value ].pickup_name, cg.itemPickupCount );
 			} else {
 				text = bg_itemlist[ value ].pickup_name;
 			}
@@ -2134,7 +2134,7 @@ static void CG_DrawCrosshairNames( void ) {
 	CG_Text_Paint( 320 - w / 2, 190, 0.3f, color, name, 0, 0, ITEM_TEXTSTYLE_SHADOWED);
 #else
 	color[3] *= 0.5f;
-	CG_DrawString( 320, 174, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+	CG_DrawString( 320, 174, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_CENTER | DS_PROPORTIONAL );
 #endif
 	trap_R_SetColor( NULL );
 }
