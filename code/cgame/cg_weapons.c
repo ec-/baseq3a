@@ -1413,7 +1413,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t	hand;
 	centity_t	*cent;
 	clientInfo_t	*ci;
-	float		fovOffset;
+	vec3_t		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
 
@@ -1450,11 +1450,20 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		return;
 	}
 
-	// drop gun lower at higher fov
-	if ( cgs.fov > 90.0 ) {
-		fovOffset = -0.2 * ( cgs.fov - 90.0 );
-	} else {
-		fovOffset = 0;
+	VectorClear(fovOffset);
+
+	if ( cg_fovStyle.integer ) {
+		if ( cg.fov > 90 ) {
+			// drop gun lower at higher fov
+
+			fovOffset[2] = -0.2 * ( cg.fov - 90 ) * cg.refdef.fov_x / cg.fov;
+		} else if ( cg.fov < 90 ) {
+			// move gun forward at lowerer fov
+			fovOffset[0] = -0.2 * ( cg.fov - 90 ) * cg.refdef.fov_x / cg.fov;
+		}
+	} else if ( cg_fov.integer > 90 ) {
+		// Q3A's auto adjust
+		fovOffset[2] = -0.2 * ( cg_fov.integer - 90 );
 	}
 
 	cent = &cg.predictedPlayerEntity;	// &cg_entities[cg.snap->ps.clientNum];
@@ -1466,9 +1475,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	VectorMA( hand.origin, cg_gun_x.value, cg.refdef.viewaxis[0], hand.origin );
-	VectorMA( hand.origin, cg_gun_y.value, cg.refdef.viewaxis[1], hand.origin );
-	VectorMA( hand.origin, (cg_gun_z.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
+	VectorMA( hand.origin, (cg_gun_x.value+fovOffset[0]), cg.refdef.viewaxis[0], hand.origin );
+	VectorMA( hand.origin, (cg_gun_y.value+fovOffset[1]), cg.refdef.viewaxis[1], hand.origin );
+	VectorMA( hand.origin, (cg_gun_z.value+fovOffset[2]), cg.refdef.viewaxis[2], hand.origin );
 
 	AnglesToAxis( angles, hand.axis );
 

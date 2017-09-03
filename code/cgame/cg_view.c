@@ -474,13 +474,31 @@ static int CG_CalcFov( void ) {
 
 	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
 		// if in intermission, use a fixed value
-		fov_x = 90;
+		cg.fov = fov_x = 90;
 	} else {
 		// user selectable
-		fov_x = cgs.fov;
+
+		if ( cgs.dmflags & DF_FIXED_FOV ) {
+			// dmflag to prevent wide fov for all clients
+			fov_x = 90;
+		} else {
+			fov_x = cg_fov.value;
+			if ( fov_x < 1 ) {
+				fov_x = 1;
+			} else if ( fov_x > 160 ) {
+				fov_x = 160;
+			}
+		}
+
+		cg.fov = fov_x;
 
 		// account for zooms
-		zoomFov = cgs.zoomFov;
+		zoomFov = cg_zoomFov.value;
+		if ( zoomFov < 1 ) {
+			zoomFov = 1;
+		} else if ( zoomFov > 160 ) {
+			zoomFov = 160;
+		}
 
 		if ( cg.zoomed ) {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
@@ -491,14 +509,24 @@ static int CG_CalcFov( void ) {
 			}
 		} else {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
-			if ( f > 1.0 ) {
-				//fov_x = fov_x;
-			} else {
+			if ( f <= 1.0 ) {
+
+
 				fov_x = zoomFov + f * ( fov_x - zoomFov );
 			}
 		}
 	}
+	
+	if ( cg_fovStyle.integer ) {
+		// Based on LordHavoc's code for Darkplaces
+		// http://www.quakeworld.nu/forum/topic/53/what-does-your-qw-look-like/page/30
+		const float baseAspect = 0.75f; // 3/4
+		const float aspect = (float)cg.refdef.width/(float)cg.refdef.height;
+		const float desiredFov = fov_x;
 
+		fov_x = atan2( tan( desiredFov*M_PI / 360.0f ) * baseAspect*aspect, 1 )*360.0f / M_PI;
+	}
+	
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );
 	fov_y = fov_y * 360 / M_PI;
