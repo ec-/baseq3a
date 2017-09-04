@@ -1096,7 +1096,8 @@ static void CG_RegisterGraphics( void ) {
 		}
 		cgs.gameModels[i] = trap_R_RegisterModel( modelName );
 	}
-
+	
+	cgs.media.cursor = trap_R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 #ifdef MISSIONPACK
 	// new stuff
 	cgs.media.patrolShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/patrol.tga");
@@ -1107,7 +1108,6 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.teamLeaderShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/team_leader.tga");
 	cgs.media.retrieveShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/retrieve.tga");
 	cgs.media.escortShader = trap_R_RegisterShaderNoMip("ui/assets/statusbar/escort.tga");
-	cgs.media.cursor = trap_R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 	cgs.media.sizeCursor = trap_R_RegisterShaderNoMip( "ui/assets/sizecursor.tga" );
 	cgs.media.selectCursor = trap_R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
 	cgs.media.flagShaders[0] = trap_R_RegisterShaderNoMip("ui/assets/statusbar/flag_in_base.tga");
@@ -1970,6 +1970,9 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	cgs.screenYmin = 0.0 - (cgs.screenYBias / cgs.screenYScale);
 	cgs.screenYmax = 479.0 + (cgs.screenYBias / cgs.screenYScale);
 
+	cgs.screenXScaleR = 1.0 / cgs.screenXScale;
+	cgs.screenYScaleR = 1.0 / cgs.screenYScale;
+
 #ifdef USE_NEW_FONT_RENDERER
 	CG_LoadFonts();
 #endif
@@ -2044,6 +2047,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	trap_S_ClearLoopingSounds( qtrue );
 }
 
+
 /*
 =================
 CG_Shutdown
@@ -2063,16 +2067,86 @@ CG_EventHandling
 ==================
  type 0 - no event handling
       1 - team menu
-      2 - hud editor
-
+      2 - scoreboard
+      3 - hud editor
 */
 #ifndef MISSIONPACK
-void CG_EventHandling(int type) {
+void CG_EventHandling( cgame_event_t type ) 
+{
+
 }
 
-void CG_KeyEvent(int key, qboolean down) {
+
+void CG_SetScoreCatcher( qboolean enable )
+{
+	int	currentCatcher, newCatcher, old_state, new_state;
+	qboolean spectator;
+
+	currentCatcher = trap_Key_GetCatcher();
+	
+	spectator = cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.demoPlayback || ( cg.snap->ps.pm_flags & PMF_FOLLOW );
+
+	if ( enable && spectator ) {
+		cgs.score_key = trap_Key_GetKey( "+scores" );
+		cgs.score_catched = qtrue;
+		newCatcher = KEYCATCH_CGAME;
+	} else {
+		cgs.score_catched = qfalse;
+		newCatcher = 0;
+	}
+
+	if ( newCatcher != currentCatcher ) {
+		if ( cgs.score_key ) {
+			// keycatcher change may cause reset of all pressed buttons on new engines
+			// so track state of scoreboard key and ignore first upcoming keyup event for it
+			old_state = trap_Key_IsDown( cgs.score_key );
+			trap_Key_SetCatcher( newCatcher );
+			new_state = trap_Key_IsDown( cgs.score_key );
+			if ( new_state != old_state ) {
+				cgs.filterKeyUpEvent = qtrue;
+			}
+		} else {
+			trap_Key_SetCatcher( newCatcher );
+		}
+	}
 }
 
-void CG_MouseEvent(int x, int y) {
+
+void CG_KeyEvent( int key, qboolean down ) 
+{
+	// process scoreboard clicks etc.
+	if ( cgs.score_catched && down ) 
+	{
+		if ( key == /*K_TAB*/ cgs.score_key )
+			return;
+		if ( key == /*K_MOUSE1*/178 )
+			CG_ScoreboardClick();
+		else
+			CG_SetScoreCatcher( qfalse );
+	}
+}
+
+
+void CG_MouseEvent( int x, int y )
+{
+	cgs.cursorXf += x;
+	cgs.cursorYf += y;
+
+	if ( cgs.cursorXf < 0 ) {
+		cgs.cursorXf = 0;
+	}
+	else if ( cgs.cursorXf > cgs.glconfig.vidWidth ) {
+		cgs.cursorXf = cgs.glconfig.vidWidth;
+	}
+
+	if ( cgs.cursorYf < 0 ) {
+		cgs.cursorYf = 0;
+	}
+	else if ( cgs.cursorYf > cgs.glconfig.vidHeight ) {
+		cgs.cursorYf = cgs.glconfig.vidHeight;
+	}
+	
+	cgs.cursorX = ( cgs.cursorXf - cgs.screenXBias ) * cgs.screenXScaleR;
+	cgs.cursorY = ( cgs.cursorYf - cgs.screenYBias ) * cgs.screenYScaleR;
 }
 #endif

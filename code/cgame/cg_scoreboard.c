@@ -53,7 +53,7 @@
 static qboolean localClient; // true if local client has been displayed
 
 
-							 /*
+/*
 =================
 CG_DrawScoreboard
 =================
@@ -205,6 +205,53 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	// add the "ready" marker for intermission exiting
 	if ( cg.snap->ps.stats[ STAT_CLIENTS_READY ] & ( 1 << score->client ) ) {
 		CG_DrawString( iconx, y, "READY", color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_FORCE_COLOR );
+	}
+
+	// set bounds for scoreboard clicks
+	score->minx = SB_SCORELINE_X;
+	score->maxx = SCREEN_WIDTH - 8;
+	score->miny = y;
+	score->maxy = y + BIGCHAR_HEIGHT;
+	if ( largeFormat )
+	{
+		score->miny -= ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2;
+		score->maxy += ( ICON_SIZE - BIGCHAR_HEIGHT ) / 2;
+	}
+}
+
+
+/*
+=================
+CG_ScoreboardClick
+=================
+*/
+void CG_ScoreboardClick( void )
+{
+	score_t	*score;
+	int i;
+
+	if ( cg.intermissionStarted )
+		return;
+
+	if ( !cg.snap || cg.snap->ps.pm_type == PM_INTERMISSION )
+		return;
+
+	score = cg.scores;
+	for ( i = 0; i < cg.numScores; i++, score++ ) {
+		if ( score->team >= TEAM_SPECTATOR ) {
+			continue;
+		}
+		if ( cgs.cursorX < score->minx || cgs.cursorX > score->maxx )
+			continue;
+		if ( cgs.cursorY < score->miny || cgs.cursorY > score->maxy )
+			continue;
+		if ( !cgs.clientinfo[ score->client ].infoValid ) {
+			continue;
+		}
+
+		if ( !cg.demoPlayback ) {
+			trap_SendClientCommand( va( "follow %i", score->client ) );
+		}
 	}
 }
 

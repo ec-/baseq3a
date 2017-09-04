@@ -303,8 +303,12 @@ typedef struct {
 	int				defendCount;
 	int				assistCount;
 	int				captures;
-	qboolean	perfect;
-	int				team;
+	qboolean		perfect;
+	team_t			team;
+
+	int				minx, maxx;
+	int				miny, maxy;
+
 } score_t;
 
 // each client has an associated clientInfo_t
@@ -1027,6 +1031,8 @@ typedef struct {
 	glconfig_t		glconfig;			// rendering configuration
 	float			screenXScale;		// derived from glconfig
 	float			screenYScale;
+	float			screenXScaleR;		// 1/screenXScale
+	float			screenYScaleR;		// 1/screenYScale
 
 	int				screenXBias;
 	int				screenYBias;
@@ -1124,6 +1130,15 @@ typedef struct {
 	qboolean		synchronousClients;
 
 	int				ospEnc;
+
+	qboolean		filterKeyUpEvent;
+	qboolean		score_catched;
+	int				score_key;
+
+	float			cursorX;
+	float			cursorY;
+	int				cursorXf;
+	int				cursorYf;
 
 } cgs_t;
 
@@ -1270,9 +1285,9 @@ void CG_UpdateCvars( void );
 int CG_CrosshairPlayer( void );
 int CG_LastAttacker( void );
 void CG_LoadMenus(const char *menuFile);
-void CG_KeyEvent(int key, qboolean down);
-void CG_MouseEvent(int x, int y);
-void CG_EventHandling(int type);
+void CG_KeyEvent( int key, qboolean down );
+void CG_MouseEvent( int x, int y );
+void CG_EventHandling( cgame_event_t type );
 void CG_RankRunFrame( void );
 void CG_SetScoreSelection(void *menu);
 #ifdef MISSIONPACK
@@ -1280,6 +1295,7 @@ score_t *CG_GetSelectedScore( void );
 #endif
 void CG_BuildSpectatorString( void );
 
+void CG_SetScoreCatcher( qboolean enable );
 
 //
 // cg_view.c
@@ -1522,6 +1538,7 @@ void CG_DrawInformation( void );
 //
 qboolean CG_DrawOldScoreboard( void );
 void CG_DrawOldTourneyScoreboard( void );
+void CG_ScoreboardClick( void );
 
 //
 // cg_consolecmds.c

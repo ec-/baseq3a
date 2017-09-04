@@ -33,13 +33,12 @@ typedef struct {
 	int				serverCommandSequence;	// snapshot becomes current
 } snapshot_t;
 
-enum {
+typedef enum {
   CGAME_EVENT_NONE,
   CGAME_EVENT_TEAMMENU,
   CGAME_EVENT_SCOREBOARD,
   CGAME_EVENT_EDITHUD
-};
-
+} cgame_event_t;
 
 /*
 ==================================================================

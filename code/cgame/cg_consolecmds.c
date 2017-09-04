@@ -71,7 +71,7 @@ static void CG_Viewpos_f (void) {
 static void CG_ScoresDown_f( void ) {
 
 #ifdef MISSIONPACK
-		CG_BuildSpectatorString();
+	CG_BuildSpectatorString();
 #endif
 	if ( cg.scoresRequestTime + 2000 < cg.time && !cg.demoPlayback ) {
 		// the scores are more than two seconds out of data,
@@ -90,14 +90,24 @@ static void CG_ScoresDown_f( void ) {
 		// is within two seconds
 		cg.showScores = qtrue;
 	}
+
+	CG_SetScoreCatcher( cg.showScores );
 }
 
 
 static void CG_ScoresUp_f( void ) {
+
+	if ( cgs.filterKeyUpEvent ) {
+		cgs.filterKeyUpEvent = qfalse;
+		return;
+	}
+
 	if ( cg.showScores ) {
 		cg.showScores = qfalse;
 		cg.scoreFadeTime = cg.time;
 	}
+
+	CG_SetScoreCatcher( cg.showScores );
 }
 
 

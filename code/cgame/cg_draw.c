@@ -2641,8 +2641,14 @@ static void CG_Draw2D( stereoFrame_t stereoFrame )
 
 	// don't draw center string if scoreboard is up
 	cg.scoreBoardShowing = CG_DrawScoreboard();
-	if ( !cg.scoreBoardShowing) {
+	if ( !cg.scoreBoardShowing ) {
 		CG_DrawCenterString();
+	}
+
+	if ( cgs.score_catched ) {
+		trap_R_SetColor( NULL );
+		trap_R_DrawStretchPic( cgs.cursorXf - 12 * cgs.screenXScale, cgs.cursorYf - 12 * cgs.screenYScale,
+			24 * cgs.screenXScale, 24 * cgs.screenYScale, 0, 0, 1, 1, cgs.media.cursor );
 	}
 }
 
