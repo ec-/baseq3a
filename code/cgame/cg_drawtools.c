@@ -601,7 +601,7 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 		yy_add = scale * cgs.screenYScale;
 
 		color[0] = color[1] = color[2] = 0.0f;
-		color[3] = setColor[3];
+		color[3] = setColor[3] * 0.5f;
 		trap_R_SetColor( color );
 
 		while ( *s != '\0' ) {

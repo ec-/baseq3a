@@ -534,13 +534,13 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
 
 	hcolor[3] = alpha;
 	if ( team == TEAM_RED ) {
-		hcolor[0] = 1;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
+		hcolor[0] = 1.0f;
+		hcolor[1] = 0.0f;
+		hcolor[2] = 0.0f;
 	} else if ( team == TEAM_BLUE ) {
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 1;
+		hcolor[0] = 0.0f;
+		hcolor[1] = 0.1f;
+		hcolor[2] = 1.0f;
 	} else {
 		return;
 	}
@@ -802,7 +802,7 @@ static float CG_DrawAttacker( float y ) {
 	VectorSet( color, 1, 1, 1 );
 	color[3] = 0.5f;
 
-	CG_DrawString( cgs.screenXmax, y, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_PROPORTIONAL | DS_RIGHT );
+	CG_DrawString( cgs.screenXmax - 4, y, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_PROPORTIONAL | DS_RIGHT );
 
 	return y + BIGCHAR_HEIGHT + 2;
 }
@@ -1152,7 +1152,7 @@ static float CG_DrawScores( float y ) {
 	if ( cgs.gametype >= GT_TEAM ) {
 		x0 = cgs.screenXmax + 1;
 		color[0] = 0.0f;
-		color[1] = 0.0f;
+		color[1] = 0.1f;
 		color[2] = 1.0f;
 		color[3] = 0.33f;
 		// second score
@@ -1269,7 +1269,7 @@ static float CG_DrawScores( float y ) {
 			x -= w;
 			if ( !spectator && score == s1 ) {
 				color[0] = 0.0f;
-				color[1] = 0.0f;
+				color[1] = 0.1f;
 				color[2] = 1.0f;
 				color[3] = 0.33f;
 				CG_FillRect( x, y-4,  w, BIGCHAR_HEIGHT+8, color );
@@ -2131,7 +2131,7 @@ static void CG_DrawCrosshairNames( void ) {
 	CG_Text_Paint( 320 - w / 2, 190, 0.3f, color, name, 0, 0, ITEM_TEXTSTYLE_SHADOWED);
 #else
 	color[3] *= 0.5f;
-	CG_DrawString( 320, 174, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+	CG_DrawString( 320, 174, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_CENTER | DS_PROPORTIONAL );
 #endif
 	trap_R_SetColor( NULL );
 }
