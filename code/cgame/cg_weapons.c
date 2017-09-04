@@ -882,7 +882,7 @@ CG_MapTorsoToWeaponFrame
 
 =================
 */
-static int CG_MapTorsoToWeaponFrame( clientInfo_t *ci, int frame ) {
+static int CG_MapTorsoToWeaponFrame( const clientInfo_t *ci, int frame ) {
 
 	// change weapon
 	if ( frame >= ci->animations[TORSO_DROP].firstFrame 
@@ -1412,10 +1412,10 @@ Add the weapon, and flash for the player's view
 void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t	hand;
 	centity_t	*cent;
-	clientInfo_t	*ci;
-	float		fovOffset;
+	const clientInfo_t *ci;
+	const weaponInfo_t *weapon;
+	vec3_t		fovOffset;
 	vec3_t		angles;
-	weaponInfo_t	*weapon;
 
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
@@ -1452,9 +1452,12 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 	// drop gun lower at higher fov
 	if ( cgs.fov > 90.0 ) {
-		fovOffset = -0.2 * ( cgs.fov - 90.0 );
+		fovOffset[0] = 0;
+		fovOffset[2] = -0.2 * ( cgs.fov - 90.0 );
 	} else {
-		fovOffset = 0;
+		// move gun forward at lowerer fov
+		fovOffset[0] = -0.2 * ( cgs.fov - 90.0 );
+		fovOffset[2] = 0;
 	}
 
 	cent = &cg.predictedPlayerEntity;	// &cg_entities[cg.snap->ps.clientNum];
@@ -1466,9 +1469,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// set up gun position
 	CG_CalculateWeaponPosition( hand.origin, angles );
 
-	VectorMA( hand.origin, cg_gun_x.value, cg.refdef.viewaxis[0], hand.origin );
+	VectorMA( hand.origin, (cg_gun_x.value+fovOffset[0]), cg.refdef.viewaxis[0], hand.origin );
 	VectorMA( hand.origin, cg_gun_y.value, cg.refdef.viewaxis[1], hand.origin );
-	VectorMA( hand.origin, (cg_gun_z.value+fovOffset), cg.refdef.viewaxis[2], hand.origin );
+	VectorMA( hand.origin, (cg_gun_z.value+fovOffset[2]), cg.refdef.viewaxis[2], hand.origin );
 
 	AnglesToAxis( angles, hand.axis );
 
