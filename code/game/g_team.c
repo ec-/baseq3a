@@ -20,7 +20,7 @@ teamgame_t teamgame;
 
 gentity_t	*neutralObelisk;
 
-void Team_SetFlagStatus( int team, flagStatus_t status );
+static void Team_SetFlagStatus( team_t team, flagStatus_t status );
 
 void Team_InitGame( void ) {
 	memset(&teamgame, 0, sizeof teamgame);
@@ -42,43 +42,48 @@ void Team_InitGame( void ) {
 	}
 }
 
-int OtherTeam(int team) {
-	if (team==TEAM_RED)
+
+int OtherTeam( team_t team ) {
+	if ( team == TEAM_RED )
 		return TEAM_BLUE;
-	else if (team==TEAM_BLUE)
+	else if ( team == TEAM_BLUE )
 		return TEAM_RED;
 	return team;
 }
 
-const char *TeamName(int team)  {
-	if (team==TEAM_RED)
+
+const char *TeamName( team_t team ) {
+	if ( team == TEAM_RED )
 		return "RED";
-	else if (team==TEAM_BLUE)
+	else if ( team == TEAM_BLUE )
 		return "BLUE";
-	else if (team==TEAM_SPECTATOR)
+	else if ( team == TEAM_SPECTATOR )
 		return "SPECTATOR";
 	return "FREE";
 }
 
-const char *OtherTeamName(int team) {
-	if (team==TEAM_RED)
+
+const char *OtherTeamName( team_t team ) {
+	if ( team == TEAM_RED )
 		return "BLUE";
-	else if (team==TEAM_BLUE)
+	else if ( team == TEAM_BLUE )
 		return "RED";
-	else if (team==TEAM_SPECTATOR)
+	else if ( team == TEAM_SPECTATOR )
 		return "SPECTATOR";
 	return "FREE";
 }
 
-const char *TeamColorString(int team) {
-	if (team==TEAM_RED)
+
+const char *TeamColorString( team_t team ) {
+	if ( team == TEAM_RED )
 		return S_COLOR_RED;
-	else if (team==TEAM_BLUE)
+	else if ( team == TEAM_BLUE )
 		return S_COLOR_BLUE;
-	else if (team==TEAM_SPECTATOR)
+	else if ( team == TEAM_SPECTATOR )
 		return S_COLOR_YELLOW;
 	return S_COLOR_WHITE;
 }
+
 
 // NULL for everyone
 void QDECL PrintMsg( gentity_t *ent, const char *fmt, ... ) {
@@ -147,6 +152,7 @@ static void AddTeamScore( vec3_t origin, team_t team, int score ) {
 	level.teamScores[ team ] += score;
 }
 
+
 /*
 ==============
 OnSameTeam
@@ -172,7 +178,7 @@ qboolean OnSameTeam( gentity_t *ent1, gentity_t *ent2 ) {
 static char ctfFlagStatusRemap[] = { '0', '1', '*', '*', '2' };
 static char oneFlagStatusRemap[] = { '0', '1', '2', '3', '4' };
 
-void Team_SetFlagStatus( int team, flagStatus_t status ) {
+static void Team_SetFlagStatus( team_t team, flagStatus_t status ) {
 	qboolean modified = qfalse;
 
 	switch( team ) {
@@ -215,6 +221,7 @@ void Team_SetFlagStatus( int team, flagStatus_t status ) {
 	}
 }
 
+
 void Team_CheckDroppedItem( gentity_t *dropped ) {
 	if( dropped->item->giTag == PW_REDFLAG ) {
 		Team_SetFlagStatus( TEAM_RED, FLAG_DROPPED );
@@ -227,27 +234,29 @@ void Team_CheckDroppedItem( gentity_t *dropped ) {
 	}
 }
 
+
 /*
 ================
 Team_ForceGesture
 ================
 */
-void Team_ForceGesture(int team) {
+static void Team_ForceGesture( team_t team ) {
 	int i;
 	gentity_t *ent;
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
+	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
-		if (!ent->inuse)
+		if ( !ent->inuse )
 			continue;
-		if (!ent->client)
+		if ( !ent->client )
 			continue;
-		if (ent->client->sess.sessionTeam != team)
+		if ( ent->client->sess.sessionTeam != team )
 			continue;
 		//
 		ent->flags |= FL_FORCE_GESTURE;
 	}
 }
+
 
 /*
 ================
@@ -475,6 +484,7 @@ void Team_FragBonuses(gentity_t *targ, gentity_t *inflictor, gentity_t *attacker
 	}
 }
 
+
 /*
 ================
 Team_CheckHurtCarrier
@@ -507,7 +517,7 @@ void Team_CheckHurtCarrier(gentity_t *targ, gentity_t *attacker)
 }
 
 
-gentity_t *Team_ResetFlag( team_t team ) {
+static gentity_t *Team_ResetFlag( team_t team ) {
 	char *c;
 	gentity_t *ent, *rent = NULL;
 
@@ -540,6 +550,7 @@ gentity_t *Team_ResetFlag( team_t team ) {
 	return rent;
 }
 
+
 void Team_ResetFlags( void ) {
 	if( g_gametype.integer == GT_CTF ) {
 		Team_ResetFlag( TEAM_RED );
@@ -552,7 +563,8 @@ void Team_ResetFlags( void ) {
 #endif
 }
 
-void Team_ReturnFlagSound( gentity_t *ent, int team ) {
+
+static void Team_ReturnFlagSound( gentity_t *ent, team_t team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
@@ -570,7 +582,8 @@ void Team_ReturnFlagSound( gentity_t *ent, int team ) {
 	te->r.svFlags |= SVF_BROADCAST;
 }
 
-void Team_TakeFlagSound( gentity_t *ent, int team ) {
+
+static void Team_TakeFlagSound( gentity_t *ent, team_t team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
@@ -608,7 +621,8 @@ void Team_TakeFlagSound( gentity_t *ent, int team ) {
 	te->r.svFlags |= SVF_BROADCAST;
 }
 
-void Team_CaptureFlagSound( gentity_t *ent, int team ) {
+
+static void Team_CaptureFlagSound( gentity_t *ent, team_t team ) {
 	gentity_t	*te;
 
 	if (ent == NULL) {
@@ -626,7 +640,8 @@ void Team_CaptureFlagSound( gentity_t *ent, int team ) {
 	te->r.svFlags |= SVF_BROADCAST;
 }
 
-void Team_ReturnFlag( int team ) {
+
+void Team_ReturnFlag( team_t team ) {
 	Team_ReturnFlagSound(Team_ResetFlag(team), team);
 	if( team == TEAM_FREE ) {
 		PrintMsg(NULL, "The flag has returned!\n" );
@@ -635,6 +650,7 @@ void Team_ReturnFlag( int team ) {
 		PrintMsg(NULL, "The %s flag has returned!\n", TeamName(team));
 	}
 }
+
 
 void Team_FreeEntity( gentity_t *ent ) {
 	if( ent->item->giTag == PW_REDFLAG ) {
@@ -647,6 +663,7 @@ void Team_FreeEntity( gentity_t *ent ) {
 		Team_ReturnFlag( TEAM_FREE );
 	}
 }
+
 
 /*
 ==============
@@ -680,7 +697,7 @@ void Team_DroppedFlagThink(gentity_t *ent) {
 Team_DroppedFlagThink
 ==============
 */
-int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
+static int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, team_t team ) {
 	int			i;
 	gentity_t	*player;
 	gclient_t	*cl = other->client;
@@ -795,7 +812,8 @@ int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, int team ) {
 	return 0; // Do not respawn this automatically
 }
 
-int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
+
+static int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, team_t team ) {
 	gclient_t *cl = other->client;
 
 #ifdef MISSIONPACK
@@ -832,6 +850,7 @@ int Team_TouchEnemyFlag( gentity_t *ent, gentity_t *other, int team ) {
 
 	return -1; // Do not respawn this automatically, but do delete it if it was FL_DROPPED
 }
+
 
 int Pickup_Team( gentity_t *ent, gentity_t *other ) {
 	int team;
@@ -886,6 +905,7 @@ int Pickup_Team( gentity_t *ent, gentity_t *other ) {
 	}
 	return Team_TouchEnemyFlag( ent, other, team );
 }
+
 
 /*
 ===========
@@ -1018,10 +1038,10 @@ __rescan:
 	return spots[ selection ];
 }
 
+
 /*
 ===========
 SelectCTFSpawnPoint
-
 ============
 */
 gentity_t *SelectCTFSpawnPoint( gentity_t *ent, team_t team, int teamstate, vec3_t origin, vec3_t angles ) {
@@ -1057,8 +1077,8 @@ Format:
 ==================
 */
 void TeamplayInfoMessage( gentity_t *ent ) {
-	char		entry[1024];
-	char		string[8192];
+	char		entry[ 128 ]; // to fit 6 decimal numbers with spaces
+	char		string[ MAX_STRING_CHARS - 9 ]; // -strlen("tinfo nn ")
 	int			stringlength;
 	int			i, j;
 	gentity_t	*player;
@@ -1066,7 +1086,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 	int			h, a;
 	int			clients[TEAM_MAXOVERLAY];
 
-	if ( ! ent->client->pers.teamInfo )
+	if ( !ent->client->pers.teamInfo )
 		return;
 
 	// figure out what client should be on the display
@@ -1074,7 +1094,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 	// but in client order (so they don't keep changing position on the overlay)
 	for (i = 0, cnt = 0; i < g_maxclients.integer && cnt < TEAM_MAXOVERLAY; i++) {
 		player = g_entities + level.sortedClients[i];
-		if (player->inuse && player->client->sess.sessionTeam == 
+		if (player->inuse && player->client->sess.sessionTeam ==
 			ent->client->sess.sessionTeam ) {
 			clients[cnt++] = level.sortedClients[i];
 		}
@@ -1084,12 +1104,12 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 	qsort( clients, cnt, sizeof( clients[0] ), SortClients );
 
 	// send the latest information on all clients
-	string[0] = 0;
+	string[0] = '\0';
 	stringlength = 0;
 
 	for (i = 0, cnt = 0; i < g_maxclients.integer && cnt < TEAM_MAXOVERLAY; i++) {
 		player = g_entities + i;
-		if (player->inuse && player->client->sess.sessionTeam == 
+		if ( player->inuse && player->client->sess.sessionTeam ==
 			ent->client->sess.sessionTeam ) {
 
 			h = player->client->ps.stats[STAT_HEALTH];
@@ -1097,24 +1117,23 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 			if (h < 0) h = 0;
 			if (a < 0) a = 0;
 
-			Com_sprintf (entry, sizeof(entry),
-				" %i %i %i %i %i %i", 
+			j = BG_sprintf( entry, " %i %i %i %i %i %i",
 //				level.sortedClients[i], player->client->pers.teamState.location, h, a, 
 				i, player->client->pers.teamState.location, h, a, 
 				player->client->ps.weapon, player->s.powerups);
-			j = (int)strlen(entry);
-			if (stringlength + j >= sizeof(string))
+			if ( stringlength + j >= sizeof( string ) )
 				break;
-			strcpy (string + stringlength, entry);
+			strcpy( string + stringlength, entry );
 			stringlength += j;
 			cnt++;
 		}
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("tinfo %i %s", cnt, string) );
+	trap_SendServerCommand( ent-g_entities, va( "tinfo %i %s", cnt, string ) );
 }
 
-void CheckTeamStatus(void) {
+
+void CheckTeamStatus( void ) {
 	int i;
 	gentity_t *loc, *ent;
 

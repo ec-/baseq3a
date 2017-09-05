@@ -208,6 +208,7 @@ static void PlayerIntroSound( const char *modelAndSkin ) {
 	trap_SendConsoleCommand( EXEC_APPEND, va( "play sound/player/announce/%s.wav\n", skin ) );
 }
 
+
 /*
 ===============
 G_AddRandomBot
@@ -276,6 +277,7 @@ void G_AddRandomBot( team_t team ) {
 		}
 	}
 }
+
 
 /*
 ===============

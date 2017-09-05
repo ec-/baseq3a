@@ -1599,7 +1599,11 @@ static void G_WarmupEnd( void )
 			continue;
 
 		if ( ent->s.eType == ET_ITEM && ent->item ) {
-			
+
+			// already processed in Team_ResetFlags()
+			if ( ent->item->giTag == PW_NEUTRALFLAG || ent->item->giTag == PW_REDFLAG || ent->item->giTag == PW_BLUEFLAG )
+				continue;
+
 			// remove dropped items
 			if ( ent->flags & FL_DROPPED_ITEM ) {
 				ent->nextthink = level.time;
@@ -1648,7 +1652,7 @@ CheckTournament
 Once a frame, check for changes in tournement player state
 =============
 */
-void CheckTournament( void ) {
+static void CheckTournament( void ) {
 
 	// check because we run 3 game frames before calling Connect and/or ClientBegin
 	// for clients on a map_restart
