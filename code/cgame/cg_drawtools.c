@@ -584,13 +584,7 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 		}
 	}
 
-	sh = font->shader[0];
-	// select hi-res shader if accepted
-	for ( i = 1; i < font->shaderCount; i++ ) {
-		if ( ah >= font->shaderThreshold[i] ) {
-			sh = font->shader[i];
-		}
-	}
+	sh = font->shader[0]; // low-res shader by default
 
 	if ( flags & DS_SHADOW ) { 
 		xx = ax;
@@ -636,6 +630,13 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 		// recover altered parameters
 		s = (const byte*)string;
 		ax = xx;
+	}
+
+	// select hi-res shader if accepted
+	for ( i = 1; i < font->shaderCount; i++ ) {
+		if ( ah >= font->shaderThreshold[i] ) {
+			sh = font->shader[i];
+		}
 	}
 	
 	Vector4Copy( setColor, color );
