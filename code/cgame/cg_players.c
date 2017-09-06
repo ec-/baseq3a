@@ -1209,7 +1209,9 @@ void CG_NewClientInfo( int clientNum ) {
 	allowNativeModel = qfalse;
 	if ( cgs.gametype < GT_TEAM ) {
 		if ( !cg.snap || ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_FREE && cg.snap->ps.clientNum == clientNum ) ) {
-			allowNativeModel = qtrue;
+			if ( cg.demoPlayback || ( cg.snap && cg.snap->ps.pm_flags & PMF_FOLLOW ) ) {
+				allowNativeModel = qtrue;
+			}
 		}
 	}
 
@@ -1254,7 +1256,7 @@ void CG_NewClientInfo( int clientNum ) {
 
 	// always apply team colors [4] and [5] if specified, this will work in non-team games too
 	if ( cg_teamColors.string[0] && team != TEAM_SPECTATOR ) {
-		if ( allowNativeModel || ( ( team == TEAM_RED || team == TEAM_BLUE ) && team == myTeam && clientNum != myClientNum ) ) {
+		if ( allowNativeModel || ( ( team == TEAM_RED || team == TEAM_BLUE ) && team == myTeam && ( clientNum != myClientNum || cg.demoPlayback ) ) ) {
 			v = CG_GetTeamColors( cg_teamColors.string, team );
 			len = strlen( v );
 			if ( len >= 4 )
