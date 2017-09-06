@@ -714,19 +714,19 @@ static void CG_SetColorInfo( const char *color, clientInfo_t *info )
 }
 
 
-static void CG_SetTeamColorInfo( const char *color, clientInfo_t *info ) {
-	char str[6];
+static const char *CG_GetTeamColors( const char *color, team_t team ) {
+	static char str[6];
 
 	Q_strncpyz( str, color, sizeof( str ) );
 
-	switch ( info->team ) {
+	switch ( team ) {
 		case TEAM_RED:  replace1( '?', '1', str ); break;
 		case TEAM_BLUE: replace1( '?', '4', str ); break;
 		case TEAM_FREE: replace1( '?', '7', str ); break;
 		default: break;
     }
 
-	CG_SetColorInfo( str, info );
+	return str;
 }
 
 
@@ -989,6 +989,7 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 	char *skin, *slash;
 	qboolean	pm_model;
 	team_t		team;
+	const char	*colors;
 	
 	team = newInfo->team;
 	pm_model = ( Q_stricmp( cg_enemyModel.string, PM_SKIN ) == 0 ) ? qtrue : qfalse;
@@ -1018,10 +1019,11 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 
 				if ( setColor ) {
 					if ( cg_enemyColors.string[0] && myTeam != TEAM_SPECTATOR ) // free-fly?
-						CG_SetTeamColorInfo( cg_enemyColors.string, newInfo );
+						colors = CG_GetTeamColors( cg_enemyColors.string, newInfo->team );
 					else
-						CG_SetTeamColorInfo( "???", newInfo );
+						colors = CG_GetTeamColors( "???", newInfo->team );
 
+					CG_SetColorInfo( colors, newInfo );
 					newInfo->coloredSkin = qtrue;
 				}
 
@@ -1048,10 +1050,11 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 
 				if ( setColor ) {
 					if ( cg_teamColors.string[0] && myTeam != TEAM_SPECTATOR ) // free-fly?
-						CG_SetTeamColorInfo( cg_teamColors.string, newInfo );
+						colors = CG_GetTeamColors( cg_teamColors.string, newInfo->team );
 					else
-						CG_SetTeamColorInfo( "???", newInfo );
+						colors = CG_GetTeamColors( "???", newInfo->team );
 
+					CG_SetColorInfo( colors, newInfo );
 					newInfo->coloredSkin = qtrue;
 				}
 
@@ -1098,7 +1101,8 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 					Q_strncpyz( modelName, "sarge", modelNameSize );
 
 				if ( setColor ) {
-					CG_SetTeamColorInfo( cg_enemyColors.string, newInfo );
+					colors = CG_GetTeamColors( cg_enemyColors.string, newInfo->team );
+					CG_SetColorInfo( colors, newInfo );
 					newInfo->coloredSkin = qtrue;
 				}
 
@@ -1115,7 +1119,8 @@ static void CG_SetSkinAndModel( clientInfo_t *newInfo,
 				}
 
 				if ( setColor ) {
-					CG_SetTeamColorInfo( cg_enemyColors.string, newInfo );
+					colors = CG_GetTeamColors( cg_enemyColors.string, newInfo->team );
+					CG_SetColorInfo( colors, newInfo );
 					newInfo->coloredSkin = qtrue;
 				}
 			} else { // forcemodel, etc.
@@ -1178,6 +1183,7 @@ void CG_NewClientInfo( int clientNum ) {
 	int			myClientNum;
 	team_t		myTeam;
 	team_t		team;
+	int			len;
 
 	ci = &cgs.clientinfo[clientNum];
 
@@ -1215,6 +1221,14 @@ void CG_NewClientInfo( int clientNum ) {
 	v = Info_ValueForKey( configstring, "n" );
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 
+	// team
+	v = Info_ValueForKey( configstring, "t" );
+	team = atoi( v );
+	if ( (unsigned) team > TEAM_NUM_TEAMS ) {
+		team = TEAM_SPECTATOR;
+	}
+	newInfo.team = team;
+
 	// colors
 	v = Info_ValueForKey( configstring, "c1" );
 	CG_ColorFromChar( v[0], newInfo.color1 );
@@ -1238,13 +1252,17 @@ void CG_NewClientInfo( int clientNum ) {
 	v = Info_ValueForKey( configstring, "l" );
 	newInfo.losses = atoi( v );
 
-	// team
-	v = Info_ValueForKey( configstring, "t" );
-	team = atoi( v );
-	if ( (unsigned) team > TEAM_NUM_TEAMS ) {
-		team = TEAM_SPECTATOR;
+	// always apply team colors [4] and [5] if specified, this will work in non-team games too
+	if ( cg_teamColors.string[0] && team != TEAM_SPECTATOR ) {
+		if ( allowNativeModel || ( ( team == TEAM_RED || team == TEAM_BLUE ) && team == myTeam && clientNum != myClientNum ) ) {
+			v = CG_GetTeamColors( cg_teamColors.string, team );
+			len = strlen( v );
+			if ( len >= 4 )
+				CG_ColorFromChar( v[3], newInfo.color1 );
+			if ( len >= 5 )
+				CG_ColorFromChar( v[4], newInfo.color2 );
+		}
 	}
-	newInfo.team = team;
 
 	// team task
 	v = Info_ValueForKey( configstring, "tt" );

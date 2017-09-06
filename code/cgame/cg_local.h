@@ -1330,7 +1330,7 @@ int CG_DrawStrlen( const char *str );
 float *CG_FadeColor( int startMsec, int totalMsec );
 float *CG_FadeColorTime( int startMsec, int totalMsec, int fadeMsec );
 
-float *CG_TeamColor( int team );
+const float *CG_TeamColor( team_t team );
 void CG_TileClear( void );
 void CG_ColorForHealth( vec4_t hcolor );
 void CG_GetColorForHealth( int health, int armor, vec4_t hcolor );

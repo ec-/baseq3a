@@ -868,7 +868,7 @@ float *CG_FadeColorTime( int startMsec, int totalMsec, int fadeMsec ) {
 CG_TeamColor
 ================
 */
-float *CG_TeamColor( int team ) {
+const float *CG_TeamColor( team_t team ) {
 	static vec4_t	red = {1, 0.2f, 0.2f, 1};
 	static vec4_t	blue = {0.2f, 0.2f, 1, 1};
 	static vec4_t	other = {1, 1, 1, 1};
