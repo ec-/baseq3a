@@ -437,6 +437,7 @@ typedef struct {
 	qboolean		registered;
 	qhandle_t		models[MAX_ITEM_MODELS];
 	qhandle_t		icon;
+	qhandle_t		icon_df;
 } itemInfo_t;
 
 

@@ -852,6 +852,11 @@ void CG_RegisterItemVisuals( int itemNum ) {
 
 	itemInfo->icon = trap_R_RegisterShader( item->icon );
 
+	// try to register depth-fragment shaders
+	itemInfo->icon_df = trap_R_RegisterShader( va( "%s_df", item->icon ) );
+	if ( !itemInfo->icon_df )
+		itemInfo->icon_df = itemInfo->icon;
+
 	if ( item->giType == IT_WEAPON ) {
 		CG_RegisterWeapon( item->giTag );
 	}

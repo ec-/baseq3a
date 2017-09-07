@@ -1,0 +1,443 @@
+// depth-fragment shaders
+
+//
+// holdable item icons
+//
+icons/teleporter_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/teleporter.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/medkit_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/medkit.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+//
+// powerup icons
+//
+icons/envirosuit_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/envirosuit.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/quad_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/quad.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/haste_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/haste.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/invis_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/invis.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/regen_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/regen.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/flight_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/flight.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+//
+// weapon icons
+//
+icons/iconw_gauntlet_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_gauntlet.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_machinegun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_machinegun.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_rocket_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_rocket.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_shotgun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_shotgun.tga
+		blendFunc blend
+		rgbgen identitylighting
+		depthFragment
+	}
+}
+
+icons/iconw_grenade_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_grenade.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_lightning_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_lightning.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_plasma_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_plasma.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_railgun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_railgun.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_bfg_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_bfg.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconw_grapple_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconw_grapple.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+//
+// ammo icons
+//
+icons/icona_machinegun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_machinegun.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/icona_rocket_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_rocket.tga
+		blendfunc blend
+		depthFragment
+	}
+}
+
+icons/icona_shotgun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_shotgun.tga
+		blendFunc blend
+		rgbgen identitylighting
+		depthFragment
+	}
+}
+
+icons/icona_grenade_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_grenade.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/icona_lightning_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_lightning.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/icona_plasma_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_plasma.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/icona_railgun_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_railgun.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/icona_bfg_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/icona_bfg.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+
+//
+// armor icons
+//
+icons/iconr_shard_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconr_shard.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconr_green_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconr_green.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconr_yellow_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconr_yellow.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconr_red_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconr_red.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+//
+// health icons
+//
+icons/iconh_green_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconh_green.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconh_yellow_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconh_yellow.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconh_red_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconh_red.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconh_mega_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconh_mega.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+//
+// CTF icons
+//
+icons/iconf_red_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconf_red.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconf_blu_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconf_blu.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconf_red1_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconf_red1.tga
+		blendFunc blend
+		depthFragment
+	}
+}
+
+icons/iconf_blu1_df
+{
+	sort opaque
+	nopicmip
+	{
+		map icons/iconf_blu1.tga
+		blendFunc blend
+		depthFragment
+	}
+}

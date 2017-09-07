@@ -239,7 +239,7 @@ static void CG_Item( centity_t *cent ) {
 		ent.reType = RT_SPRITE;
 		VectorCopy( cent->lerpOrigin, ent.origin );
 		ent.radius = 14;
-		ent.customShader = cg_items[es->modelindex].icon;
+		ent.customShader = cg_items[es->modelindex].icon_df;
 		ent.shaderRGBA[0] = 255;
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 255;
