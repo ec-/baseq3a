@@ -1,0 +1,117 @@
+****************************************************
+*********** client variables and commands **********
+****************************************************
+
+========================
+cg_drawWeaponSelect <0|1|2|3>
+
+    0 - disabled
+    1 - horozontal with weapon name
+    2 - horizontal with ammo counters
+    3 - vectical with ammo counters
+
+
+========================
+cg_drawSpeed <0|1|2>
+
+    draw xy-speed
+
+    0 - disabled
+    1 - in top-right corner
+    2 - unders crosshair
+
+
+========================
+cg_enemyModel [ pm | modelname ]
+
+    sets model for enemies
+
+    "pm" means use current bright colored enemy model if model is known for mod i.e. there is possible to modify model colors
+    if model is unknown (like "alien" or so) then it will be forced to "sarge"
+
+
+========================    
+cg_enemyColors [colorstring]
+
+    colorstring is a 3 [or 5] char-length string, where 
+
+    1st char - head color, all colors forced to '???' if not set
+    2nd char - torso color, forced to white if not set
+    3rd char - legs color, forced to white if not set
+
+    4th char - optional, color1 override
+    5th char - optional, color2 override
+
+    '?' will be replaced to white in FFA games or corresponding team color (red or blue) in team games
+
+    !!! will work only if cg_enemyModel is set !!!
+
+
+========================
+cg_teamModel  [ pm | modelname ]
+
+    sets model for your teammates
+
+
+========================
+cg_teamColors [colorstring]
+
+    syntax and values is the same as for cg_enemyColors
+
+    colorstring[4] and [5] will ALWAYS override color1 and color2 for spectated client
+
+    but head, torso and legs colors will work corectly only if cg_teamModel is set
+
+
+========================
+cg_deadBodyDarken <0|1>
+
+    turn dead bodies into grey color
+
+    works only if cg_enemyModel is set
+
+    default is 1
+
+
+========================
+cg_hitSounds <0|1|2>
+
+    damage-based hitsounds
+
+    0 - standard fixed tone
+    1 - higher damage - lower tone
+    1 - higher damage - higher tone
+
+    requires proper from server in PERS_ATTACKEE_ARMOR
+
+    default is 0
+
+
+========================
+cg_railTrailRadius <value>
+
+    radius for linear light source, available only in q3e engine atm
+
+
+========================
+cg_fovAdjust <0|1>
+
+    Automatically rescale cg_fov from desired 4x3 screen ratio to widescreen resolution
+
+    default is 0
+
+
+========================
+cg_gunX
+cg_gunY
+cg_gunZ
+
+    turned into non-cheat cvars
+
+
+========================
+Miscellaneous
+
+    Click on score line to follow selected player
+
+

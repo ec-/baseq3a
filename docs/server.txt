@@ -1,0 +1,78 @@
+****************************************************
+*********** server variables and commands **********
+****************************************************
+
+========================
+g_gametype <number>
+    
+    0 - Free For All
+    1 - 1-vs-1 Duel/Tournament
+    2 - Single Player, selectable only from UI
+    3 - Team Deathmatch
+    4 - Capture The Flag
+
+    \map_restart required to apply change
+
+
+========================
+g_unlagged <0|1>
+
+    enables lag(-ping) compensation technique for hitscan weapons
+    such as Machinegun, Shotgun or Railgun
+
+
+========================
+g_rotation
+
+    points to filename with rotation information, see rotation.txt for details
+
+
+========================
+\callvote <votestring>
+
+  semicolons in vote strings now allowed
+  so you can issue up to 4 commands in single vote
+  just don't forget to quote such strings, for example:
+
+  \callvote "g_gametype 1; map_restart"
+  
+  string aliases (ffa,duel,tdm,ctf) now acceptable for g_gametype, for example:
+  
+  \callvote "g_gametype tdm; fraglimit 100; timelimit 0; map_restart"
+
+  \callvote rotate - will switch to next map just like \callvote nextmap
+  \callvote rotate <index> - will switch to <index> map in rotation and rotation will continue from that index
+
+
+========================
+g_autoJoin <bitmask>
+
+    replaces old g_teamAutoJoin:
+
+    1 - auto join in non-team games
+    2 - auto join in team games
+    3 - 1+2
+
+    default is 1
+
+
+========================
+g_teamAutoJoin
+
+    removed
+
+
+g_warmup <seconds>
+========================
+
+    warmup time in seconds
+
+    = 0 - means instant match start
+    < 0 - wait until everyone get ready
+    > 0 - usual timed warmup
+
+
+g_doWarmup <seconds>
+========================
+
+    obsolete, forced to 1

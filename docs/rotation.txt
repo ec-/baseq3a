@@ -1,0 +1,32 @@
+/* 
+	Map rotation system
+
+    \g_rotation server cvar must point on this file
+	
+	Syntax:
+
+	$cvar1 = value1; // set cvar1 for each rotation step (i.e global)
+	{...}
+	"mapname1" // first map in rotation
+	"mapname2" // second map in rotation
+	{ 
+		$cvar2 = value2; // set cvar2 only for "mapname2"
+		{...}
+	}
+	"mapname3" // third map in rotation
+	{...}
+
+	Note: its better to quote map names like "6++" which contains "+","-","&" etc. symbols
+
+	Example of contents:
+*/
+
+$fraglimit = 40;
+$timelimit = 6;
+//pro-q3dm6
+q3dm17 { $timelimit = 7; $fraglimit = 50; }
+//q3dm2
+//q3dm5
+//q3tourney4
+//q3dm7
+//q3dm11
