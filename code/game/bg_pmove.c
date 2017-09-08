@@ -28,7 +28,7 @@ float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
 
-#define NO_RESPAWN_OVERBOUNCE 100
+#define NO_RESPAWN_OVERBOUNCE 250
 
 static int pm_respawntimer = 0;
 
