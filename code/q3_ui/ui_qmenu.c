@@ -1687,11 +1687,11 @@ sfxHandle_t Menu_DefaultKey( menuframework_s *m, int key )
 	{
 #ifndef NDEBUG
 		case K_F11:
-			uis.debug ^= 1;
+			trap_Cmd_ExecuteText( EXEC_APPEND, "screenshot\n" );
 			break;
 
 		case K_F12:
-			trap_Cmd_ExecuteText(EXEC_APPEND, "screenshot\n");
+			uis.debug ^= 1;
 			break;
 #endif
 		case K_KP_UPARROW:
