@@ -874,24 +874,17 @@ void UI_MouseEvent( int dx, int dy )
 		return;
 
 	// update mouse screen position
+	uis.cursorx += dx;
+	if (uis.cursorx < 0)
+		uis.cursorx = 0;
+	else if (uis.cursorx > SCREEN_WIDTH)
+		uis.cursorx = SCREEN_WIDTH;
 
-	uis.cursor_hx += dx;
-
-	if ( uis.cursor_hx < 0 )
-		uis.cursor_hx = 0;
-	else if ( uis.cursor_hx > uis.glconfig.vidWidth )
-		uis.cursor_hx = uis.glconfig.vidWidth;
-
-	uis.cursor_hy += dy;
-
-	if ( uis.cursor_hy < 0 )
-		uis.cursor_hy = 0;
-	else if ( uis.cursor_hy > uis.glconfig.vidHeight -1 )
-		uis.cursor_hy = uis.glconfig.vidHeight - 1;
-
-	// update virtual mouse cursor coordinates
-	uis.cursorx = (uis.cursor_hx - uis.biasX) / uis.scale;
-	uis.cursory = (uis.cursor_hy - uis.biasY) / uis.scale;
+	uis.cursory += dy;
+	if (uis.cursory < 0)
+		uis.cursory = 0;
+	else if (uis.cursory > SCREEN_HEIGHT)
+		uis.cursory = SCREEN_HEIGHT;
 
 	// region test the active menu items
 	for (i=0; i<uis.activemenu->nitems; i++)
@@ -1259,7 +1252,7 @@ void UI_Refresh( int realtime )
 
 	// draw cursor
 	UI_SetColor( NULL );
-	UI_DrawCursor( -16, -16, 32, 32 );
+	UI_DrawHandlePic( uis.cursorx-16, uis.cursory-16, 32, 32, uis.cursor);
 
 #ifndef NDEBUG
 	if ( uis.debug )
