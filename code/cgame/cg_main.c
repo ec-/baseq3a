@@ -2084,6 +2084,9 @@ void CG_SetScoreCatcher( qboolean enable )
 	qboolean spectator;
 
 	currentCatcher = trap_Key_GetCatcher();
+
+	if ( currentCatcher & KEYCATCH_CONSOLE )
+		return;
 	
 	spectator = cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.demoPlayback || ( cg.snap->ps.pm_flags & PMF_FOLLOW );
 
