@@ -1082,6 +1082,7 @@ while a slow client may have multiple ClientEndFrame between ClientThink.
 ==============
 */
 void ClientEndFrame( gentity_t *ent ) {
+	static gentity_t sent;
 	int			i;
 	clientPersistant_t	*pers;
 	gclient_t	*client;
@@ -1090,6 +1091,8 @@ void ClientEndFrame( gentity_t *ent ) {
 
 	if ( !ent->client )
 		return;
+
+	ent->r.svFlags &= ~svf_self_portal2;
 
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 		SpectatorClientEndFrame( ent );
@@ -1161,6 +1164,23 @@ void ClientEndFrame( gentity_t *ent ) {
 	ent->s.eFlags &= ~EF_CONNECTION;
 
 	frames = level.framenum - client->lastUpdateFrame - 1;
+
+	// PVS prediction
+	if ( g_predictPVS.integer && svf_self_portal2 ) {
+		int lag;
+		sent.s = ent->s;
+		sent.r = ent->r;
+		sent.clipmask = ent->clipmask;
+		//VectorCopy( client->ps.origin, sent.s.pos.trBase );
+		//VectorCopy( client->ps.velocity, sent.s.pos.trDelta );
+		lag = level.time - client->ps.commandTime + 50;
+		if ( lag > 500 )
+			lag = 500;
+		G_PredictPlayerMove( &sent, (float)lag * 0.001f );
+		VectorCopy( sent.s.pos.trBase, ent->r.unused.origin2 );
+		ent->r.unused.origin2[2] += client->ps.viewheight;
+		ent->r.svFlags |= svf_self_portal2;
+	}
 
 	if ( frames > 2 ) {
 		// limit lagged player prediction to 2 server frames

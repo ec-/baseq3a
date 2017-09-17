@@ -802,6 +802,7 @@ extern	vmCvar_t	pmove_fixed;
 extern	vmCvar_t	pmove_msec;
 extern	vmCvar_t	g_rotation;
 extern	vmCvar_t	g_unlagged;
+extern	vmCvar_t	g_predictPVS;
 extern	vmCvar_t	g_enableDust;
 extern	vmCvar_t	g_enableBreath;
 extern	vmCvar_t	g_singlePlayer;
@@ -1013,3 +1014,15 @@ void	trap_BotResetWeaponState(int weaponstate);
 int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *parent1, int *parent2, int *child);
 
 void	trap_SnapVector( float *v );
+
+// extension interface
+
+#ifdef Q3_VM
+//
+#else
+qboolean trap_GetValue( char *value, int valueSize, const char *key );
+extern int dll_com_trapGetValue;
+#endif
+
+extern	int svf_self_portal2;
+

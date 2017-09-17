@@ -46,6 +46,7 @@ vmCvar_t	g_weaponTeamRespawn;
 vmCvar_t	g_motd;
 vmCvar_t	g_synchronousClients;
 vmCvar_t	g_warmup;
+vmCvar_t	g_predictPVS;
 vmCvar_t	g_restarted;
 vmCvar_t	g_log;
 vmCvar_t	g_logSync;
@@ -142,6 +143,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_listEntity, "g_listEntity", "0", 0, 0, qfalse },
 
 	{ &g_unlagged, "g_unlagged", "1", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
+	{ &g_predictPVS, "g_predictPVS", "0", CVAR_ARCHIVE, 0, qfalse },
 
 #ifdef MISSIONPACK
 	{ &g_obeliskHealth, "g_obeliskHealth", "2500", 0, 0, qfalse },
@@ -174,6 +176,14 @@ static void G_RunFrame( int levelTime );
 static void G_ShutdownGame( int restart );
 static void CheckExitRules( void );
 
+// extension interface
+#ifdef Q3_VM
+qboolean (*trap_GetValue)( char *value, int valueSize, const char *key );
+#else
+int dll_com_trapGetValue;
+#endif
+
+int	svf_self_portal2;
 
 /*
 ================
@@ -483,11 +493,27 @@ G_InitGame
 ============
 */
 static void G_InitGame( int levelTime, int randomSeed, int restart ) {
-	int					i;
+	char value[ MAX_CVAR_VALUE_STRING ];
+	int	i;
 
 	G_Printf ("------- Game Initialization -------\n");
 	G_Printf ("gamename: %s\n", GAMEVERSION);
 	G_Printf ("gamedate: %s\n", __DATE__);
+
+	// extension interface
+	trap_Cvar_VariableStringBuffer( "//trap_GetValue", value, sizeof( value ) );
+	if ( value[0] ) {
+#ifdef Q3_VM
+		trap_GetValue = (void*)~atoi( value );
+#else
+		dll_com_trapGetValue = atoi( value );
+#endif
+		if ( trap_GetValue( value, sizeof( value ), "SVF_SELF_PORTAL2" ) ) {
+			svf_self_portal2 = atoi( value );
+		} else {
+			svf_self_portal2 = 0;
+		}
+	}
 
 	srand( randomSeed );
 

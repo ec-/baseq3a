@@ -13,7 +13,7 @@
 
 // TTimo
 // https://zerowing.idsoftware.com/bugzilla/show_bug.cgi?id=551
-#define SVF_CLIENTMASK 0x00000002
+#define SVF_CLIENTMASK			0x00000002
 
 #define SVF_BOT					0x00000008	// set if the entity is a bot
 #define	SVF_BROADCAST			0x00000020	// send to all connected clients
@@ -27,8 +27,6 @@
 #define SVF_CAPSULE				0x00000400	// use capsule for collision detection instead of bbox
 #define SVF_NOTSINGLECLIENT		0x00000800	// send entity to everyone but one client
 											// (entityShared_t->singleClient)
-
-
 
 //===============================================================
 
