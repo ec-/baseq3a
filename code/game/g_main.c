@@ -7,12 +7,12 @@ level_locals_t	level;
 
 typedef struct {
 	vmCvar_t	*vmCvar;
-	char		*cvarName;
-	char		*defaultString;
+	const char	*cvarName;
+	const char	*defaultString;
 	int			cvarFlags;
-	int			modificationCount;  // for tracking changes
-	qboolean	trackChange;	    // track this variable, and announce if changed
-  qboolean teamShader;        // track and if changed, update shader state
+	int			modificationCount;	// for tracking changes
+	qboolean	trackChange;		// track this variable, and announce if changed
+	qboolean	teamShader;			// track and if changed, update shader state
 } cvarTable_t;
 
 gentity_t		g_entities[MAX_GENTITIES];
@@ -721,9 +721,6 @@ void AddTournamentPlayer( void ) {
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		client = &level.clients[i];
-		if ( !client ) {
-			continue;
-		}
 		if ( client->pers.connected != CON_CONNECTED ) {
 			continue;
 		}
@@ -1115,7 +1112,7 @@ void BeginIntermission( void ) {
 	gentity_t	*client;
 
 	if ( level.intermissiontime ) {
-		return;		// already active
+		return;	// already active
 	}
 
 	// if in tournement mode, change the wins / losses
@@ -1127,7 +1124,7 @@ void BeginIntermission( void ) {
 	FindIntermissionPoint();
 
 	// move all clients to the intermission point
-	for ( i = 0 ; i< level.maxclients ; i++ ) {
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		client = g_entities + i;
 		if ( !client->inuse )
 			continue;
@@ -1167,7 +1164,7 @@ or moved to a new level based on the "nextmap" cvar
 
 =============
 */
-void ExitLevel (void) {
+void ExitLevel( void ) {
 	int		i;
 	gclient_t *cl;
 
@@ -1191,7 +1188,7 @@ void ExitLevel (void) {
 	// reset all the scores so we don't enter the intermission again
 	level.teamScores[TEAM_RED] = 0;
 	level.teamScores[TEAM_BLUE] = 0;
-	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
@@ -1199,12 +1196,12 @@ void ExitLevel (void) {
 		cl->ps.persistant[PERS_SCORE] = 0;
 	}
 
-	// we need to do this here before chaning to CON_CONNECTING
+	// we need to do this here before changing to CON_CONNECTING
 	G_WriteSessionData();
 
 	// change all client states to connecting, so the early players into the
 	// next level will know the others aren't done reconnecting
-	for (i=0 ; i< g_maxclients.integer ; i++) {
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		if ( level.clients[i].pers.connected == CON_CONNECTED ) {
 			level.clients[i].pers.connected = CON_CONNECTING;
 		}
@@ -1350,20 +1347,16 @@ void CheckIntermissionExit( void ) {
 	gclient_t	*cl;
 	int			readyMask;
 
-	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
+	if ( g_gametype.integer == GT_SINGLE_PLAYER )
 		return;
-	}
 
 	// see which players are ready
 	ready = 0;
 	notReady = 0;
 	readyMask = 0;
-	for (i=0 ; i< g_maxclients.integer ; i++) {
+	for ( i = 0 ; i < level.maxclients ; i++) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
-			continue;
-		}
-		if ( g_entities[i].r.svFlags & SVF_BOT ) {
 			continue;
 		}
 
@@ -1381,9 +1374,15 @@ void CheckIntermissionExit( void ) {
 		}
 	}
 
+	// vote in progress
+	if ( level.voteTime || level.voteExecuteTime ) {
+		ready  = 0;
+		notReady = 1;
+	}
+
 	// copy the readyMask to each player's stats so
 	// it can be displayed on the scoreboard
-	for (i=0 ; i< g_maxclients.integer ; i++) {
+	for ( i = 0 ; i < level.maxclients ; i++) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
@@ -1397,7 +1396,7 @@ void CheckIntermissionExit( void ) {
 	}
 
 	// if nobody wants to go, clear timer
-	if ( !ready ) {
+	if ( !ready && notReady ) {
 		level.readyToExit = qfalse;
 		return;
 	}
@@ -1411,17 +1410,18 @@ void CheckIntermissionExit( void ) {
 	// the first person to ready starts the ten second timeout
 	if ( !level.readyToExit ) {
 		level.readyToExit = qtrue;
-		level.exitTime = level.time;
+		level.exitTime = level.time + 10000;
 	}
 
 	// if we have waited ten seconds since at least one player
 	// wanted to exit, go ahead
-	if ( level.time < level.exitTime + 10000 ) {
+	if ( level.time < level.exitTime ) {
 		return;
 	}
 
 	ExitLevel();
 }
+
 
 /*
 =============
@@ -1444,6 +1444,7 @@ qboolean ScoreIsTied( void ) {
 
 	return a == b;
 }
+
 
 /*
 =================
@@ -1512,7 +1513,7 @@ static void CheckExitRules( void ) {
 			return;
 		}
 
-		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+		for ( i = 0 ; i < level.maxclients ; i++ ) {
 			cl = level.clients + i;
 			if ( cl->pers.connected != CON_CONNECTED ) {
 				continue;
@@ -2118,19 +2119,19 @@ static void G_RunFrame( int levelTime ) {
 		G_RunThink( ent );
 	}
 
-	// unlagged
-	G_TimeShiftAllClients( level.previousTime, NULL );
-
-	for ( i = 0; i < numMissiles; i++ ) {
-		G_RunMissile( missiles[ i ] );
+	if ( numMissiles ) {
+		// unlagged
+		G_TimeShiftAllClients( level.previousTime, NULL );
+		// run missiles
+		for ( i = 0; i < numMissiles; i++ )
+			G_RunMissile( missiles[ i ] );
+		// unlagged
+		G_UnTimeShiftAllClients( NULL );
 	}
-
-	// unlagged
-	G_UnTimeShiftAllClients( NULL );
 
 	// perform final fixups on the players
 	ent = &g_entities[0];
-	for (i=0 ; i < level.maxclients ; i++, ent++ ) {
+	for (i = 0 ; i < level.maxclients ; i++, ent++ ) {
 		if ( ent->inuse ) {
 			ClientEndFrame( ent );
 		}

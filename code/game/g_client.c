@@ -747,6 +747,10 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	gentity_t	*ent;
 	qboolean	isAdmin;
 
+	if ( clientNum >= level.maxclients ) {
+		return "Bad connection slot.";
+	}
+
 	ent = &g_entities[ clientNum ];
 	ent->client = level.clients + clientNum;
 

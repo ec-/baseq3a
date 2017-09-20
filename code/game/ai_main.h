@@ -266,6 +266,7 @@ int NumBots(void);
 //returns info about the entity
 void BotEntityInfo(int entnum, aas_entityinfo_t *info);
 
+extern int maxclients; // maximum number of clients
 extern float floattime;
 #define FloatTime() floattime
 

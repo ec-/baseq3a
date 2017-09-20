@@ -224,7 +224,7 @@ void G_AddRandomBot( team_t team ) {
 	for ( n = 0; n < g_numBots ; n++ ) {
 		value = Info_ValueForKey( g_botInfos[n], "name" );
 		//
-		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+		for ( i = 0 ; i < level.maxclients ; i++ ) {
 			cl = level.clients + i;
 			if ( cl->pers.connected != CON_CONNECTED ) {
 				continue;
@@ -239,7 +239,7 @@ void G_AddRandomBot( team_t team ) {
 				break;
 			}
 		}
-		if (i >= g_maxclients.integer) {
+		if (i >= level.maxclients) {
 			num++;
 		}
 	}
@@ -247,7 +247,7 @@ void G_AddRandomBot( team_t team ) {
 	for ( n = 0; n < g_numBots ; n++ ) {
 		value = Info_ValueForKey( g_botInfos[n], "name" );
 		//
-		for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+		for ( i = 0 ; i < level.maxclients ; i++ ) {
 			cl = level.clients + i;
 			if ( cl->pers.connected != CON_CONNECTED ) {
 				continue;
@@ -262,7 +262,7 @@ void G_AddRandomBot( team_t team ) {
 				break;
 			}
 		}
-		if (i >= g_maxclients.integer) {
+		if (i >= level.maxclients) {
 			num--;
 			if (num <= 0) {
 				skill = trap_Cvar_VariableValue( "g_spSkill" );
@@ -289,7 +289,7 @@ int G_RemoveRandomBot( int team ) {
 	char netname[36];
 	gclient_t	*cl;
 
-	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
@@ -319,7 +319,7 @@ static int G_CountHumanPlayers( team_t team ) {
 	gclient_t	*cl;
 
 	num = 0;
-	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
@@ -346,7 +346,7 @@ static int G_CountBotPlayers( team_t team ) {
 	gclient_t	*cl;
 
 	num = 0;
-	for ( i=0 ; i< g_maxclients.integer ; i++ ) {
+	for ( i=0 ; i< level.maxclients ; i++ ) {
 		cl = level.clients + i;
 		if ( cl->pers.connected != CON_CONNECTED ) {
 			continue;
@@ -398,8 +398,8 @@ void G_CheckMinimumPlayers( void ) {
 	if (minplayers <= 0) return;
 
 	if (g_gametype.integer >= GT_TEAM) {
-		if (minplayers >= g_maxclients.integer / 2) {
-			minplayers = (g_maxclients.integer / 2) -1;
+		if (minplayers >= level.maxclients / 2) {
+			minplayers = (level.maxclients / 2) -1;
 		}
 
 		humanplayers = G_CountHumanPlayers( TEAM_RED );
@@ -421,8 +421,8 @@ void G_CheckMinimumPlayers( void ) {
 		}
 	}
 	else if (g_gametype.integer == GT_TOURNAMENT ) {
-		if (minplayers >= g_maxclients.integer) {
-			minplayers = g_maxclients.integer-1;
+		if (minplayers >= level.maxclients) {
+			minplayers = level.maxclients-1;
 		}
 		humanplayers = G_CountHumanPlayers( -1 );
 		botplayers = G_CountBotPlayers( -1 );
@@ -438,8 +438,8 @@ void G_CheckMinimumPlayers( void ) {
 		}
 	}
 	else if (g_gametype.integer == GT_FFA) {
-		if (minplayers >= g_maxclients.integer) {
-			minplayers = g_maxclients.integer-1;
+		if (minplayers >= level.maxclients) {
+			minplayers = level.maxclients-1;
 		}
 		humanplayers = G_CountHumanPlayers( TEAM_FREE );
 		botplayers = G_CountBotPlayers( TEAM_FREE );
