@@ -54,6 +54,7 @@ const char	*CG_PlaceString( int rank ) {
 	return str;
 }
 
+
 /*
 =============
 CG_Obituary
@@ -70,6 +71,7 @@ static void CG_Obituary( entityState_t *ent ) {
 	char		attackerName[32];
 	gender_t	gender;
 	clientInfo_t	*ci;
+	qboolean	following;
 
 	target = ent->otherEntityNum;
 	attacker = ent->otherEntityNum2;
@@ -94,6 +96,8 @@ static void CG_Obituary( entityState_t *ent ) {
 	}
 	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
 	strcat( targetName, S_COLOR_WHITE );
+
+	following = cg.snap->ps.pm_flags & PMF_FOLLOW;
 
 	message2 = "";
 
@@ -186,8 +190,15 @@ static void CG_Obituary( entityState_t *ent ) {
 		}
 	}
 
-	if (message) {
+	if ( message ) {
 		CG_Printf( "%s %s.\n", targetName, message);
+		// switch to first killer if not following anyone
+		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cg_followKiller.integer ) {
+			if ( !cg.followTime && attacker != cg.snap->ps.clientNum && attacker < MAX_CLIENTS ) {
+				cg.followClient = attacker;
+				cg.followTime = cg.time;
+			}
+		}
 		return;
 	}
 
@@ -224,6 +235,13 @@ static void CG_Obituary( entityState_t *ent ) {
 		// check for kill messages about the current clientNum
 		if ( target == cg.snap->ps.clientNum ) {
 			Q_strncpyz( cg.killerName, attackerName, sizeof( cg.killerName ) );
+			// follow killer
+			if ( following && cg_followKiller.integer ) {
+				if ( !cg.followTime && attacker != cg.snap->ps.clientNum && attacker < MAX_CLIENTS ) {
+					cg.followClient = attacker;
+					cg.followTime = cg.time + 1100;
+				}
+			}
 		}
 	}
 
@@ -305,9 +323,15 @@ static void CG_Obituary( entityState_t *ent ) {
 			break;
 		}
 
-		if (message) {
-			CG_Printf( "%s %s %s%s\n", 
-				targetName, message, attackerName, message2);
+		if ( message ) {
+			CG_Printf( "%s %s %s%s\n", targetName, message, attackerName, message2 );
+			// switch to first killer if not following anyone
+			if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR && cg_followKiller.integer ) {
+				if ( !cg.followTime && attacker != cg.snap->ps.clientNum && attacker < MAX_CLIENTS ) {
+					cg.followClient = attacker;
+					cg.followTime = cg.time;
+				}
+			}
 			return;
 		}
 	}

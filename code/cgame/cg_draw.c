@@ -2761,6 +2761,8 @@ void CG_WarmupEvent( void ) {
 	cg.weaponSelectTime = cg.time;
 
 	cg.lowAmmoWarning = 0;
+
+	cg.followTime = 0;
 }
 
 

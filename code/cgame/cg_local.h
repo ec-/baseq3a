@@ -681,6 +681,9 @@ typedef struct {
 	int				meanPing;
 	int				timeResidual;
 	int				allowPickupPrediction;
+
+	int				followTime;
+	int				followClient;
 } cg_t;
 
 
@@ -1267,6 +1270,7 @@ extern	vmCvar_t		cg_teamColors;
 
 extern	vmCvar_t		cg_deadBodyDarken;
 extern	vmCvar_t		cg_fovAdjust;
+extern	vmCvar_t		cg_followKiller;
 
 extern const char		*eventnames[EV_MAX];
 

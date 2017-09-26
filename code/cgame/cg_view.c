@@ -835,6 +835,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	CG_TrackClientTeamChange();
 
+	// follow killer
+	if ( cg.followTime && cg.followTime < cg.time ) {
+		cg.followTime = 0;
+		if ( !cg.demoPlayback ) {
+			trap_SendConsoleCommand( va( "follow %i\n", cg.followClient ) );
+		}
+	}
+
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
 
