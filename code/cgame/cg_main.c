@@ -1023,7 +1023,7 @@ static qboolean CG_PopFile(void) {
 	numFilesOnStack--;
 	Q_strncpyz(lfNameBase, fileStack[numFilesOnStack].name, sizeof(lfNameBase)-1);
 	Com_sprintf(name, sizeof(name), "%s%s", fileStack[numFilesOnStack].path, lfNameBase);
-	COM_StripExtension( lfNameBase, lfNameBase, 1 );
+	COM_StripExtension( lfNameBase, lfNameBase, sizeof(lfNameBase));
 	len = strlen(lfNameBase);
 	lfNameBase[len] = '/';
 	lfNameBase[len+1] = 0;
