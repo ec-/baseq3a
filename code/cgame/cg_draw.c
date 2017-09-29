@@ -654,7 +654,7 @@ static void CG_DrawStatusBar( void ) {
 			}
 #ifdef USE_NEW_FONT_RENDERER
 			CG_SelectFont( 1 );
-			CG_DrawString( CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+			CG_DrawString( CHAR_WIDTH*3 + 2.5, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
 			CG_SelectFont( 0 );
 #else
 			trap_R_SetColor( colors[color] );
@@ -690,7 +690,7 @@ static void CG_DrawStatusBar( void ) {
 
 #ifdef USE_NEW_FONT_RENDERER
 	CG_SelectFont( 1 );
-	CG_DrawString( 185 + CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+	CG_DrawString( 185 + CHAR_WIDTH*3 + 2.5, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
 	CG_SelectFont( 0 );
 #else
 	trap_R_SetColor( colors[ color ] );
@@ -708,7 +708,7 @@ static void CG_DrawStatusBar( void ) {
 	if ( value > 0 ) {
 #ifdef USE_NEW_FONT_RENDERER
 		CG_SelectFont( 1 );
-		CG_DrawString( 370 + CHAR_WIDTH*3, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
+		CG_DrawString( 370 + CHAR_WIDTH*3 + 2.5, y, va( "%i", value ), colors[ color ], CHAR_WIDTH, CHAR_HEIGHT, 0, DS_RIGHT | DS_PROPORTIONAL );
 		CG_SelectFont( 0 );
 #else
 		trap_R_SetColor( colors[0] );
