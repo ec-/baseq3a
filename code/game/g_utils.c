@@ -357,6 +357,7 @@ void G_InitGentity( gentity_t *e ) {
 	e->r.ownerNum = ENTITYNUM_NONE;
 }
 
+
 /*
 =================
 G_Spawn
@@ -373,23 +374,23 @@ angles and bad trails.
 =================
 */
 gentity_t *G_Spawn( void ) {
-	int			i, force;
+	int			i, timeout;
 	gentity_t	*e;
 
-	e = NULL;	// shut up warning
-	i = 0;		// shut up warning
-	for ( force = 0 ; force < 2 ; force++ ) {
+	e = NULL; // shut up warning
+	// try to release oldest items first
+	for ( timeout = 1000 ; timeout >= 0 ; timeout -= 250 ) {
 		// if we go through all entities and can't find one to free,
 		// override the normal minimum times before use
-		e = &g_entities[MAX_CLIENTS];
-		for ( i = MAX_CLIENTS ; i<level.num_entities ; i++, e++) {
+		e = &g_entities[ MAX_CLIENTS ];
+		for ( i = MAX_CLIENTS ; i < level.num_entities; i++, e++ ) {
 			if ( e->inuse ) {
 				continue;
 			}
 
 			// the first couple seconds of server time can involve a lot of
 			// freeing and allocating, so relax the replacement policy
-			if ( !force && e->freetime > level.startTime + 2000 && level.time - e->freetime < 1000 ) {
+			if ( e->freetime > level.startTime + 2000 && level.time - e->freetime < timeout ) {
 				continue;
 			}
 
@@ -397,10 +398,12 @@ gentity_t *G_Spawn( void ) {
 			G_InitGentity( e );
 			return e;
 		}
-		if ( i != MAX_GENTITIES ) {
+
+		if ( level.num_entities < ENTITYNUM_MAX_NORMAL ) {
 			break;
 		}
 	}
+
 	if ( i == ENTITYNUM_MAX_NORMAL ) {
 		for (i = 0; i < MAX_GENTITIES; i++) {
 			G_Printf("%4i: %s\n", i, g_entities[i].classname);
@@ -418,6 +421,7 @@ gentity_t *G_Spawn( void ) {
 	G_InitGentity( e );
 	return e;
 }
+
 
 /*
 =================
@@ -459,6 +463,7 @@ void G_FreeEntity( gentity_t *ed ) {
 	ed->freetime = level.time;
 	ed->inuse = qfalse;
 }
+
 
 /*
 =================
