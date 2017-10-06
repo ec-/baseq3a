@@ -13,22 +13,24 @@ DeathmatchScoreboardMessage
 ==================
 */
 void DeathmatchScoreboardMessage( gentity_t *ent ) {
-	char		entry[1024];
-	char		string[1400];
+	char		entry[256]; // enough to hold 14 integers
+	char		string[MAX_STRING_CHARS-1];
 	int			stringlength;
-	int			i, j;
+	int			i, j, ping, prefix;
 	gclient_t	*cl;
 	int			numSorted, scoreFlags, accuracy, perfect;
 
 	// send the latest information on all clients
-	string[0] = 0;
+	string[0] = '\0';
 	stringlength = 0;
 	scoreFlags = 0;
 
 	numSorted = level.numConnectedClients;
+
+	// estimate prefix length to avoid oversize of final string
+	prefix = BG_sprintf( entry, "scores %i %i %i", level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE], numSorted );
 	
-	for (i=0 ; i < numSorted ; i++) {
-		int		ping;
+	for ( i = 0 ; i < numSorted ; i++ ) {
 
 		cl = &level.clients[level.sortedClients[i]];
 
@@ -40,16 +42,20 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 
 		if( cl->accuracy_shots ) {
 			accuracy = cl->accuracy_hits * 100 / cl->accuracy_shots;
-		}
-		else {
+		} else {
 			accuracy = 0;
 		}
+
 		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
 
-		Com_sprintf (entry, sizeof(entry),
-			" %i %i %i %i %i %i %i %i %i %i %i %i %i %i", level.sortedClients[i],
-			cl->ps.persistant[PERS_SCORE], ping, (level.time - cl->pers.enterTime)/60000,
-			scoreFlags, g_entities[level.sortedClients[i]].s.powerups, accuracy, 
+		j = BG_sprintf( entry, " %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+			level.sortedClients[i],
+			cl->ps.persistant[PERS_SCORE],
+			ping,
+			(level.time - cl->pers.enterTime)/60000,
+			scoreFlags,
+			g_entities[level.sortedClients[i]].s.powerups,
+			accuracy, 
 			cl->ps.persistant[PERS_IMPRESSIVE_COUNT],
 			cl->ps.persistant[PERS_EXCELLENT_COUNT],
 			cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT], 
@@ -57,14 +63,15 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 			cl->ps.persistant[PERS_ASSIST_COUNT], 
 			perfect,
 			cl->ps.persistant[PERS_CAPTURES]);
-		j = (int)strlen(entry);
-		if (stringlength + j >= sizeof(string))
+
+		if ( stringlength + j + prefix >= sizeof( string ) )
 			break;
-		strcpy (string + stringlength, entry);
+
+		strcpy( string + stringlength, entry );
 		stringlength += j;
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("scores %i %i %i%s", i, 
+	trap_SendServerCommand( ent-g_entities, va( "scores %i %i %i%s", i,
 		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE],
 		string ) );
 }
@@ -80,7 +87,6 @@ Request current scoreboard information
 void Cmd_Score_f( gentity_t *ent ) {
 	DeathmatchScoreboardMessage( ent );
 }
-
 
 
 /*
