@@ -28,6 +28,7 @@ void Use_Target_Give( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		Touch_Item( t, activator, &trace );
 
 		// make sure it isn't going to respawn or show any events
+		t->tag = TAG_DONTSPAWN;
 		t->nextthink = 0;
 		trap_UnlinkEntity( t );
 	}

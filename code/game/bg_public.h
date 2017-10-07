@@ -548,6 +548,11 @@ typedef enum {
 	TEAM_NUM_TEAMS
 } team_t;
 
+typedef enum {
+	TAG_NONE = 0,
+	TAG_DONTSPAWN,
+} tag_t;
+
 // Time between location updates
 #define TEAM_LOCATION_UPDATE_TIME		1000
 

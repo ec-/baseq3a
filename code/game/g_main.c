@@ -1625,6 +1625,11 @@ static void G_WarmupEnd( void )
 		if ( !ent->inuse || ent->freeAfterEvent )
 			continue;
 
+		if ( ent->tag == TAG_DONTSPAWN ) {
+			ent->nextthink = 0;
+			continue;
+		}
+
 		if ( ent->s.eType == ET_ITEM && ent->item ) {
 
 			// already processed in Team_ResetFlags()

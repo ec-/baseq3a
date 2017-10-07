@@ -929,13 +929,17 @@ Items can't be immediately dropped to floor, because they might
 be on an entity that hasn't spawned yet.
 ============
 */
-void G_SpawnItem (gentity_t *ent, gitem_t *item) {
+void G_SpawnItem( gentity_t *ent, gitem_t *item ) {
+
 	G_SpawnFloat( "random", "0", &ent->random );
 	G_SpawnFloat( "wait", "0", &ent->wait );
 
 	RegisterItem( item );
-	if ( G_ItemDisabled(item) )
+
+	if ( G_ItemDisabled( item ) ) {
+		ent->tag = TAG_DONTSPAWN;
 		return;
+	}
 
 	ent->item = item;
 	// some movers spawn on the second frame, so delay item

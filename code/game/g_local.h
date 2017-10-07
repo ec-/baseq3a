@@ -158,6 +158,8 @@ struct gentity_s {
 
 	// team for spawn spot
 	team_t		fteam;
+
+	tag_t		tag;
 };
 
 
