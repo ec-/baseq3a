@@ -1602,7 +1602,7 @@ static void G_WarmupEnd( void )
 
 		client->ps.persistant[PERS_ATTACKER] = ENTITYNUM_NONE;
 		client->ps.persistant[PERS_ATTACKEE_ARMOR] = 0;
-		client->damage.enemy = client->damage.team = 0;	
+		client->damage.enemy = client->damage.team = 0;
 
 		client->ps.stats[STAT_CLIENTS_READY] = 0;
 		client->ps.stats[STAT_HOLDABLE_ITEM] = 0;
