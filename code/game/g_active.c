@@ -302,18 +302,21 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 
 	if ( client->sess.spectatorState != SPECTATOR_FOLLOW ) {
 		client->ps.pm_type = PM_SPECTATOR;
-		client->ps.speed = 400;	// faster than normal
+		client->ps.speed = g_speed.value * 1.25f; // faster than normal
 
 		// set up for pmove
-		memset (&pm, 0, sizeof(pm));
+		memset( &pm, 0, sizeof( pm ) );
 		pm.ps = &client->ps;
 		pm.cmd = *ucmd;
-		pm.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;	// spectators can fly through bodies
+		if ( client->noclip )
+			pm.tracemask = 0;
+		else
+			pm.tracemask = MASK_PLAYERSOLID & ~CONTENTS_BODY;	// spectators can fly through bodies
 		pm.trace = trap_Trace;
 		pm.pointcontents = trap_PointContents;
 
 		// perform a pmove
-		Pmove (&pm);
+		Pmove( &pm );
 		// save results of pmove
 		VectorCopy( client->ps.origin, ent->s.origin );
 
