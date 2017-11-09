@@ -22,6 +22,16 @@ g_unlagged <0|1>
 
 
 ========================
+g_predictPVS
+
+	try to predict visible entities in order to compensate 'sudden spawn' effect on client-side
+
+	this works only if client is moving towards entities, i.e. it doesn't enhance static visibility for wallhackers
+
+	requires quake3e engine with SVF_SELFPORTAL2 functionality
+
+
+========================
 g_rotation
 
     points to filename with rotation information, see rotation.txt for details
