@@ -2987,7 +2987,7 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
 	}
 #endif
 	//
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 
 		if (i == bs->client) continue;
 		//if it's the current enemy
@@ -3068,7 +3068,7 @@ int BotTeamFlagCarrierVisible(bot_state_t *bs) {
 	float vis;
 	aas_entityinfo_t entinfo;
 
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client)
 			continue;
 		//
@@ -3101,7 +3101,7 @@ int BotTeamFlagCarrier(bot_state_t *bs) {
 	int i;
 	aas_entityinfo_t entinfo;
 
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client)
 			continue;
 		//
@@ -3131,7 +3131,7 @@ int BotEnemyFlagCarrierVisible(bot_state_t *bs) {
 	float vis;
 	aas_entityinfo_t entinfo;
 
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client)
 			continue;
 		//
@@ -3170,7 +3170,7 @@ void BotVisibleTeamMatesAndEnemies(bot_state_t *bs, int *teammates, int *enemies
 		*teammates = 0;
 	if (enemies)
 		*enemies = 0;
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client)
 			continue;
 		//
@@ -3719,7 +3719,7 @@ void BotMapScripts(bot_state_t *bs) {
 		}
 		shootbutton = qfalse;
 		//if an enemy is below this bounding box then shoot the button
-		for (i = 0; i < maxclients; i++) {
+		for (i = 0; i < level.maxclients; i++) {
 
 			if (i == bs->client) continue;
 			//

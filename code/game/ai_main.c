@@ -41,8 +41,6 @@
 bot_state_t	*botstates[MAX_CLIENTS];
 //number of bots
 int numbots;
-// max.clients on level
-int maxclients;
 //floating point time
 float floattime;
 //time to do a regular update
@@ -381,7 +379,7 @@ void BotTeamplayReport(void) {
 	char buf[MAX_INFO_STRING];
 
 	BotAI_Print(PRT_MESSAGE, S_COLOR_RED"RED\n");
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		//
 		if ( !botstates[i] || !botstates[i]->inuse ) continue;
 		//
@@ -394,7 +392,7 @@ void BotTeamplayReport(void) {
 		}
 	}
 	BotAI_Print(PRT_MESSAGE, S_COLOR_BLUE"BLUE\n");
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		//
 		if ( !botstates[i] || !botstates[i]->inuse ) continue;
 		//
@@ -535,7 +533,7 @@ void BotUpdateInfoConfigStrings(void) {
 	int i;
 	char buf[MAX_INFO_STRING];
 
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		//
 		if ( !botstates[i] || !botstates[i]->inuse )
 			continue;
@@ -1299,6 +1297,7 @@ int BotAIShutdownClient(int client, qboolean restart) {
 	return qtrue;
 }
 
+
 /*
 ==============
 BotResetState
@@ -1359,15 +1358,13 @@ BotAILoadMap
 */
 int BotAILoadMap( int restart ) {
 	int			i;
-	vmCvar_t	mapname;
 
-	if (!restart) {
-		trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
-		trap_BotLibLoadMap( mapname.string );
+	if ( !restart ) {
+		trap_BotLibLoadMap( g_mapname.string );
 	}
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (botstates[i] && botstates[i]->inuse) {
+	for ( i = 0; i < level.maxclients; i++ ) {
+		if ( botstates[i] && botstates[i]->inuse ) {
 			BotResetState( botstates[i] );
 			botstates[i]->setupcount = 4;
 		}
@@ -1417,7 +1414,7 @@ int BotAIStartFrame(int time) {
 
 	if (bot_pause.integer) {
 		// execute bot user commands every frame
-		for( i = 0; i < MAX_CLIENTS; i++ ) {
+		for( i = 0; i < level.maxclients; i++ ) {
 			if( !botstates[i] || !botstates[i]->inuse ) {
 				continue;
 			}
@@ -1540,7 +1537,7 @@ int BotAIStartFrame(int time) {
 	floattime = trap_AAS_Time();
 
 	// execute scheduled bot AI
-	for( i = 0; i < MAX_CLIENTS; i++ ) {
+	for( i = 0; i < level.maxclients; i++ ) {
 		if( !botstates[i] || !botstates[i]->inuse ) {
 			continue;
 		}
@@ -1560,7 +1557,7 @@ int BotAIStartFrame(int time) {
 
 
 	// execute bot user commands every frame
-	for( i = 0; i < MAX_CLIENTS; i++ ) {
+	for( i = 0; i < level.maxclients; i++ ) {
 		if( !botstates[i] || !botstates[i]->inuse ) {
 			continue;
 		}
@@ -1584,13 +1581,10 @@ int BotInitLibrary( void ) {
 	char buf[MAX_CVAR_VALUE_STRING];
 
 	//set the maxclients and maxentities library variables before calling BotSetupLibrary
-	trap_Cvar_VariableStringBuffer("sv_maxclients", buf, sizeof(buf));
+	trap_Cvar_VariableStringBuffer( "sv_maxclients", buf, sizeof( buf ) );
 	if ( !buf[0] )
 		strcpy( buf, "8" );
 	trap_BotLibVarSet( "maxclients", buf );
-	maxclients = atoi( buf );
-	if ( maxclients > MAX_CLIENTS )
-		maxclients = MAX_CLIENTS;
 
 	Com_sprintf(buf, sizeof(buf), "%d", MAX_GENTITIES);
 	trap_BotLibVarSet("maxentities", buf);
@@ -1727,8 +1721,8 @@ int BotAIShutdown( int restart ) {
 	//if the game is restarted for a tournament
 	if ( restart ) {
 		//shutdown all the bots in the botlib
-		for (i = 0; i < MAX_CLIENTS; i++) {
-			if (botstates[i] && botstates[i]->inuse) {
+		for ( i = 0; i < level.maxclients; i++ ) {
+			if ( botstates[i] && botstates[i]->inuse ) {
 				BotAIShutdownClient(botstates[i]->client, restart);
 			}
 		}

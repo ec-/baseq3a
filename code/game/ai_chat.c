@@ -50,7 +50,7 @@ int BotNumActivePlayers(void) {
 	char buf[MAX_INFO_STRING];
 
 	num = 0;
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		//if no config string or no name
 		if (!buf[0] || !*Info_ValueForKey(buf, "n")) continue;
@@ -73,7 +73,7 @@ int BotIsFirstInRankings(bot_state_t *bs) {
 	playerState_t ps;
 
 	score = bs->cur_ps.persistant[PERS_SCORE];
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		//if no config string or no name
 		if (!buf[0] || !*Info_ValueForKey(buf, "n")) continue;
@@ -97,7 +97,7 @@ int BotIsLastInRankings(bot_state_t *bs) {
 	playerState_t ps;
 
 	score = bs->cur_ps.persistant[PERS_SCORE];
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		//if no config string or no name
 		if (!buf[0] || !*Info_ValueForKey(buf, "n")) continue;
@@ -123,7 +123,7 @@ char *BotFirstClientInRankings(void) {
 
 	bestscore = -999999;
 	bestclient = 0;
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		//if no config string or no name
 		if (!buf[0] || !*Info_ValueForKey(buf, "n")) continue;
@@ -153,7 +153,7 @@ char *BotLastClientInRankings(void) {
 
 	worstscore = 999999;
 	bestclient = 0;
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
 		//if no config string or no name
 		if (!buf[0] || !*Info_ValueForKey(buf, "n")) continue;
@@ -183,7 +183,7 @@ char *BotRandomOpponentName(bot_state_t *bs) {
 
 	numopponents = 0;
 	opponents[0] = 0;
-	for (i = 0; i < maxclients; i++) {
+	for (i = 0; i < level.maxclients; i++) {
 		if (i == bs->client) continue;
 		//
 		trap_GetConfigstring(CS_PLAYERS+i, buf, sizeof(buf));
