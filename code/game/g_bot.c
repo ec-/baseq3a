@@ -96,12 +96,13 @@ int G_ParseInfos( char *buf, int max, char *infos[] ) {
 	return count;
 }
 
+
 /*
 ===============
 G_LoadArenasFromFile
 ===============
 */
-static void G_LoadArenasFromFile( char *filename ) {
+static void G_LoadArenasFromFile( const char *filename ) {
 	int				len;
 	fileHandle_t	f;
 	char			buf[MAX_ARENAS_TEXT];
@@ -123,6 +124,7 @@ static void G_LoadArenasFromFile( char *filename ) {
 
 	g_numArenas += G_ParseInfos( buf, MAX_ARENAS - g_numArenas, &g_arenaInfos[g_numArenas] );
 }
+
 
 /*
 ===============
@@ -217,7 +219,7 @@ G_AddRandomBot
 void G_AddRandomBot( team_t team ) {
 	int		i, n, num;
 	float	skill;
-	char	*value, netname[36], *teamstr;
+	char	*value, netname[36], *teamstr, *skillstr;
 	gclient_t	*cl;
 
 	num = 0;
@@ -245,8 +247,15 @@ void G_AddRandomBot( team_t team ) {
 	}
 	num = random() * num;
 	for ( n = 0; n < g_numBots ; n++ ) {
-		value = Info_ValueForKey( g_botInfos[n], "name" );
-		//
+
+		value = Info_ValueForKey( g_botInfos[ n ], "name" );
+
+		skillstr = Info_ValueForKey( g_botInfos[ n ], "skill" );
+		if ( *skillstr )
+			skill = atof( skillstr );
+		else
+			skill = trap_Cvar_VariableValue( "g_spSkill" );
+
 		for ( i = 0 ; i < level.maxclients ; i++ ) {
 			cl = level.clients + i;
 			if ( cl->pers.connected != CON_CONNECTED ) {
@@ -264,14 +273,13 @@ void G_AddRandomBot( team_t team ) {
 		}
 		if (i >= level.maxclients) {
 			num--;
-			if (num <= 0) {
-				skill = trap_Cvar_VariableValue( "g_spSkill" );
+			if ( num <= 0 ) {
 				if (team == TEAM_RED) teamstr = "red";
 				else if (team == TEAM_BLUE) teamstr = "blue";
 				else teamstr = "";
 				Q_strncpyz(netname, value, sizeof(netname));
 				Q_CleanStr(netname);
-				trap_SendConsoleCommand( EXEC_INSERT, va("addbot %s %f %s %i\n", netname, skill, teamstr, 0) );
+				trap_SendConsoleCommand( EXEC_INSERT, va( "addbot %s %1.2f %s 0\n", netname, skill, teamstr ) );
 				return;
 			}
 		}
@@ -846,7 +854,7 @@ static void G_SpawnBots( char *botList, int baseDelay ) {
 G_LoadBotsFromFile
 ===============
 */
-static void G_LoadBotsFromFile( char *filename ) {
+static void G_LoadBotsFromFile( const char *filename ) {
 	int				len;
 	fileHandle_t	f;
 	char			buf[MAX_BOTS_TEXT];
@@ -869,6 +877,7 @@ static void G_LoadBotsFromFile( char *filename ) {
 	g_numBots += G_ParseInfos( buf, MAX_BOTS - g_numBots, &g_botInfos[g_numBots] );
 }
 
+
 /*
 ===============
 G_LoadBots
@@ -889,16 +898,16 @@ static void G_LoadBots( void ) {
 
 	g_numBots = 0;
 
-	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM );
-	if( *botsFile.string ) {
-		G_LoadBotsFromFile(botsFile.string);
-	}
-	else {
-		G_LoadBotsFromFile("scripts/bots.txt");
+	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_ARCHIVE | CVAR_LATCH );
+
+	if ( *botsFile.string && g_gametype.integer != GT_SINGLE_PLAYER ) {
+		G_LoadBotsFromFile( botsFile.string );
+	} else {
+		G_LoadBotsFromFile( "scripts/bots.txt" );
 	}
 
 	// get all bots from .bot files
-	numdirs = trap_FS_GetFileList("scripts", ".bot", dirlist, sizeof( dirlist ) );
+	numdirs = trap_FS_GetFileList( "scripts", ".bot", dirlist, sizeof( dirlist ) );
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
 		dirlen = (int)strlen(dirptr);
@@ -943,6 +952,7 @@ char *G_GetBotInfoByName( const char *name ) {
 
 	return NULL;
 }
+
 
 /*
 ===============

@@ -331,6 +331,7 @@ static void UI_LoadBotsFromFile( char *filename ) {
 	if (outOfMemory) trap_Print(S_COLOR_YELLOW"WARNING: not anough memory in pool to load all bots\n");
 }
 
+
 /*
 ===============
 UI_LoadBots
@@ -347,16 +348,15 @@ static void UI_LoadBots( void ) {
 
 	ui_numBots = 0;
 
-	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM );
-	if( *botsFile.string ) {
-		UI_LoadBotsFromFile(botsFile.string);
-	}
-	else {
-		UI_LoadBotsFromFile("scripts/bots.txt");
+	trap_Cvar_Register( &botsFile, "g_botsFile", "", CVAR_ARCHIVE | CVAR_LATCH );
+	if ( *botsFile.string && trap_Cvar_VariableValue( "ui_gametype" ) != GT_SINGLE_PLAYER ) {
+		UI_LoadBotsFromFile( botsFile.string );
+	} else {
+		UI_LoadBotsFromFile( "scripts/bots.txt" );
 	}
 
 	// get all bots from .bot files
-	numdirs = trap_FS_GetFileList("scripts", ".bot", dirlist, 1024 );
+	numdirs = trap_FS_GetFileList( "scripts", ".bot", dirlist, sizeof( dirlist ) );
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
 		dirlen = strlen(dirptr);

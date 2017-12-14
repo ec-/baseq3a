@@ -154,7 +154,7 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_ctf_friendly, "ui_ctf_friendly",  "0", CVAR_ARCHIVE },
 
 	{ &ui_arenasFile, "g_arenasFile", "", CVAR_INIT|CVAR_ROM },
-	{ &ui_botsFile, "g_botsFile", "", CVAR_INIT|CVAR_ROM },
+	{ &ui_botsFile, "g_botsFile", "", CVAR_ARCHIVE|CVAR_LATCH },
 	{ &ui_spScores1, "g_spScores1", "", CVAR_ARCHIVE },
 	{ &ui_spScores2, "g_spScores2", "", CVAR_ARCHIVE },
 	{ &ui_spScores3, "g_spScores3", "", CVAR_ARCHIVE },
