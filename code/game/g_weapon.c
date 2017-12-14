@@ -254,10 +254,10 @@ BFG
 ======================================================================
 */
 
-void BFG_Fire ( gentity_t *ent ) {
-	gentity_t	*m;
+void BFG_Fire( gentity_t *ent ) {
+	gentity_t *m;
 
-	m = fire_bfg (ent, muzzle, forward);
+	m = fire_bfg( ent, muzzle, forward );
 	m->damage *= s_quadFactor;
 	m->splashDamage *= s_quadFactor;
 
@@ -285,6 +285,7 @@ static qboolean ShotgunPellet( const vec3_t start, const vec3_t end, gentity_t *
 	vec3_t		impactpoint, bouncedir;
 #endif
 	vec3_t		tr_start, tr_end;
+	qboolean	hitClient = qfalse;
 
 	passent = ent->s.number;
 	VectorCopy( start, tr_start );
@@ -315,18 +316,12 @@ static qboolean ShotgunPellet( const vec3_t start, const vec3_t end, gentity_t *
 				}
 				continue;
 			}
-			else {
-				G_Damage( traceEnt, ent, ent, forward, tr.endpos,
-					damage, 0, MOD_SHOTGUN);
-				if( LogAccuracyHit( traceEnt, ent ) ) {
-					return qtrue;
-				}
-			}
 #else
-			G_Damage( traceEnt, ent, ent, forward, tr.endpos,	damage, 0, MOD_SHOTGUN);
-				if( LogAccuracyHit( traceEnt, ent ) ) {
-					return qtrue;
-				}
+			if ( LogAccuracyHit( traceEnt, ent ) ) {
+				hitClient = qtrue;
+			}
+			G_Damage( traceEnt, ent, ent, forward, tr.endpos, damage, 0, MOD_SHOTGUN );
+			return hitClient;
 #endif
 		}
 		return qfalse;
@@ -512,18 +507,14 @@ void weapon_railgun_fire( gentity_t *ent ) {
 					// the player can hit him/herself with the bounced rail
 					passent = ENTITYNUM_NONE;
 				}
-			}
-			else {
-				if( LogAccuracyHit( traceEnt, ent ) ) {
-					hits++;
-				}
-				G_Damage (traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN);
-			}
+			} else
 #else
-				if( LogAccuracyHit( traceEnt, ent ) ) {
+			{
+				if ( LogAccuracyHit( traceEnt, ent ) ) {
 					hits++;
 				}
-				G_Damage (traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN);
+				G_Damage( traceEnt, ent, ent, forward, trace.endpos, damage, 0, MOD_RAILGUN );
+			}
 #endif
 		}
 		if ( trace.contents & CONTENTS_SOLID ) {
@@ -607,12 +598,14 @@ void Weapon_GrapplingHook_Fire (gentity_t *ent)
 	ent->client->fireHeld = qtrue;
 }
 
+
 void Weapon_HookFree (gentity_t *ent)
 {
 	ent->parent->client->hook = NULL;
 	ent->parent->client->ps.pm_flags &= ~PMF_GRAPPLE_PULL;
 	G_FreeEntity( ent );
 }
+
 
 void Weapon_HookThink (gentity_t *ent)
 {
@@ -699,13 +692,11 @@ void Weapon_LightningFire( gentity_t *ent ) {
 				}
 				continue;
 			}
-			else {
-				G_Damage( traceEnt, ent, ent, forward, tr.endpos,
-					damage, 0, MOD_LIGHTNING);
-			}
 #else
-				G_Damage( traceEnt, ent, ent, forward, tr.endpos,
-					damage, 0, MOD_LIGHTNING);
+			if ( LogAccuracyHit( traceEnt, ent ) ) {
+				ent->client->accuracy_hits++;
+			}
+			G_Damage( traceEnt, ent, ent, forward, tr.endpos, damage, 0, MOD_LIGHTNING );
 #endif
 		}
 
@@ -714,9 +705,6 @@ void Weapon_LightningFire( gentity_t *ent ) {
 			tent->s.otherEntityNum = traceEnt->s.number;
 			tent->s.eventParm = DirToByte( tr.plane.normal );
 			tent->s.weapon = ent->s.weapon;
-			if( LogAccuracyHit( traceEnt, ent ) ) {
-				ent->client->accuracy_hits++;
-			}
 		} else if ( !( tr.surfaceFlags & SURF_NOIMPACT ) ) {
 			tent = G_TempEntity( tr.endpos, EV_MISSILE_MISS );
 			tent->s.eventParm = DirToByte( tr.plane.normal );
