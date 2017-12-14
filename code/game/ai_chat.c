@@ -136,9 +136,10 @@ char *BotFirstClientInRankings(void) {
 			bestclient = i;
 		}
 	}
-	EasyClientName(bestclient, name, 32);
+	EasyClientName( bestclient, name, sizeof( name ) );
 	return name;
 }
+
 
 /*
 ==================
@@ -166,9 +167,10 @@ char *BotLastClientInRankings(void) {
 			bestclient = i;
 		}
 	}
-	EasyClientName(bestclient, name, 32);
+	EasyClientName( bestclient, name, sizeof( name ) );
 	return name;
 }
+
 
 /*
 ==================

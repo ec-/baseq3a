@@ -1378,6 +1378,7 @@ int BotPointAreaNum(vec3_t origin) {
 	return 0;
 }
 
+
 /*
 ==================
 ClientName
@@ -1387,8 +1388,9 @@ char *ClientName( int client, char *name, int size ) {
 	char buf[ MAX_INFO_STRING ];
 
 	if ( (unsigned) client >= MAX_CLIENTS ) {
-		BotAI_Print(PRT_ERROR, "ClientName: client out of range\n");
-		return "[client out of range]";
+		BotAI_Print( PRT_ERROR, "ClientName: client out of range\n" );
+		Q_strncpyz( name, "[client out of range]", size );
+		return name;
 	}
 
 	trap_GetConfigstring( CS_PLAYERS + client, buf, sizeof( buf ) );
@@ -1489,7 +1491,7 @@ char *EasyClientName(int client, char *buf, int size) {
 	char *str1, *str2, *ptr, c;
 	char name[128];
 
-	strcpy(name, ClientName(client, name, sizeof(name)));
+	ClientName( client, name, sizeof( name ) );
 	for (i = 0; name[i]; i++) name[i] &= 127;
 	//remove all spaces
 	for (ptr = strchr(name, ' '); ptr; ptr = strchr(name, ' ')) {
