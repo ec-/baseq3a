@@ -763,30 +763,30 @@ Svcmd_BotList_f
 */
 void Svcmd_BotList_f( void ) {
 	int i;
-	char name[MAX_TOKEN_CHARS];
-	char funname[MAX_TOKEN_CHARS];
-	char model[MAX_TOKEN_CHARS];
-	char aifile[MAX_TOKEN_CHARS];
+	char name[MAX_NETNAME];
+	char funname[MAX_NETNAME];
+	char model[MAX_QPATH];
+	char aifile[MAX_QPATH];
 
-	trap_Print("^1name             model            aifile              funname\n");
-	for (i = 0; i < g_numBots; i++) {
-		strcpy(name, Info_ValueForKey( g_botInfos[i], "name" ));
+	trap_Print( S_COLOR_RED "name             model            aifile              funname\n" );
+	for ( i = 0; i < g_numBots; i++ ) {
+		Q_strncpyz( name, Info_ValueForKey( g_botInfos[i], "name" ), sizeof( name ) );
 		if ( !*name ) {
 			strcpy(name, "UnnamedPlayer");
 		}
-		strcpy(funname, Info_ValueForKey( g_botInfos[i], "funname" ));
+		Q_strncpyz( funname, Info_ValueForKey( g_botInfos[i], "funname" ), sizeof( funname ) );
 		if ( !*funname ) {
-			strcpy(funname, "");
+			strcpy( funname, "" );
 		}
-		strcpy(model, Info_ValueForKey( g_botInfos[i], "model" ));
+		Q_strncpyz( model, Info_ValueForKey( g_botInfos[i], "model" ), sizeof( model ) );
 		if ( !*model ) {
-			strcpy(model, "visor/default");
+			strcpy( model, "visor/default" );
 		}
-		strcpy(aifile, Info_ValueForKey( g_botInfos[i], "aifile"));
-		if (!*aifile ) {
-			strcpy(aifile, "bots/default_c.c");
+		Q_strncpyz( aifile, Info_ValueForKey( g_botInfos[i], "aifile" ), sizeof( aifile ) );
+		if ( !*aifile ) {
+			strcpy( aifile, "bots/default_c.c" );
 		}
-		trap_Print(va("%-16s %-16s %-20s %-20s\n", name, model, aifile, funname));
+		trap_Print( va( "%-16s %-16s %-20s %-20s\n", name, model, aifile, funname ) );
 	}
 }
 
@@ -796,7 +796,7 @@ void Svcmd_BotList_f( void ) {
 G_SpawnBots
 ===============
 */
-static void G_SpawnBots( char *botList, int baseDelay ) {
+static void G_SpawnBots( const char *botList, int baseDelay ) {
 	char		*bot;
 	char		*p;
 	float		skill;
@@ -817,7 +817,7 @@ static void G_SpawnBots( char *botList, int baseDelay ) {
 		skill = 5;
 	}
 
-	Q_strncpyz( bots, botList, sizeof(bots) );
+	Q_strncpyz( bots, botList, sizeof( bots ) );
 	p = &bots[0];
 	delay = baseDelay;
 	while( *p ) {

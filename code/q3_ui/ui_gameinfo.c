@@ -117,7 +117,7 @@ int UI_ParseInfos( char *buf, int max, char *infos[] ) {
 UI_LoadArenasFromFile
 ===============
 */
-static void UI_LoadArenasFromFile( char *filename ) {
+static void UI_LoadArenasFromFile( const char *filename ) {
 	int				len;
 	fileHandle_t	f;
 	char			buf[MAX_ARENAS_TEXT];
@@ -139,6 +139,7 @@ static void UI_LoadArenasFromFile( char *filename ) {
 
 	ui_numArenas += UI_ParseInfos( buf, MAX_ARENAS - ui_numArenas, &ui_arenaInfos[ui_numArenas] );
 }
+
 
 /*
 ===============
@@ -307,7 +308,7 @@ const char *UI_GetSpecialArenaInfo( const char *tag ) {
 UI_LoadBotsFromFile
 ===============
 */
-static void UI_LoadBotsFromFile( char *filename ) {
+static void UI_LoadBotsFromFile( const char *filename ) {
 	int				len;
 	fileHandle_t	f;
 	char			buf[MAX_BOTS_TEXT];

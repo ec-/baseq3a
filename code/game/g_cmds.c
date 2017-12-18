@@ -112,11 +112,11 @@ qboolean	CheatsOk( gentity_t *ent ) {
 ConcatArgs
 ==================
 */
-char	*ConcatArgs( int start ) {
-	int		i, c, tlen;
-	static char	line[MAX_STRING_CHARS];
-	int		len;
+char *ConcatArgs( int start ) {
+	static char line[MAX_STRING_CHARS];
 	char	arg[MAX_STRING_CHARS];
+	int		i, c, tlen;
+	int		len;
 
 	len = 0;
 	c = trap_Argc();
@@ -134,10 +134,11 @@ char	*ConcatArgs( int start ) {
 		}
 	}
 
-	line[len] = 0;
+	line[len] = '\0';
 
 	return line;
 }
+
 
 /*
 ==================
@@ -152,7 +153,7 @@ void SanitizeString( const char *in, char *out ) {
 			in += 2;		// skip color code
 			continue;
 		}
-		if ( *in < 32 ) {
+		if ( *in < ' ' ) {
 			in++;
 			continue;
 		}
@@ -163,6 +164,7 @@ void SanitizeString( const char *in, char *out ) {
 
 	*out = '\0';
 }
+
 
 /*
 ==================
@@ -210,6 +212,7 @@ int ClientNumberFromString( gentity_t *to, char *s ) {
 	return -1;
 }
 
+
 /*
 ==================
 Cmd_Give_f
@@ -217,13 +220,13 @@ Cmd_Give_f
 Give items to a client
 ==================
 */
-void Cmd_Give_f (gentity_t *ent)
+void Cmd_Give_f( gentity_t *ent )
 {
 	char		*name;
 	gitem_t		*it;
 	int			i;
 	qboolean	give_all;
-	gentity_t		*it_ent;
+	gentity_t	*it_ent;
 	trace_t		trace;
 
 	if ( !CheatsOk( ent ) ) {
@@ -320,9 +323,9 @@ Sets client to godmode
 argv(0) god
 ==================
 */
-void Cmd_God_f (gentity_t *ent)
+void Cmd_God_f( gentity_t *ent )
 {
-	char	*msg;
+	const char *msg;
 
 	if ( !CheatsOk( ent ) ) {
 		return;
@@ -334,7 +337,7 @@ void Cmd_God_f (gentity_t *ent)
 	else
 		msg = "godmode ON\n";
 
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
+	trap_SendServerCommand( ent-g_entities, va( "print \"%s\"", msg ) );
 }
 
 
@@ -348,7 +351,7 @@ argv(0) notarget
 ==================
 */
 void Cmd_Notarget_f( gentity_t *ent ) {
-	char	*msg;
+	const char *msg;
 
 	if ( !CheatsOk( ent ) ) {
 		return;
@@ -360,7 +363,7 @@ void Cmd_Notarget_f( gentity_t *ent ) {
 	else
 		msg = "notarget ON\n";
 
-	trap_SendServerCommand( ent-g_entities, va("print \"%s\"", msg));
+	trap_SendServerCommand( ent-g_entities, va( "print \"%s\"", msg ) );
 }
 
 
@@ -372,7 +375,7 @@ argv(0) noclip
 ==================
 */
 void Cmd_Noclip_f( gentity_t *ent ) {
-	char	*msg;
+	const char *msg;
 
 	if ( !CheatsOk( ent ) ) {
 		return;
@@ -430,7 +433,7 @@ Cmd_TeamTask_f
 */
 void Cmd_TeamTask_f( gentity_t *ent ) {
 	char userinfo[MAX_INFO_STRING];
-	char		arg[MAX_TOKEN_CHARS];
+	char arg[MAX_TOKEN_CHARS];
 	int task;
 	int client = ent->client - level.clients;
 
@@ -880,7 +883,6 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 G_Say
 ==================
 */
-
 static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, const char *name, const char *message ) {
 	if (!other) {
 		return;
@@ -994,6 +996,7 @@ static void Cmd_Say_f( gentity_t *ent, int mode, qboolean arg0 ) {
 
 	G_Say( ent, NULL, mode, p );
 }
+
 
 /*
 ==================
@@ -1262,6 +1265,7 @@ void Cmd_GameCommand_f( gentity_t *ent ) {
 	G_Say( ent, ent, SAY_TELL, gc_orders[order] );
 }
 
+
 /*
 ==================
 Cmd_Where_f
@@ -1270,6 +1274,7 @@ Cmd_Where_f
 void Cmd_Where_f( gentity_t *ent ) {
 	trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", vtos( ent->s.origin ) ) );
 }
+
 
 static const char *gameNames[] = {
 	"Free For All",
@@ -1450,7 +1455,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	Com_sprintf( level.voteString, sizeof( level.voteString ), cmd );
 	Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
 
-	trap_SendServerCommand( -1, va("print \"%s called a vote(%s).\n\"", ent->client->pers.netname, cmd ) );
+	trap_SendServerCommand( -1, va( "print \"%s called a vote(%s).\n\"", ent->client->pers.netname, cmd ) );
 
 	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;
@@ -1913,5 +1918,5 @@ void ClientCommand( int clientNum ) {
 	else if (Q_stricmp (cmd, "stats") == 0)
 		Cmd_Stats_f( ent );
 	else
-		trap_SendServerCommand( clientNum, va("print \"unknown cmd %s\n\"", cmd ) );
+		trap_SendServerCommand( clientNum, va( "print \"unknown cmd %s\n\"", cmd ) );
 }

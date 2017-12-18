@@ -559,7 +559,7 @@ void StartServer_Cache( void )
 
 	if( precache ) {
 		for( i = 0; i < UI_GetNumArenas(); i++ ) {
-		info = UI_GetArenaInfoByNumber( i );
+			info = UI_GetArenaInfoByNumber( i );
 			Q_strncpyz( mapname, Info_ValueForKey( info, "map"), MAX_NAMELENGTH );
 			Q_strupr( mapname );
 
