@@ -1136,6 +1136,12 @@ static void CG_ServerCommand( void ) {
 		return;
 	}
 
+	if ( cgs.defrag && cg.demoPlayback ) {
+		if ( !strcmp( cmd, "aswitch" ) || !strcmp( cmd, "stats" ) ) {
+			return;
+		}
+	}
+
 	CG_Printf( "Unknown client game command: %s\n", cmd );
 }
 

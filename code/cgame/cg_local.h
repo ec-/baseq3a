@@ -1134,6 +1134,7 @@ typedef struct {
 	qboolean		synchronousClients;
 
 	int				ospEnc;
+	qboolean		defrag;
 
 	qboolean		filterKeyUpEvent;
 	qboolean		score_catched;
