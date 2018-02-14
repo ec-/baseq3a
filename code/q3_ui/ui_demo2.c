@@ -22,7 +22,7 @@ DEMOS MENU
 #define ART_ARROWS_DOWN		"menu/art/arrows_vert_bot"
 
 #define UI_DEMO_LENGTH      64
-#define UI_MAX_DEMOS        256
+#define UI_MAX_DEMOS        1024
 #define UI_MAX_ITEMS        18
 #define NAMEBUFSIZE         65536
 

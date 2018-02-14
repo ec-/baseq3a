@@ -2028,8 +2028,7 @@ void BotTeamAI(bot_state_t *bs) {
 				BotSayVoiceTeamOrder(bs, -1, VOICECHAT_STARTLEADER);
 #endif
 				ClientName(bs->client, netname, sizeof(netname));
-				strncpy(bs->teamleader, netname, sizeof(bs->teamleader));
-				bs->teamleader[sizeof(bs->teamleader)-1] = '\0';
+				Q_strncpyz( bs->teamleader, netname, sizeof( bs->teamleader ) );
 				bs->becometeamleader_time = 0;
 			}
 			return;

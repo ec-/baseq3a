@@ -127,14 +127,14 @@ static void UI_LoadArenasFromFile( const char *filename ) {
 		trap_Print( va( S_COLOR_RED "file not found: %s\n", filename ) );
 		return;
 	}
-	if ( len >= MAX_ARENAS_TEXT ) {
-		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, MAX_ARENAS_TEXT ) );
+	if ( len >= sizeof( buf ) ) {
+		trap_Print( va( S_COLOR_RED "file too large: %s is %i, max allowed is %i", filename, len, sizeof( buf ) ) );
 		trap_FS_FCloseFile( f );
 		return;
 	}
 
 	trap_FS_Read( buf, len, f );
-	buf[len] = 0;
+	buf[len] = '\0';
 	trap_FS_FCloseFile( f );
 
 	ui_numArenas += UI_ParseInfos( buf, MAX_ARENAS - ui_numArenas, &ui_arenaInfos[ui_numArenas] );
@@ -150,7 +150,7 @@ static void UI_LoadArenas( void ) {
 	int			numdirs;
 	vmCvar_t	arenasFile;
 	char		filename[128];
-	char		dirlist[2048];
+	char		dirlist[8192];
 	char*		dirptr;
 	int			i, n;
 	int			dirlen;
@@ -169,7 +169,7 @@ static void UI_LoadArenas( void ) {
 	}
 
 	// get all arenas from .arena files
-	numdirs = trap_FS_GetFileList( "scripts", ".arena", dirlist, 2048 );
+	numdirs = trap_FS_GetFileList( "scripts", ".arena", dirlist, sizeof( dirlist ) );
 
 	dirptr  = dirlist;
 	for (i = 0; i < numdirs; i++, dirptr += dirlen+1) {
@@ -342,7 +342,7 @@ static void UI_LoadBots( void ) {
 	vmCvar_t	botsFile;
 	int			numdirs;
 	char		filename[128];
-	char		dirlist[1024];
+	char		dirlist[2048];
 	char*		dirptr;
 	int			i;
 	int			dirlen;

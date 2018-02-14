@@ -211,20 +211,20 @@ char *BotRandomOpponentName(bot_state_t *bs) {
 	return name;
 }
 
+
 /*
 ==================
 BotMapTitle
 ==================
 */
 
-char *BotMapTitle(void) {
-	char info[1024];
+static const char *BotMapTitle( void ) {
+	char info[ MAX_INFO_STRING ];
 	static char mapname[128];
 
-	trap_GetServerinfo(info, sizeof(info));
+	trap_GetServerinfo( info, sizeof( info ) );
 
-	strncpy(mapname, Info_ValueForKey( info, "mapname" ), sizeof(mapname)-1);
-	mapname[sizeof(mapname)-1] = '\0';
+	Q_strncpyz( mapname, Info_ValueForKey( info, "mapname" ), sizeof( mapname ) );
 
 	return mapname;
 }
