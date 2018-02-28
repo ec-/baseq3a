@@ -1229,7 +1229,7 @@ Print to the logfile with a time stamp if it is open
 */
 void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		string[1024];
+	char		string[BIG_INFO_STRING];
 	int			min, tens, sec, len, n;
 
 	sec = level.time / 1000;

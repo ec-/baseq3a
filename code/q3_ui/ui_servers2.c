@@ -1089,7 +1089,7 @@ ArenaServers_StartRefresh
 static void ArenaServers_StartRefresh( void )
 {
 	int		i;
-	char	myargs[32], protocol[32], master[MAX_CVAR_VALUE_STRING];
+	char	myargs[32], protocol[24];
 
 	memset( g_arenaservers.serverlist, 0, g_arenaservers.maxservers*sizeof(table_t) );
 
@@ -1155,19 +1155,9 @@ static void ArenaServers_StartRefresh( void )
 		protocol[0] = '\0';
 		trap_Cvar_VariableStringBuffer( "debug_protocol", protocol, sizeof( protocol ) );
 		if ( protocol[0] ) {
-			for ( i = 0; i < 5 ; i++ ) {
-				trap_Cvar_VariableStringBuffer( va( "sv_master%i", i+1 ), master, sizeof( master ) );
-				if ( !master[0] )
-					continue;
-				trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %s%s\n", i, protocol, myargs ));
-			}
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers 0 %s%s\n", protocol, myargs ));
 		} else {
-			for ( i = 0; i < 5 ; i++ ) {
-				trap_Cvar_VariableStringBuffer( va( "sv_master%i", i+1 ), master, sizeof( master ) );
-				if ( !master[0] )
-					continue;
-				trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers %d %d%s\n", i, (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
-			}
+			trap_Cmd_ExecuteText( EXEC_APPEND, va( "globalservers 0 %d%s\n", (int)trap_Cvar_VariableValue( "protocol" ), myargs ) );
 		}
 	}
 }
