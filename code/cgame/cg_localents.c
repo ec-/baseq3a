@@ -6,7 +6,7 @@
 
 #include "cg_local.h"
 
-#define	MAX_LOCAL_ENTITIES	512
+#define	MAX_LOCAL_ENTITIES	2048
 localEntity_t	cg_localEntities[MAX_LOCAL_ENTITIES];
 localEntity_t	cg_activeLocalEntities;		// double linked list
 localEntity_t	*cg_freeLocalEntities;		// single linked list
@@ -383,6 +383,73 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 
 /*
 ===================
+CG_EmitPolyVerts
+===================
+*/
+static void CG_EmitPolyVerts( const refEntity_t *re )
+{
+	polyVert_t	verts[4];
+	float		sinR, cosR;
+	float		angle;
+	vec3_t		left, up;
+	int			i;
+
+	if ( re->rotation )
+	{
+		angle = M_PI * re->rotation / 180.0;
+		sinR = sin( angle );
+		cosR = cos( angle );
+
+		VectorScale( cg.refdef.viewaxis[1], cosR * re->radius, left );
+		VectorMA( left, -sinR * re->radius, cg.refdef.viewaxis[2], left );
+
+		VectorScale( cg.refdef.viewaxis[2], cosR * re->radius, up );
+		VectorMA( up, sinR * re->radius, cg.refdef.viewaxis[1], up );
+	}
+	else
+	{
+		VectorScale( cg.refdef.viewaxis[1], re->radius, left );
+		VectorScale( cg.refdef.viewaxis[2], re->radius, up );
+	}
+
+	verts[0].xyz[0] = re->origin[0] + left[0] + up[0];
+	verts[0].xyz[1] = re->origin[1] + left[1] + up[1];
+	verts[0].xyz[2] = re->origin[2] + left[2] + up[2];
+	verts[0].st[0] = 0.0;
+	verts[0].st[1] = 0.0;
+
+	verts[1].xyz[0] = re->origin[0] - left[0] + up[0];
+	verts[1].xyz[1] = re->origin[1] - left[1] + up[1];
+	verts[1].xyz[2] = re->origin[2] - left[2] + up[2];
+	verts[1].st[0] = 1.0;
+	verts[1].st[1] = 0.0;
+
+	verts[2].xyz[0] = re->origin[0] - left[0] - up[0];
+	verts[2].xyz[1] = re->origin[1] - left[1] - up[1];
+	verts[2].xyz[2] = re->origin[2] - left[2] - up[2];
+	verts[2].st[0] = 1.0;
+	verts[2].st[1] = 1.0;
+
+	verts[3].xyz[0] = re->origin[0] + left[0] - up[0];
+	verts[3].xyz[1] = re->origin[1] + left[1] - up[1];
+	verts[3].xyz[2] = re->origin[2] + left[2] - up[2];
+	verts[3].st[0] = 0.0;
+	verts[3].st[1] = 1.0;
+
+	for ( i = 0; i < 4; i++ )
+	{
+		verts[i].modulate[0] = re->shaderRGBA[0];
+		verts[i].modulate[1] = re->shaderRGBA[1];
+		verts[i].modulate[2] = re->shaderRGBA[2];
+		verts[i].modulate[3] = re->shaderRGBA[3];
+	}
+
+	trap_R_AddPolyToScene( re->customShader, 4, verts );
+}
+
+
+/*
+===================
 CG_AddScaleFade
 
 For rocket smokes that hang in place, fade out, and are
@@ -407,13 +474,16 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
 	VectorSubtract( re->origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < le->radius ) {
+	len = VectorLengthSquared( delta );
+	if ( len < le->radius * le->radius ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
-
+#if 1
+	CG_EmitPolyVerts( re );
+#else
 	trap_R_AddRefEntityToScene( re );
+#endif
 }
 
 
@@ -447,15 +517,17 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
 	VectorSubtract( re->origin, cg.refdef.vieworg, delta );
-	len = VectorLength( delta );
-	if ( len < le->radius ) {
+	len = VectorLengthSquared( delta );
+	if ( len < le->radius * le->radius ) {
 		CG_FreeLocalEntity( le );
 		return;
 	}
-
+#if 1
+	CG_EmitPolyVerts( re );
+#else
 	trap_R_AddRefEntityToScene( re );
+#endif
 }
-
 
 
 /*
@@ -488,6 +560,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 		trap_R_AddLightToScene(ent->origin, light, ex->lightColor[0], ex->lightColor[1], ex->lightColor[2] );
 	}
 }
+
 
 /*
 ================
@@ -843,19 +916,19 @@ void CG_AddLocalEntities( void ) {
 			CG_AddFragment( le );
 			break;
 
-		case LE_MOVE_SCALE_FADE:		// water bubbles
+		case LE_MOVE_SCALE_FADE:	// water bubbles, plasma trails, smoke puff
 			CG_AddMoveScaleFade( le );
 			break;
 
-		case LE_FADE_RGB:				// teleporters, railtrails
+		case LE_FADE_RGB:			// teleporters, railtrails
 			CG_AddFadeRGB( le );
 			break;
 
-		case LE_FALL_SCALE_FADE: // gib blood trails
+		case LE_FALL_SCALE_FADE:	// gib blood trails
 			CG_AddFallScaleFade( le );
 			break;
 
-		case LE_SCALE_FADE:		// rocket trails
+		case LE_SCALE_FADE:			// rocket trails
 			CG_AddScaleFade( le );
 			break;
 
