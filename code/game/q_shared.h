@@ -595,7 +595,7 @@ void Parse1DMatrix (char **buf_p, int x, float *m);
 void Parse2DMatrix (char **buf_p, int y, int x, float *m);
 void Parse3DMatrix (char **buf_p, int z, int y, int x, float *m);
 
-void	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
+int QDECL Com_sprintf( char *dest, int size, const char *fmt, ... );
 
 
 // mode parm for FS_FOpenFile
@@ -652,11 +652,10 @@ char* QDECL va( const char *format, ... );
 // key / value info strings
 //
 char *Info_ValueForKey( const char *s, const char *key );
-void Info_RemoveKey( char *s, const char *key );
-void Info_RemoveKey_big( char *s, const char *key );
 void Info_SetValueForKey( char *s, const char *key, const char *value );
 void Info_SetValueForKey_Big( char *s, const char *key, const char *value );
 qboolean Info_Validate( const char *s );
+qboolean Info_ValidateKeyValue( const char *s );
 void Info_NextPair( const char **s, char *key, char *value );
 
 // this is only here so the functions in q_shared.c and bg_*.c can link
