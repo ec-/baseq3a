@@ -1004,45 +1004,48 @@ char *Info_ValueForKey( const char *s, const char *key ) {
 	static	char value[2][BIG_INFO_VALUE];	// use two buffers so compares
 											// work without stomping on each other
 	static	int	valueindex = 0;
-	char	*o;
+	char	*o, *o2;
+	const char *v;
 	
-	if ( !s || !key ) {
+	if ( !s || !key )
 		return "";
-	}
 
-	if ( strlen( s ) >= BIG_INFO_STRING ) {
+	if ( strlen( s ) >= BIG_INFO_STRING )
 		Com_Error( ERR_DROP, "Info_ValueForKey: oversize infostring" );
-	}
 
-	valueindex ^= 1;
-	if (*s == '\\')
+	if ( *s == '\\' )
 		s++;
+
 	while (1)
 	{
 		o = pkey;
-		while (*s != '\\')
+		while ( *s != '\\' )
 		{
-			if (!*s)
+			if ( *s == '\0' )
 				return "";
 			*o = *s;
 			o++; s++;
 		}
-		*o = 0;
+		*o = '\0';
 		s++;
 
-		o = value[valueindex];
+		v = s;
+		while ( *s != '\\' && *s !='\0' )
+			s++;
 
-		while (*s != '\\' && *s)
+		if ( !Q_stricmp( key, pkey ) )
 		{
-			*o = *s;
-			o++; s++;
+			o = o2 = value[ valueindex ];
+			valueindex ^= 1;
+			while ( v < s ) {
+				*o = *v;
+				o++; v++;
+			}
+			*o = '\0';
+			return o2;
 		}
-		*o = 0;
 
-		if (!Q_stricmp (key, pkey) )
-			return value[valueindex];
-
-		if (!*s)
+		if ( *s == '\0' )
 			break;
 		s++;
 	}
@@ -1067,26 +1070,26 @@ void Info_NextPair( const char **head, char *key, char *value ) {
 	if ( *s == '\\' ) {
 		s++;
 	}
-	key[0] = 0;
-	value[0] = 0;
+	key[0] = '\0';
+	value[0] = '\0';
 
 	o = key;
 	while ( *s != '\\' ) {
 		if ( !*s ) {
-			*o = 0;
+			*o = '\0';
 			*head = s;
 			return;
 		}
 		*o++ = *s++;
 	}
-	*o = 0;
+	*o = '\0';
 	s++;
 
 	o = value;
 	while ( *s != '\\' && *s ) {
 		*o++ = *s++;
 	}
-	*o = 0;
+	*o = '\0';
 
 	*head = s;
 }
@@ -1097,7 +1100,7 @@ void Info_NextPair( const char **head, char *key, char *value ) {
 Info_RemoveKey
 ===================
 */
-static void Info_RemoveKey( char *s, const char *key ) {
+static int Info_RemoveKey( char *s, const char *key ) {
 	char	*start;
 	char 	*pkey;
 	char	*sep;
@@ -1111,12 +1114,13 @@ static void Info_RemoveKey( char *s, const char *key ) {
 		while ( *s != '\\' )
 		{
 			if ( *s == '\0' )
-				return;
+				return 0;
 			++s;
 		}
 
 		sep  = s; // save separator position
-		 *s++ = '\0'; // terminate key name
+		*s = '\0'; // terminate key name
+		s++;
 
 		while ( *s != '\\' && *s != '\0' )
 			++s;
@@ -1124,15 +1128,18 @@ static void Info_RemoveKey( char *s, const char *key ) {
 		if ( Q_stricmp( key, pkey ) == 0 )
 		{
 			memmove( start, s, strlen( s ) + 1 ); // remove this part
-			return;
+			return (int)(s - start);
 		}
 
 		*sep = '\\'; // connect key-value pair again
 
 		if ( *s == '\0' )
-			return;
+			break;
 	}
+
+	return 0;
 }
+
 
 /*
 ==================
@@ -1183,7 +1190,6 @@ qboolean Info_ValidateKeyValue( const char *s )
 			continue;
 		}
 	}
-	return qtrue;
 }
 
 
@@ -1198,7 +1204,8 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 	char	newi[MAX_INFO_STRING+2];
 	int		len1, len2;
 
-	if ( strlen( s ) >= MAX_INFO_STRING ) {
+	len1 = (int)strlen( s );
+	if ( len1 >= MAX_INFO_STRING ) {
 		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
@@ -1212,11 +1219,10 @@ void Info_SetValueForKey( char *s, const char *key, const char *value ) {
 		return;
 	}
 
-	Info_RemoveKey( s, key );
+	len1 -= Info_RemoveKey( s, key );
 	if ( !value || !*value )
 		return;
 
-	len1 = (int)strlen( s );
 	len2 = Com_sprintf( newi, sizeof( newi ), "\\%s\\%s", key, value );
 	
 	if ( len1 + len2 >= MAX_INFO_STRING )
@@ -1240,7 +1246,8 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 	char	newi[BIG_INFO_STRING+2];
 	int		len1, len2;
 
-	if ( strlen( s ) >= BIG_INFO_STRING ) {
+	len1 = (int)strlen( s );
+	if ( len1 >= BIG_INFO_STRING ) {
 		Com_Error( ERR_DROP, "Info_SetValueForKey: oversize infostring" );
 	}
 
@@ -1254,11 +1261,10 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 		return;
 	}
 
-	Info_RemoveKey( s, key );
+	len1 -= Info_RemoveKey( s, key );
 	if ( !value || !*value )
 		return;
 
-	len1 = (int)strlen( s );
 	len2 = Com_sprintf( newi, sizeof( newi ), "\\%s\\%s", key, value );
 
 	if ( len1 + len2 >= BIG_INFO_STRING )
