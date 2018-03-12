@@ -585,8 +585,8 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	char	headModel[MAX_QPATH];
 	char	oldname[MAX_NETNAME];
 	gclient_t	*client;
-	char	c1[MAX_CVAR_VALUE_STRING];
-	char	c2[MAX_CVAR_VALUE_STRING];
+	char	c1[8];
+	char	c2[8];
 	char	userinfo[MAX_INFO_STRING];
 
 	ent = g_entities + clientNum;
