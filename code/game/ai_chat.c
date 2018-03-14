@@ -217,15 +217,8 @@ char *BotRandomOpponentName(bot_state_t *bs) {
 BotMapTitle
 ==================
 */
-
-static const char *BotMapTitle( void ) {
-	char info[ MAX_INFO_STRING ];
-	static char mapname[128];
-
-	trap_GetServerinfo( info, sizeof( info ) );
-
-	Q_strncpyz( mapname, Info_ValueForKey( info, "mapname" ), sizeof( mapname ) );
-
+static const char *BotMapTitle( void )
+{
 	return mapname;
 }
 
@@ -235,7 +228,6 @@ static const char *BotMapTitle( void ) {
 BotWeaponNameForMeansOfDeath
 ==================
 */
-
 char *BotWeaponNameForMeansOfDeath(int mod) {
 	switch(mod) {
 		case MOD_SHOTGUN: return "Shotgun";

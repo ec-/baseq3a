@@ -31,6 +31,8 @@ extern gentity_t	*podium1;
 extern gentity_t	*podium2;
 extern gentity_t	*podium3;
 
+extern char mapname[ MAX_QPATH ];
+
 float trap_Cvar_VariableValue( const char *var_name ) {
 	char buf[128];
 
@@ -965,8 +967,6 @@ void G_InitBots( qboolean restart ) {
 	const char	*arenainfo;
 	char		*strValue;
 	int			basedelay;
-	char		map[MAX_QPATH];
-	char		serverinfo[MAX_INFO_STRING];
 
 	G_LoadBots();
 	G_LoadArenas();
@@ -974,9 +974,7 @@ void G_InitBots( qboolean restart ) {
 	trap_Cvar_Register( &bot_minplayers, "bot_minplayers", "0", CVAR_SERVERINFO );
 
 	if( g_gametype.integer == GT_SINGLE_PLAYER ) {
-		trap_GetServerinfo( serverinfo, sizeof(serverinfo) );
-		Q_strncpyz( map, Info_ValueForKey( serverinfo, "mapname" ), sizeof(map) );
-		arenainfo = G_GetArenaInfoByMap( map );
+		arenainfo = G_GetArenaInfoByMap( mapname );
 		if ( !arenainfo ) {
 			return;
 		}

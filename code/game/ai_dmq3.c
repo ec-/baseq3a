@@ -3695,16 +3695,10 @@ BotMapScripts
 ==================
 */
 void BotMapScripts(bot_state_t *bs) {
-	char info[MAX_INFO_STRING];
-	char mapname[128];
 	int i, shootbutton;
 	float aim_accuracy;
 	aas_entityinfo_t entinfo;
 	vec3_t dir;
-
-	trap_GetServerinfo(info, sizeof(info));
-
-	Q_strncpyz( mapname, Info_ValueForKey( info, "mapname" ), sizeof( mapname ) );
 
 	if (!Q_stricmp(mapname, "q3tourney6")) {
 		vec3_t mins = {700, 204, 672}, maxs = {964, 468, 680};

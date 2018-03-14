@@ -62,6 +62,7 @@ vmCvar_t bot_interbreedbots;
 vmCvar_t bot_interbreedcycle;
 vmCvar_t bot_interbreedwrite;
 
+char mapname[MAX_QPATH];
 
 void ExitLevel( void );
 
@@ -1357,10 +1358,14 @@ BotAILoadMap
 ==============
 */
 int BotAILoadMap( int restart ) {
+	char		serverinfo[MAX_INFO_STRING];
 	int			i;
 
+	trap_GetServerinfo( serverinfo, sizeof( serverinfo ) );
+	Q_strncpyz( mapname, Info_ValueForKey( serverinfo, "mapname" ), sizeof( mapname ) );
+
 	if ( !restart ) {
-		trap_BotLibLoadMap( g_mapname.string );
+		trap_BotLibLoadMap( mapname );
 	}
 
 	for ( i = 0; i < level.maxclients; i++ ) {
