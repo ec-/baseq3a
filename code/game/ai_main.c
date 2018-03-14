@@ -1397,6 +1397,7 @@ int BotAIStartFrame(int time) {
 	static int local_time;
 	static int botlib_residual;
 	static int lastbotthink_time;
+	static qboolean skip[MAX_GENTITIES], *s;
 
 	G_CheckBotSpawn();
 
@@ -1473,28 +1474,31 @@ int BotAIStartFrame(int time) {
 		if (!trap_AAS_Initialized()) return qfalse;
 
 		//update entities in the botlib
-		for (i = 0; i < MAX_GENTITIES; i++) {
+		s = skip;
+		ent = g_entities;
+		for ( i = 0; i < level.num_entities; i++, s++, ent++ ) {
 			ent = &g_entities[i];
-			if (!ent->inuse) {
-				trap_BotLibUpdateEntity(i, NULL);
-				continue;
-			}
-			if (!ent->r.linked) {
-				trap_BotLibUpdateEntity(i, NULL);
-				continue;
-			}
-			if (ent->r.svFlags & SVF_NOCLIENT) {
-				trap_BotLibUpdateEntity(i, NULL);
+			if ( !ent->inuse || !ent->r.linked || ent->r.svFlags & SVF_NOCLIENT ) {
+				if ( *s == qfalse ) {
+					*s = qtrue;
+					trap_BotLibUpdateEntity( i, NULL );
+				}
 				continue;
 			}
 			// do not update missiles
-			if (ent->s.eType == ET_MISSILE && ent->s.weapon != WP_GRAPPLING_HOOK) {
-				trap_BotLibUpdateEntity(i, NULL);
+			if ( ent->s.eType == ET_MISSILE && ent->s.weapon != WP_GRAPPLING_HOOK ) {
+				if ( *s == qfalse ) {
+					*s = qtrue;
+					trap_BotLibUpdateEntity( i, NULL );
+				}
 				continue;
 			}
 			// do not update event only entities
-			if (ent->s.eType > ET_EVENTS) {
-				trap_BotLibUpdateEntity(i, NULL);
+			if ( ent->s.eType > ET_EVENTS ) {
+				if ( *s == qfalse ) {
+					*s = qtrue;
+					trap_BotLibUpdateEntity( i, NULL );
+				}
 				continue;
 			}
 #ifdef MISSIONPACK
@@ -1533,7 +1537,8 @@ int BotAIStartFrame(int time) {
 			state.torsoAnim = ent->s.torsoAnim;
 			state.weapon = ent->s.weapon;
 			//
-			trap_BotLibUpdateEntity(i, &state);
+			*s = qfalse;
+			trap_BotLibUpdateEntity( i, &state );
 		}
 
 		BotAIRegularUpdate();
