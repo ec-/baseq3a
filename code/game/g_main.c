@@ -78,8 +78,8 @@ vmCvar_t	g_enableBreath;
 vmCvar_t	g_proxMineTimeout;
 #endif
 
-// bk001129 - made static to avoid aliasing
-static cvarTable_t		gameCvarTable[] = {
+
+static cvarTable_t gameCvarTable[] = {
 	// don't override the cheat state set by the system
 	{ &g_cheats, "sv_cheats", "", 0, 0, qfalse },
 
@@ -168,13 +168,12 @@ static cvarTable_t		gameCvarTable[] = {
 
 };
 
-static int gameCvarTableSize = ARRAY_LEN( gameCvarTable );
-
 
 static void G_InitGame( int levelTime, int randomSeed, int restart );
 static void G_RunFrame( int levelTime );
 static void G_ShutdownGame( int restart );
 static void CheckExitRules( void );
+static void SendScoreboardMessageToAllClients( void );
 
 // extension interface
 #ifdef Q3_VM
@@ -325,6 +324,7 @@ void G_FindTeams( void ) {
 	G_Printf ("%i teams with %i entities\n", c, c2);
 }
 
+
 void G_RemapTeamShaders( void ) {
 #ifdef MISSIONPACK
 	char string[1024];
@@ -346,11 +346,11 @@ G_RegisterCvars
 =================
 */
 void G_RegisterCvars( void ) {
-	int			i;
-	cvarTable_t	*cv;
 	qboolean remapped = qfalse;
+	cvarTable_t *cv;
+	int i;
 
-	for ( i = 0, cv = gameCvarTable ; i < gameCvarTableSize ; i++, cv++ ) {
+	for ( i = 0, cv = gameCvarTable ; i < ARRAY_LEN( gameCvarTable ) ; i++, cv++ ) {
 		trap_Cvar_Register( cv->vmCvar, cv->cvarName,
 			cv->defaultString, cv->cvarFlags );
 		if ( cv->vmCvar )
@@ -385,12 +385,12 @@ void G_RegisterCvars( void ) {
 G_UpdateCvars
 =================
 */
-void G_UpdateCvars( void ) {
+static void G_UpdateCvars( void ) {
 	int			i;
 	cvarTable_t	*cv;
 	qboolean remapped = qfalse;
 
-	for ( i = 0, cv = gameCvarTable ; i < gameCvarTableSize ; i++, cv++ ) {
+	for ( i = 0, cv = gameCvarTable ; i < ARRAY_LEN( gameCvarTable ) ; i++, cv++ ) {
 		if ( cv->vmCvar ) {
 			trap_Cvar_Update( cv->vmCvar );
 
@@ -631,7 +631,6 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 }
 
 
-
 /*
 =================
 G_ShutdownGame
@@ -665,7 +664,7 @@ static void G_ShutdownGame( int restart )
 
 void QDECL Com_Error( int level, const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[4096];
 
 	va_start( argptr, fmt );
 	ED_vsprintf( text, fmt, argptr );
@@ -674,9 +673,10 @@ void QDECL Com_Error( int level, const char *fmt, ... ) {
 	trap_Error( text );
 }
 
+
 void QDECL Com_Printf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[4096];
 
 	va_start( argptr, fmt );
 	ED_vsprintf( text, fmt, argptr );
@@ -796,6 +796,7 @@ void RemoveTournamentWinner( void ) {
 	SetTeam( &g_entities[ clientNum ], "s" );
 }
 
+
 /*
 =======================
 AdjustTournamentScores
@@ -818,13 +819,13 @@ void AdjustTournamentScores( void ) {
 
 }
 
+
 /*
 =============
 SortRanks
-
 =============
 */
-int QDECL SortRanks( const void *a, const void *b ) {
+static int QDECL SortRanks( const void *a, const void *b ) {
 	gclient_t	*ca, *cb;
 
 	ca = &level.clients[*(int *)a];
@@ -845,7 +846,6 @@ int QDECL SortRanks( const void *a, const void *b ) {
 	if ( cb->pers.connected == CON_CONNECTING ) {
 		return -1;
 	}
-
 
 	// then spectators
 	if ( ca->sess.sessionTeam == TEAM_SPECTATOR && cb->sess.sessionTeam == TEAM_SPECTATOR ) {
@@ -875,6 +875,7 @@ int QDECL SortRanks( const void *a, const void *b ) {
 	}
 	return 0;
 }
+
 
 /*
 ============
@@ -1013,7 +1014,7 @@ Do this at BeginIntermission time and whenever ranks are recalculated
 due to enters/exits/forced team changes
 ========================
 */
-void SendScoreboardMessageToAllClients( void ) {
+static void SendScoreboardMessageToAllClients( void ) {
 	int		i;
 
 	for ( i = 0 ; i < level.maxclients ; i++ ) {
@@ -1161,7 +1162,6 @@ ExitLevel
 
 When the intermission has been exited, the server is either killed
 or moved to a new level based on the "nextmap" cvar 
-
 =============
 */
 void ExitLevel( void ) {
@@ -1247,8 +1247,6 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	va_end( argptr );
 
 	n = (int)strlen( string );
-	if ( n > 1022 )
-		return;
 
 	if ( g_dedicated.integer ) {
 		G_Printf( "%s", string + len );
@@ -1260,6 +1258,7 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 
 	trap_FS_Write( string, n, level.logFile );
 }
+
 
 /*
 ================
@@ -1428,7 +1427,7 @@ void CheckIntermissionExit( void ) {
 ScoreIsTied
 =============
 */
-qboolean ScoreIsTied( void ) {
+static qboolean ScoreIsTied( void ) {
 	int		a, b;
 
 	if ( level.numPlayingClients < 2 ) {
@@ -1798,7 +1797,7 @@ static void CheckTournament( void ) {
 CheckVote
 ==================
 */
-void CheckVote( void ) {
+static void CheckVote( void ) {
 	
 	if ( level.voteExecuteTime ) {
 		 if ( level.voteExecuteTime < level.time ) {
@@ -2001,6 +2000,7 @@ void CheckCvars( void ) {
 	}
 }
 
+
 /*
 =============
 G_RunThink
@@ -2008,7 +2008,7 @@ G_RunThink
 Runs thinking code for this frame if necessary
 =============
 */
-void G_RunThink (gentity_t *ent) {
+void G_RunThink( gentity_t *ent ) {
 	int	thinktime;
 
 	thinktime = ent->nextthink;
@@ -2026,6 +2026,7 @@ void G_RunThink (gentity_t *ent) {
 		ent->think (ent);
 	}
 }
+
 
 /*
 ================
