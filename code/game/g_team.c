@@ -775,8 +775,7 @@ static int Team_TouchOurFlag( gentity_t *ent, gentity_t *other, team_t team ) {
 		if (player->client->sess.sessionTeam !=
 			cl->sess.sessionTeam) {
 			player->client->pers.teamState.lasthurtcarrier = -5;
-		} else if (player->client->sess.sessionTeam ==
-			cl->sess.sessionTeam) {
+		} else {
 #ifdef MISSIONPACK
 				AddScore(player, ent->r.currentOrigin, CTF_TEAM_BONUS);
 #endif

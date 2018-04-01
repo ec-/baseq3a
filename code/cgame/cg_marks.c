@@ -1199,7 +1199,7 @@ CG_AddParticles
 void CG_ParticleSnowFlurry (qhandle_t pshader, centity_t *cent)
 {
 	cparticle_t	*p;
-	qboolean turb = qtrue;
+	//qboolean turb = qtrue;
 
 	if (!pshader)
 		CG_Printf ("CG_ParticleSnowFlurry pshader == ZERO!\n");
@@ -1239,7 +1239,7 @@ void CG_ParticleSnowFlurry (qhandle_t pshader, centity_t *cent)
 
 	p->type = P_WEATHER_FLURRY;
 	
-	if (turb)
+	//if (turb)
 		p->vel[2] = -10;
 	
 	VectorCopy(cent->currentState.origin, p->org);
@@ -1256,7 +1256,7 @@ void CG_ParticleSnowFlurry (qhandle_t pshader, centity_t *cent)
 	p->vel[1] += cent->currentState.angles[1] * 32 + (crandom() * 16);
 	p->vel[2] += cent->currentState.angles[2];
 
-	if (turb)
+	//if (turb)
 	{
 		p->accel[0] = crandom () * 16;
 		p->accel[1] = crandom () * 16;

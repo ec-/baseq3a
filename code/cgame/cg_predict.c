@@ -337,9 +337,9 @@ static void CG_AddAmmo( int weapon, int count )
 
 static void CG_AddWeapon( int weapon, int quantity, qboolean dropped ) 
 {
-	int	ammo;
+	//int	ammo;
 	
-	ammo = quantity;
+	//ammo = quantity;
 
 	// dropped items and teamplay weapons always have full ammo
 	if ( !dropped && cgs.gametype != GT_TEAM ) {
@@ -607,14 +607,12 @@ static void CG_TouchTriggerPrediction( void ) {
 
 
 static void CG_CheckTimers( void ) {
-	int i, t;
+	int i;
 
 	// no prediction for spectators
 	if ( cg.predictedPlayerState.pm_type == PM_SPECTATOR ) {
 		return;
 	}
-
-	t = cg.predictedPlayerState.commandTime;
 
 	// no armor/health/powerups prediction for dead bodies
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 )

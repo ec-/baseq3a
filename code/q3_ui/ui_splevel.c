@@ -160,7 +160,7 @@ static void UI_SPLevelMenu_SetBots( void ) {
 	p = &bots[0];
 	while( *p && levelMenuInfo.numBots < 7 ) {
 		//skip spaces
-		while( *p && *p == ' ' ) {
+		while( *p == ' ' ) {
 			p++;
 		}
 		if( !*p ) {
@@ -700,7 +700,6 @@ static void UI_SPLevelMenu_Init( void ) {
 	skill = (int)trap_Cvar_VariableValue( "g_spSkill" );
 	if( skill < 1 || skill > 5 ) {
 		trap_Cvar_Set( "g_spSkill", "2" );
-		skill = 2;
 	}
 
 	memset( &levelMenuInfo, 0, sizeof(levelMenuInfo) );

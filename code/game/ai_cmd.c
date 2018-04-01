@@ -1260,8 +1260,9 @@ BotMatch_Suicide
 */
 void BotMatch_Suicide(bot_state_t *bs, bot_match_t *match) {
 	char netname[MAX_MESSAGE_SIZE];
+#ifdef MISSIONPACK
 	int client;
-
+#endif
 	if (!TeamPlayIsOn()) return;
 	//if not addressed to this bot
 	if (!BotAddressedToBot(bs, match)) return;
@@ -1269,9 +1270,9 @@ void BotMatch_Suicide(bot_state_t *bs, bot_match_t *match) {
 	trap_EA_Command(bs->client, "kill");
 	//
 	trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
-	client = ClientFromName(netname);
 	//
 #ifdef MISSIONPACK
+	client = ClientFromName(netname);
 	BotVoiceChat(bs, client, VOICECHAT_TAUNT);
 #endif
 	trap_EA_Action(bs->client, ACTION_AFFIRMATIVE);

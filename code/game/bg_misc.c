@@ -2645,6 +2645,7 @@ int Q_sscanf( const char *buffer, const char *fmt, ... )
 		else
 			break;
 	}
+	va_end( ap );
 
 	return count;
 }

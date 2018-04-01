@@ -37,13 +37,13 @@
 // for the voice chats
 #ifdef MISSIONPACK
 #include "../../ui/menudef.h"
-#endif
 
 typedef struct voiceCommand_s
 {
 	char *cmd;
-	void (*func)(bot_state_t *bs, int client, int mode);
+	void(*func)(bot_state_t *bs, int client, int mode);
 } voiceCommand_t;
+#endif
 
 /*
 ==================

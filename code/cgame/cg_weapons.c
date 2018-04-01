@@ -193,7 +193,7 @@ CG_RailTrail
 ==========================
 */
 void CG_RailTrail( const clientInfo_t *ci, const vec3_t start, const vec3_t end ) {
-	vec3_t axis[36], move, move2, next_move, vec, temp;
+	vec3_t axis[36], move, move2, vec, temp;
 	float  len;
 	int    i, j, skip;
  
@@ -253,7 +253,6 @@ void CG_RailTrail( const clientInfo_t *ci, const vec3_t start, const vec3_t end 
 	}
 
 	VectorMA( move, 20, vec, move );
-	VectorCopy( move, next_move );
 	VectorScale( vec, SPACING, vec );
 
 	skip = -1;
