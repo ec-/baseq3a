@@ -1968,13 +1968,15 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 	}
 
 	cgs.screenXmin = 0.0 - (cgs.screenXBias / cgs.screenXScale);
-	cgs.screenXmax = 639.0 + (cgs.screenXBias / cgs.screenXScale);
+	cgs.screenXmax = 640.0 + (cgs.screenXBias / cgs.screenXScale);
 
 	cgs.screenYmin = 0.0 - (cgs.screenYBias / cgs.screenYScale);
-	cgs.screenYmax = 479.0 + (cgs.screenYBias / cgs.screenYScale);
+	cgs.screenYmax = 480.0 + (cgs.screenYBias / cgs.screenYScale);
 
-	cgs.screenXScaleR = 1.0 / cgs.screenXScale;
-	cgs.screenYScaleR = 1.0 / cgs.screenYScale;
+	cgs.cursorScaleR = 1.0 / cgs.screenXScale;
+	if ( cgs.cursorScaleR < 0.5 ) {
+		cgs.cursorScaleR = 0.5;
+	}
 
 #ifdef USE_NEW_FONT_RENDERER
 	CG_LoadFonts();
@@ -2137,24 +2139,21 @@ void CG_KeyEvent( int key, qboolean down )
 
 void CG_MouseEvent( int x, int y )
 {
-	cgs.cursorXf += x;
-	cgs.cursorYf += y;
+	cgs.cursorX += x * cgs.cursorScaleR;
+	cgs.cursorY += y * cgs.cursorScaleR;
 
-	if ( cgs.cursorXf < 0 ) {
-		cgs.cursorXf = 0;
+	if ( cgs.cursorX < cgs.screenXmin ) {
+		cgs.cursorX = cgs.screenXmin;
 	}
-	else if ( cgs.cursorXf > cgs.glconfig.vidWidth ) {
-		cgs.cursorXf = cgs.glconfig.vidWidth;
+	else if ( cgs.cursorX > cgs.screenXmax ) {
+		cgs.cursorX = cgs.screenXmax;
 	}
 
-	if ( cgs.cursorYf < 0 ) {
-		cgs.cursorYf = 0;
+	if ( cgs.cursorY < cgs.screenYmin ) {
+		cgs.cursorY = cgs.screenYmin;
 	}
-	else if ( cgs.cursorYf > cgs.glconfig.vidHeight ) {
-		cgs.cursorYf = cgs.glconfig.vidHeight;
+	else if ( cgs.cursorY > cgs.screenYmax ) {
+		cgs.cursorY = cgs.screenYmax;
 	}
-	
-	cgs.cursorX = ( cgs.cursorXf - cgs.screenXBias ) * cgs.screenXScaleR;
-	cgs.cursorY = ( cgs.cursorYf - cgs.screenYBias ) * cgs.screenYScaleR;
 }
 #endif

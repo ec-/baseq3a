@@ -521,8 +521,6 @@ typedef struct {
 	int					realtime;
 	float				cursorx;
 	float				cursory;
-	int					cursor_hx;
-	int					cursor_hy;
 	int					menusp;
 	menuframework_s*	activemenu;
 	menuframework_s*	stack[MAX_MENUDEPTH];
@@ -538,9 +536,19 @@ typedef struct {
 	qhandle_t			cursor;
 	qhandle_t			rb_on;
 	qhandle_t			rb_off;
+
 	float				scale;
 	float				biasX;
 	float				biasY;
+
+	float				cursorScaleR;		// clamped 1/scale for mouse
+
+	float				screenXmin;
+	float				screenXmax;
+
+	float				screenYmin;
+	float				screenYmax;
+
 	qboolean			demoversion;
 	qboolean			firstdraw;
 	int					lastVideoCheck;

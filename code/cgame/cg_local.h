@@ -1035,11 +1035,11 @@ typedef struct {
 	glconfig_t		glconfig;			// rendering configuration
 	float			screenXScale;		// derived from glconfig
 	float			screenYScale;
-	float			screenXScaleR;		// 1/screenXScale
-	float			screenYScaleR;		// 1/screenYScale
+	
+	float			cursorScaleR;		// clamped 1/screenXScale
 
-	int				screenXBias;
-	int				screenYBias;
+	float			screenXBias;
+	float			screenYBias;
 
 	float			screenXmin;
 	float			screenXmax;
@@ -1142,9 +1142,6 @@ typedef struct {
 
 	float			cursorX;
 	float			cursorY;
-	int				cursorXf;
-	int				cursorYf;
-
 } cgs_t;
 
 //==============================================================================

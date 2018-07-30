@@ -15,7 +15,7 @@ qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
 
 void QDECL Com_Error( int level, const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start( argptr, fmt );
 	ED_vsprintf( text, fmt, argptr );
@@ -26,7 +26,7 @@ void QDECL Com_Error( int level, const char *fmt, ... ) {
 
 void QDECL Com_Printf( const char *fmt, ... ) {
 	va_list		argptr;
-	char		text[1024];
+	char		text[2048];
 
 	va_start( argptr, fmt );
 	ED_vsprintf( text, fmt, argptr );
@@ -870,31 +870,26 @@ void UI_MouseEvent( int dx, int dy )
 	int				i;
 	menucommon_s*	m;
 
-	if (!uis.activemenu)
+	if ( !uis.activemenu )
 		return;
 
-	// update mouse screen position
-
-	uis.cursor_hx += dx;
-
-	if ( uis.cursor_hx < 0 )
-		uis.cursor_hx = 0;
-	else if ( uis.cursor_hx > uis.glconfig.vidWidth )
-		uis.cursor_hx = uis.glconfig.vidWidth;
-
-	uis.cursor_hy += dy;
-
-	if ( uis.cursor_hy < 0 )
-		uis.cursor_hy = 0;
-	else if ( uis.cursor_hy > uis.glconfig.vidHeight -1 )
-		uis.cursor_hy = uis.glconfig.vidHeight - 1;
-
 	// update virtual mouse cursor coordinates
-	uis.cursorx = (uis.cursor_hx - uis.biasX) / uis.scale;
-	uis.cursory = (uis.cursor_hy - uis.biasY) / uis.scale;
+	uis.cursorx += dx * uis.cursorScaleR;
+	uis.cursory += dy * uis.cursorScaleR;
+	
+	// clamp virtual coordinates
+	if ( uis.cursorx < uis.screenXmin )
+		uis.cursorx = uis.screenXmin;
+	else if ( uis.cursorx > uis.screenXmax )
+		uis.cursorx = uis.screenXmax;
+
+	if ( uis.cursory < uis.screenYmin )
+		uis.cursory = uis.screenYmin;
+	else if ( uis.cursory > uis.screenYmax )
+		uis.cursory = uis.screenYmax;
 
 	// region test the active menu items
-	for (i=0; i<uis.activemenu->nitems; i++)
+	for ( i = 0; i < uis.activemenu->nitems; i++ )
 	{
 		m = (menucommon_s*)uis.activemenu->items[i];
 
@@ -1136,8 +1131,10 @@ void UI_DrawHandlePic( float x, float y, float w, float h, qhandle_t hShader ) {
 }
 
 
-void UI_DrawCursor( float dx, float dy, float w, float h ) {
-	trap_R_DrawStretchPic( uis.cursor_hx + dx * uis.scale, uis.cursor_hy + dy * uis.scale, w * uis.scale, h * uis.scale, 0, 0, 1, 1, uis.cursor );
+static void UI_DrawCursor( float x, float y, float w, float h ) {
+
+	UI_AdjustFrom640( &x, &y, &w, &h );
+	trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, uis.cursor );
 }
 
 
@@ -1227,7 +1224,7 @@ void UI_Refresh( int realtime )
 
 	// draw cursor
 	UI_SetColor( NULL );
-	UI_DrawCursor( -16, -16, 32, 32 );
+	UI_DrawCursor( uis.cursorx-16, uis.cursory-16, 32, 32 );
 
 #ifndef NDEBUG
 	if ( uis.debug )

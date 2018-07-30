@@ -2646,9 +2646,14 @@ static void CG_Draw2D( stereoFrame_t stereoFrame )
 	}
 
 	if ( cgs.score_catched ) {
+		float x, y, w, h;
 		trap_R_SetColor( NULL );
-		trap_R_DrawStretchPic( cgs.cursorXf - 12 * cgs.screenXScale, cgs.cursorYf - 12 * cgs.screenYScale,
-			24 * cgs.screenXScale, 24 * cgs.screenYScale, 0, 0, 1, 1, cgs.media.cursor );
+		x = cgs.cursorX - 12;
+		y = cgs.cursorY - 12;
+		w = 24;
+		h = 24;
+		CG_AdjustFrom640( &x, &y, &w, &h );
+		trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cgs.media.cursor );
 	}
 }
 

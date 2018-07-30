@@ -329,10 +329,8 @@ void UI_InGameMenu( void ) {
 	uis.menusp = 0;  
 
 	// set menu cursor to a nice location
-	uis.cursorx = 319;
-	uis.cursory = 80;
-	uis.cursor_hx = uis.cursorx * uis.scale + uis.biasX;
-	uis.cursor_hy = uis.cursory * uis.scale + uis.biasY;
+	uis.cursorx = 319.0;
+	uis.cursory = 80.0;
 
 	InGame_MenuInit();
 	UI_PushMenu( &s_ingame.menu );

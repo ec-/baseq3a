@@ -258,6 +258,17 @@ void UI_VideoCheck( int time )
 				uis.scale = uis.glconfig.vidWidth * (1.0/640.0);
 				uis.biasY = 0.5 * ( uis.glconfig.vidHeight - ( uis.glconfig.vidWidth * (480.0/640) ) );
 			}
+
+			uis.screenXmin = 0.0 - (uis.biasX / uis.scale);
+			uis.screenXmax = 640.0 + (uis.biasX / uis.scale);
+
+			uis.screenYmin = 0.0 - (uis.biasY / uis.scale);
+			uis.screenYmax = 480.0 + (uis.biasY / uis.scale);
+
+			uis.cursorScaleR = 1.0 / uis.scale;
+			if ( uis.cursorScaleR < 0.5 ) {
+				uis.cursorScaleR = 0.5;
+			}
 		}
 
 		uis.lastVideoCheck = time;
