@@ -684,6 +684,8 @@ typedef struct {
 
 	int				followTime;
 	int				followClient;
+
+	qboolean		skipDFshaders;
 } cg_t;
 
 

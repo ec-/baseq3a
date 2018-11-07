@@ -852,9 +852,22 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	itemInfo->icon = trap_R_RegisterShader( item->icon );
 
 	// try to register depth-fragment shaders
-	itemInfo->icon_df = trap_R_RegisterShader( va( "%s_df", item->icon ) );
-	if ( !itemInfo->icon_df )
+	if ( cg.clientFrame == 0 && cg.skipDFshaders ) {
+		itemInfo->icon_df = 0;
+	} else {
+		itemInfo->icon_df = trap_R_RegisterShader( va( "%s_df", item->icon ) );
+	}
+
+	if ( !itemInfo->icon_df ) {
 		itemInfo->icon_df = itemInfo->icon;
+		if ( cg.clientFrame == 0 ) {
+			cg.skipDFshaders = qtrue; // skip all further tries to avoid shader debug mesages in 1.32c during map loading
+		} else {
+			cg.skipDFshaders = qfalse;
+		}
+	} else {
+		cg.skipDFshaders = qfalse;
+	}
 
 	if ( item->giType == IT_WEAPON ) {
 		CG_RegisterWeapon( item->giTag );
