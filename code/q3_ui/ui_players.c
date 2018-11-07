@@ -1067,7 +1067,7 @@ qboolean UI_RegisterClientModelname( playerInfo_t *pi, const char *modelSkinName
 	} else {
 		Q_strncpyz( skinName, slash + 1, sizeof( skinName ) );
 		// truncate modelName
-		*slash = 0;
+		*slash = '\0';
 	}
 
 	// load cmodels before models so filecache works

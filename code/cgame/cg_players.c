@@ -1238,6 +1238,10 @@ void CG_NewClientInfo( int clientNum ) {
 	v = Info_ValueForKey( configstring, "c2" );
 	CG_ColorFromChar( v[0], newInfo.color2 );
 
+	VectorSet( newInfo.headColor, 1.0, 1.0, 1.0 );
+	VectorSet( newInfo.bodyColor, 1.0, 1.0, 1.0 );
+	VectorSet( newInfo.legsColor, 1.0, 1.0, 1.0 );
+
 	// bot skill
 	v = Info_ValueForKey( configstring, "skill" );
 	newInfo.botSkill = atoi( v );

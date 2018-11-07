@@ -962,10 +962,10 @@ char *Q_CleanStr( char *string ) {
 
 	s = string;
 	d = string;
-	while ((c = *s) != 0 ) {
+	while ((c = *s) != '\0' ) {
 		if ( Q_IsColorString( s ) ) {
 			s++;
-		}		
+		}
 		else if ( c >= ' ' && c <= '~' ) {
 			*d = c; d++;
 		}
