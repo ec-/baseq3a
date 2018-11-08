@@ -749,12 +749,12 @@ models/players/uriel/pmw
 		alphaFunc GE128
 		rgbGen entity
 	}
-	{
-		map models/players/uriel/color_x.tga
-		blendFunc GL_ONE GL_ZERO
-		alphaFunc LT128
-		rgbGen identity
-	}
+//	{
+//		map models/players/uriel/color_x.tga
+//		blendFunc GL_ONE GL_ZERO
+//		alphaFunc LT128
+//		rgbGen identity
+//	}
 }
 
 
