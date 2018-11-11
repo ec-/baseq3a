@@ -1434,7 +1434,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 
 	// split by ';' seperators
 	n = Com_Split( arg, argn, ARRAY_LEN( argn ), ';' );
-	if ( !n || argn[0] == '\0' ) 
+	if ( n == 0 || *argn[0] == '\0' ) 
 		return; // empty callvote command?
 
 	// validate all split commands
