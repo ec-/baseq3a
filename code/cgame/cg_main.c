@@ -1918,7 +1918,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 			trap_R_AddRefEntityToScene2 = (void*)~atoi( value );
 			intShaderTime = qtrue;
 		}
-		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene" ) ) {
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene_Q3E" ) ) {
 			trap_R_AddLinearLightToScene = (void*)~atoi( value );
 			linearLight = qtrue;
 		}
@@ -1928,7 +1928,7 @@ void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum ) {
 			dll_trap_R_AddRefEntityToScene2 = atoi( value );
 			intShaderTime = qtrue;
 		}
-		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene" ) ) {
+		if ( trap_GetValue( value, sizeof( value ), "trap_R_AddLinearLightToScene_Q3E" ) ) {
 			dll_trap_R_AddLinearLightToScene = atoi( value );
 			linearLight = qtrue;
 		}

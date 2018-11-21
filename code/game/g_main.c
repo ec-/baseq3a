@@ -508,7 +508,7 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 #else
 		dll_com_trapGetValue = atoi( value );
 #endif
-		if ( trap_GetValue( value, sizeof( value ), "SVF_SELF_PORTAL2" ) ) {
+		if ( trap_GetValue( value, sizeof( value ), "SVF_SELF_PORTAL2_Q3E" ) ) {
 			svf_self_portal2 = atoi( value );
 		} else {
 			svf_self_portal2 = 0;
