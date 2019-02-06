@@ -321,6 +321,14 @@ static void CG_Item( centity_t *cent ) {
 #ifdef MISSIONPACK
 		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, cgs.media.weaponHoverSound );
 #endif
+		// pickup color from spectaror/own client
+		if ( item->giTag == WP_RAILGUN ) {
+			const clientInfo_t *ci = cgs.clientinfo + cg.snap->ps.clientNum;
+			ent.shaderRGBA[0] = ci->color1[0] * 255.0f;
+			ent.shaderRGBA[1] = ci->color1[1] * 255.0f;
+			ent.shaderRGBA[2] = ci->color1[2] * 255.0f;
+			ent.shaderRGBA[3] = 255;
+		}
 	}
 
 #ifdef MISSIONPACK
