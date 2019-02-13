@@ -2101,13 +2101,13 @@ void CG_SetScoreCatcher( qboolean enable )
 	if ( enable && spectator ) {
 		cgs.score_key = trap_Key_GetKey( "+scores" );
 		cgs.score_catched = qtrue;
-		newCatcher = KEYCATCH_CGAME;
+		newCatcher = currentCatcher | KEYCATCH_CGAME;
 	} else {
 		cgs.score_catched = qfalse;
-		newCatcher = 0;
+		newCatcher = currentCatcher & ~KEYCATCH_CGAME;
 	}
 
-	if ( newCatcher != currentCatcher && (newCatcher || cg.demoPlayback ) ) {
+	if ( newCatcher != currentCatcher ) {
 		if ( cgs.score_key ) {
 			// keycatcher change may cause reset of all pressed buttons on new engines
 			// so track state of scoreboard key and ignore first upcoming keyup event for it
