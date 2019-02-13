@@ -2107,7 +2107,7 @@ void CG_SetScoreCatcher( qboolean enable )
 		newCatcher = 0;
 	}
 
-	if ( newCatcher != currentCatcher ) {
+	if ( newCatcher != currentCatcher && (newCatcher || cg.demoPlayback ) ) {
 		if ( cgs.score_key ) {
 			// keycatcher change may cause reset of all pressed buttons on new engines
 			// so track state of scoreboard key and ignore first upcoming keyup event for it
