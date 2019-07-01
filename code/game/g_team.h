@@ -65,3 +65,4 @@ void TeamplayInfoMessage( gentity_t *ent );
 void CheckTeamStatus(void);
 
 int Pickup_Team( gentity_t *ent, gentity_t *other );
+void AddTeamScore( vec3_t origin, team_t team, int score );
