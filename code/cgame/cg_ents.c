@@ -625,6 +625,7 @@ void CG_Beam( const centity_t *cent ) {
 	ent.reType = RT_BEAM;
 
 	ent.renderfx = RF_NOSHADOW;
+	ent.customShader = cgs.media.whiteShader;
 
 	// add to refresh list
 	trap_R_AddRefEntityToScene(&ent);

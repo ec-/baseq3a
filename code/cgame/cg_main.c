@@ -240,7 +240,7 @@ static const cvarTable_t cvarTable[] = {
 	{ &cg_addMarks, "cg_marks", "1", CVAR_ARCHIVE },
 	{ &cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE },
 	{ &cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  },
-	{ &cg_railTrailRadius, "cg_railTrailRadius", "75", CVAR_ARCHIVE  },
+	{ &cg_railTrailRadius, "cg_railTrailRadius", "0", CVAR_ARCHIVE  },
 	{ &cg_gun_x, "cg_gunX", "0", CVAR_ARCHIVE },
 	{ &cg_gun_y, "cg_gunY", "0", CVAR_ARCHIVE },
 	{ &cg_gun_z, "cg_gunZ", "0", CVAR_ARCHIVE },
@@ -2093,7 +2093,7 @@ void CG_SetScoreCatcher( qboolean enable )
 
 	currentCatcher = trap_Key_GetCatcher();
 
-	if ( currentCatcher & KEYCATCH_CONSOLE )
+	if ( currentCatcher & KEYCATCH_CONSOLE || !cg.snap )
 		return;
 	
 	spectator = cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.demoPlayback || ( cg.snap->ps.pm_flags & PMF_FOLLOW );
