@@ -445,7 +445,6 @@ static void ArenaServers_UpdateList( void )
 	int				i;
 	int				j;
 	int				count;
-	char*			buff;
 	servernode_t*	servernodeptr;
 	table_t*		tableptr;
 	const char		*pingColor;
@@ -456,7 +455,6 @@ static void ArenaServers_UpdateList( void )
 	for( i = 0, j = 0; i < count; i++, servernodeptr++ ) {
 		tableptr = &g_arenaservers.table[j];
 		tableptr->servernode = servernodeptr;
-		buff = tableptr->buff;
 
 		// can only cull valid results
 		if( !g_emptyservers && !servernodeptr->numclients ) {
@@ -516,12 +514,13 @@ static void ArenaServers_UpdateList( void )
 			pingColor = S_COLOR_RED;
 		}
 
-		Com_sprintf( buff, MAX_LISTBOXWIDTH_BUF, "%-*.*s %-*.*s %2d/%2d %-*.*s %3s %s%3d",
+		Com_sprintf( tableptr->buff, sizeof( tableptr->buff ), "%-*.*s %-*.*s %2d/%2d %-*.*s %3s %s%3d",
 			MAX_HOSTNAMELENGTH, MAX_HOSTNAMELENGTH, servernodeptr->hostname,
 			MAX_MAPNAMELENGTH, MAX_MAPNAMELENGTH, servernodeptr->mapname,
 			servernodeptr->numclients, servernodeptr->maxclients,
 			MAX_GAMENAMELENGTH, MAX_GAMENAMELENGTH, servernodeptr->gamename,
-			netnames[ servernodeptr->nettype ], pingColor, servernodeptr->pingtime );
+			netnames[ servernodeptr->nettype ],
+			pingColor, servernodeptr->pingtime );
 		j++;
 	}
 
@@ -780,6 +779,12 @@ static void ArenaServers_Insert( const char *adrstr, const char *info, int pingt
 	servernodeptr->pingtime   = pingtime;
 	servernodeptr->minPing    = atoi( Info_ValueForKey( info, "minPing") );
 	servernodeptr->maxPing    = atoi( Info_ValueForKey( info, "maxPing") );
+
+	// avoid potential string overflow
+	if( servernodeptr->numclients > 99 )
+		servernodeptr->numclients = 99;
+	if( servernodeptr->maxclients > 99 )
+		servernodeptr->maxclients = 99;
 
 	/*
 	s = Info_ValueForKey( info, "nettype" );
