@@ -18,13 +18,16 @@ MULTIPLAYER MENU (SERVER BROWSER)
 #define MAX_GLOBALSERVERS		MAX_GLOBAL_SERVERS
 #define MAX_PINGLISTSIZE		MAX_PINGREQUESTS*8
 #define MAX_ADDRESSLENGTH		64
-#define MAX_HOSTNAMELENGTH		25
-#define MAX_MAPNAMELENGTH		12
-#define MAX_GAMENAMELENGTH		9
+#define MAX_HOSTNAMELENGTH		26
+#define MAX_MAPNAMELENGTH		11
+#define MAX_GAMENAMELENGTH		8
 #define MAX_LISTBOXITEMS		512
 #define MAX_LOCALSERVERS		512
 #define MAX_STATUSLENGTH		64
-#define MAX_LISTBOXWIDTH		62
+
+#define MAX_LISTBOXWIDTH		MAX_HOSTNAMELENGTH + 1 + MAX_MAPNAMELENGTH + 1 + 5 /*players/max*/ + 1 + MAX_GAMENAMELENGTH + 1 + 3 /*netname*/ + 1 + 3 /*ping*/
+
+#define MAX_LISTBOXWIDTH_BUF	MAX_LISTBOXWIDTH + 2 /*color ping */ + 1 /*zero termination*/
 
 #define FILTER_CAPTION_CHARS	13
 
@@ -148,20 +151,20 @@ typedef struct {
 
 typedef struct servernode_s {
 	char	adrstr[MAX_ADDRESSLENGTH];
-	char	hostname[MAX_HOSTNAMELENGTH];
-	char	mapname[MAX_MAPNAMELENGTH];
+	char	hostname[MAX_HOSTNAMELENGTH+1];
+	char	mapname[MAX_MAPNAMELENGTH+1];
 	int		numclients;
 	int		maxclients;
 	int		pingtime;
 	int		gametype;
-	char	gamename[MAX_GAMENAMELENGTH];
+	char	gamename[MAX_GAMENAMELENGTH+1];
 	int		nettype;
 	int		minPing;
 	int		maxPing;
 } servernode_t; 
 
 typedef struct {
-	char			buff[MAX_LISTBOXWIDTH+3];
+	char			buff[MAX_LISTBOXWIDTH_BUF];
 	servernode_t*	servernode;
 } table_t;
 
@@ -513,11 +516,11 @@ static void ArenaServers_UpdateList( void )
 			pingColor = S_COLOR_RED;
 		}
 
-		Com_sprintf( buff, MAX_LISTBOXWIDTH, "%-*.*s %-*.*s %2d/%2d %-*.*s %3s %s%3d",
-			MAX_HOSTNAMELENGTH-1, MAX_HOSTNAMELENGTH-1, servernodeptr->hostname,
-			MAX_MAPNAMELENGTH-1, MAX_MAPNAMELENGTH-1, servernodeptr->mapname,
+		Com_sprintf( buff, MAX_LISTBOXWIDTH_BUF, "%-*.*s %-*.*s %2d/%2d %-*.*s %3s %s%3d",
+			MAX_HOSTNAMELENGTH, MAX_HOSTNAMELENGTH, servernodeptr->hostname,
+			MAX_MAPNAMELENGTH, MAX_MAPNAMELENGTH, servernodeptr->mapname,
 			servernodeptr->numclients, servernodeptr->maxclients,
-			MAX_GAMENAMELENGTH-1, MAX_GAMENAMELENGTH-1, servernodeptr->gamename,
+			MAX_GAMENAMELENGTH, MAX_GAMENAMELENGTH, servernodeptr->gamename,
 			netnames[ servernodeptr->nettype ], pingColor, servernodeptr->pingtime );
 		j++;
 	}
@@ -729,6 +732,12 @@ static void ArenaServers_Insert( const char *adrstr, const char *info, int pingt
 	char			*s;
 	int				i;
 
+	s = Info_ValueForKey( info, "game" );
+	if ( !Q_stricmp( s, "q3ut4" ) ) 
+	{
+		return; // filter urbanterror servers
+	}
+
 	if ( atoi( Info_ValueForKey( info, "punkbuster" ) ) ) 
 	{
 		return; // filter PunkBuster servers
@@ -754,20 +763,20 @@ static void ArenaServers_Insert( const char *adrstr, const char *info, int pingt
 		(*g_arenaservers.numservers)++;
 	}
 
-	Q_strncpyz( servernodeptr->adrstr, adrstr, MAX_ADDRESSLENGTH );
+	Q_strncpyz( servernodeptr->adrstr, adrstr, sizeof( servernodeptr->adrstr ) );
 
-	if ( UI_CleanStr( servernodeptr->hostname, MAX_HOSTNAMELENGTH, Info_ValueForKey( info, "hostname" ) ) ) {
+	if ( UI_CleanStr( servernodeptr->hostname, sizeof( servernodeptr->hostname ), Info_ValueForKey( info, "hostname" ) ) ) {
 		// some servers abusing color sequences - lets filter them until completely cleaned
-		while ( UI_CleanStr( servernodeptr->hostname, MAX_HOSTNAMELENGTH, servernodeptr->hostname ) )
+		while ( UI_CleanStr( servernodeptr->hostname, sizeof( servernodeptr->hostname ), servernodeptr->hostname ) )
 			;
 	}
 	
-	Q_strncpyz( servernodeptr->mapname, Info_ValueForKey( info, "mapname" ), MAX_MAPNAMELENGTH );
+	Q_strncpyz( servernodeptr->mapname, Info_ValueForKey( info, "mapname" ), sizeof( servernodeptr->mapname ) );
 	Q_CleanStr( servernodeptr->mapname );
 	Q_strupr( servernodeptr->mapname );
 
-	servernodeptr->numclients = atoi( Info_ValueForKey( info, "clients") );
-	servernodeptr->maxclients = atoi( Info_ValueForKey( info, "sv_maxclients") );
+	servernodeptr->numclients = abs( atoi( Info_ValueForKey( info, "clients") ) );
+	servernodeptr->maxclients = abs( atoi( Info_ValueForKey( info, "sv_maxclients") ) );
 	servernodeptr->pingtime   = pingtime;
 	servernodeptr->minPing    = atoi( Info_ValueForKey( info, "minPing") );
 	servernodeptr->maxPing    = atoi( Info_ValueForKey( info, "maxPing") );
