@@ -1542,9 +1542,14 @@ void CG_DrawWeaponSelect( void ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.weaponSelectTime, WEAPON_SELECT_TIME );
-	if ( !color ) {
-		return;
+	if ( cg_drawWeaponSticky.integer ) {
+		color = colorWhite;
+	}
+	else {
+		color = CG_FadeColor( cg.weaponSelectTime, WEAPON_SELECT_TIME );
+		if ( !color ) {
+			return;
+		}
 	}
 	trap_R_SetColor( color );
 
