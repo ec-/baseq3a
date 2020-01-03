@@ -10,10 +10,15 @@ cg_followKiller <0|1>
 cg_drawWeaponSelect <0|1|2|3>
 
     0 - disabled
-    1 - horozontal with weapon name
+    1 - horizontal with weapon name
     2 - horizontal with ammo counters
     3 - vectical with ammo counters
 
+========================
+cg_drawWeaponSticky <0|1>
+
+    0 - show only when switching weapon
+    1 - show always
 
 ========================
 cg_drawSpeed <0|1|2>
