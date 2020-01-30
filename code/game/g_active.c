@@ -1189,8 +1189,10 @@ void ClientEndFrame( gentity_t *ent ) {
 		// limit lagged player prediction to 2 server frames
 		frames = 2;
 		// and add the EF_CONNECTION flag if we haven't gotten commands recently
-		client->ps.eFlags |= EF_CONNECTION;
-		ent->s.eFlags |= EF_CONNECTION;
+		if ( !( ent->r.svFlags & SVF_BOT ) ) {
+			client->ps.eFlags |= EF_CONNECTION;
+			ent->s.eFlags |= EF_CONNECTION;
+		}
 	}
 
 	if ( frames > 0 && g_smoothClients.integer ) {
