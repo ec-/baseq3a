@@ -743,6 +743,15 @@ qboolean	BG_PlayerTouchesItem( playerState_t *ps, entityState_t *item, int atTim
 #define KAMI_BOOMSPHERE_MAXRADIUS		720
 #define KAMI_SHOCKWAVE2_MAXRADIUS		704
 
+
+typedef struct
+{
+  const char *name;
+} dummyCmd_t;
+int cmdcmp( const void *a, const void *b );
+// register a command name so the console can perform command completion.
+void trap_AddCommand(const char *cmdName);
+void trap_RemoveCommand(const char *cmdName);
 // custom functions
 
 int BG_sprintf( char *buf, const char *format, ... );

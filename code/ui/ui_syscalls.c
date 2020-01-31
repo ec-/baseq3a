@@ -379,3 +379,11 @@ qboolean trap_VerifyCDKey( const char *key, const char *chksum) {
 void trap_SetPbClStatus( int status ) {
 	syscall( UI_SET_PBCLSTATUS, status );
 }
+
+void trap_AddCommand(const char *cmdName) {
+	syscall(UI_ADDCOMMAND, cmdName);
+}
+
+void trap_RemoveCommand(const char *cmdName) {
+	syscall(UI_REMOVECOMMAND, cmdName);
+}

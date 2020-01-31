@@ -1601,6 +1601,12 @@ void BG_PlayerStateToEntityStateExtraPolate( playerState_t *ps, entityState_t *s
 }
 
 
+int cmdcmp( const void *a, const void *b )
+{
+  return Q_stricmp( (const char *)a, ((dummyCmd_t *)b)->name );
+}
+
+
 int replace_s( char * str1, char * str2, char * src, int max_len ) 
 {
 	int count = 0; // replace count

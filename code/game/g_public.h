@@ -206,6 +206,8 @@ typedef enum {
 	
 	// 1.32
 	G_FS_SEEK,
+	G_ADDCOMMAND,				// (const char *cmdName);
+	G_REMOVECOMMAND,			// (const char *cmdName);
 
 	BOTLIB_SETUP = 200,				// ( void );
 	BOTLIB_SHUTDOWN,				// ( void );

@@ -443,8 +443,34 @@ void Svcmd_Rotate_f( void ) {
 	}
 }
 
+/*
+===================
+Svcmd_ListIPs_f
+===================
+*/
+void	Svcmd_ListIPs_f( void ) {
+	trap_SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
+}
 
-char	*ConcatArgs( int start );
+struct svcmd
+{
+  char     *cmd;
+  qboolean dedicated;
+  void     ( *function )( void );
+} svcmds[ ] = {
+  { "abort_podium", qfalse, Svcmd_AbortPodium_f },
+  { "addbot", qfalse, Svcmd_AddBot_f },
+  { "addip", qfalse, Svcmd_AddIP_f },
+  { "botlist", qfalse, Svcmd_BotList_f },
+  { "entitylist", qfalse, Svcmd_EntityList_f },
+  { "forceteam", qfalse, Svcmd_ForceTeam_f},
+  { "game_memory", qfalse, Svcmd_GameMem_f },
+  { "listip", qfalse, Svcmd_ListIPs_f },
+  { "removeip", qfalse, Svcmd_RemoveIP_f },
+  { "rotate", qfalse, Svcmd_Rotate_f },
+};
+
+const size_t numSvCmds = ARRAY_LEN(svcmds);
 
 /*
 =================
@@ -452,71 +478,60 @@ ConsoleCommand
 
 =================
 */
-qboolean	ConsoleCommand( void ) {
+qboolean	G_ConsoleCommand( void ) {
 	char	cmd[MAX_TOKEN_CHARS];
+	struct	svcmd *command;
 
 	trap_Argv( 0, cmd, sizeof( cmd ) );
 
-	if ( Q_stricmp (cmd, "entitylist") == 0 ) {
-		Svcmd_EntityList_f();
-		return qtrue;
+	command = bsearch( cmd, svcmds, numSvCmds, sizeof( struct svcmd ), cmdcmp );
+
+	if( !command )
+	{
+		if( g_dedicated.integer )
+			G_Printf( "unknown command: %s\n", cmd );
+
+		return qfalse;
 	}
 
-	if ( Q_stricmp (cmd, "forceteam") == 0 ) {
-		Svcmd_ForceTeam_f();
-		return qtrue;
-	}
+	if( command->dedicated && !g_dedicated.integer )
+		return qfalse;
 
-	if (Q_stricmp (cmd, "game_memory") == 0) {
-		Svcmd_GameMem_f();
-		return qtrue;
-	}
+	command->function( );
+	return qtrue;
+}
 
-	if (Q_stricmp (cmd, "addbot") == 0) {
-		Svcmd_AddBot_f();
-		return qtrue;
-	}
+/*
+===================
+G_RegisterCommands
+===================
+*/
+void G_RegisterCommands( void )
+{
+	int i;
 
-	if (Q_stricmp (cmd, "botlist") == 0) {
-		Svcmd_BotList_f();
-		return qtrue;
+	for( i = 0; i < numSvCmds; i++ )
+	{
+		if( svcmds[ i ].dedicated && !g_dedicated.integer )
+			continue;
+		trap_AddCommand( svcmds[ i ].cmd );
 	}
+}
 
-	if (Q_stricmp (cmd, "abort_podium") == 0) {
-		Svcmd_AbortPodium_f();
-		return qtrue;
+/*
+===================
+G_UnregisterCommands
+===================
+*/
+void G_UnregisterCommands( void )
+{
+	int i;
+
+	for( i = 0; i < numSvCmds; i++ )
+	{
+		if( svcmds[ i ].dedicated && !g_dedicated.integer )
+			continue;
+		trap_RemoveCommand( svcmds[ i ].cmd );
 	}
-
-	if (Q_stricmp (cmd, "addip") == 0) {
-		Svcmd_AddIP_f();
-		return qtrue;
-	}
-
-	if (Q_stricmp (cmd, "removeip") == 0) {
-		Svcmd_RemoveIP_f();
-		return qtrue;
-	}
-
-	if (Q_stricmp (cmd, "listip") == 0) {
-		trap_SendConsoleCommand( EXEC_NOW, "g_banIPs\n" );
-		return qtrue;
-	}
-
-	if (Q_stricmp (cmd, "rotate") == 0) {
-		Svcmd_Rotate_f();
-		return qtrue;
-	}
-
-	if (g_dedicated.integer) {
-		if (Q_stricmp (cmd, "say") == 0) {
-			G_BroadcastServerCommand( -1, va("print \"server: %s\"", ConcatArgs(1) ) );
-			return qtrue;
-		}
-		// everything else will also be printed as a say command
-		G_BroadcastServerCommand( -1, va("print \"server: %s\"", ConcatArgs(0) ) );
-		return qtrue;
-	}
-
-	return qfalse;
 }
 

@@ -763,4 +763,26 @@ int abs( int n ) {
 double fabs( double x ) {
 	return x < 0 ? -x : x;
 }
+
+void *bsearch( const void *key, const void *base, size_t nmemb, size_t size,
+               cmp_t *compar )
+{
+	size_t low = 0, high = nmemb, mid;
+	int    comp;
+	void   *ptr;
+
+	while( low < high )
+	{
+		mid = low + (high - low) / 2;
+		ptr = (void *)((char *)base + ( mid * size ));
+		comp = compar (key, ptr);
+		if( comp < 0 )
+			high = mid;
+		else if( comp > 0 )
+			low = mid + 1;
+		else
+			return ptr;
+	}
+	return NULL;
+}
 #endif

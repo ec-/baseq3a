@@ -1618,11 +1618,6 @@ void		trap_SendConsoleCommand( const char *text );
 
 int			trap_RealTime(qtime_t *qtime);
 
-// register a command name so the console can perform command completion.
-// FIXME: replace this with a normal console command "defineCommand"?
-void		trap_AddCommand( const char *cmdName );
-void		trap_RemoveCommand( const char *cmdName );
-
 // send a string to the server over the network
 void		trap_SendClientCommand( const char *s );
 

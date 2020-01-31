@@ -221,7 +221,7 @@ DLLEXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) {
 		G_RunFrame( arg0 );
 		return 0;
 	case GAME_CONSOLE_COMMAND:
-		return ConsoleCommand();
+		return G_ConsoleCommand();
 	case BOTAI_START_FRAME:
 		return BotAIStartFrame( arg0 );
 	}
@@ -555,6 +555,7 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	}
 
 	G_InitWorldSession();
+	G_RegisterCommands();
 
 	// initialize all entities for this game
 	memset( g_entities, 0, MAX_GENTITIES * sizeof(g_entities[0]) );
@@ -653,6 +654,8 @@ static void G_ShutdownGame( int restart )
 	if ( trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
 		BotAIShutdown( restart );
 	}
+
+	G_UnregisterCommands();
 }
 
 

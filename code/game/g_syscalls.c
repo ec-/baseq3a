@@ -63,6 +63,14 @@ int trap_FS_Seek( fileHandle_t f, long offset, fsOrigin_t origin ) {
 	return syscall( G_FS_SEEK, f, offset, origin );
 }
 
+void	trap_AddCommand( const char *cmdName ) {
+	syscall( G_ADDCOMMAND, cmdName );
+}
+
+void	trap_RemoveCommand( const char *cmdName ) {
+	syscall( G_REMOVECOMMAND, cmdName );
+}
+
 void	trap_SendConsoleCommand( int exec_when, const char *text ) {
 	syscall( G_SEND_CONSOLE_COMMAND, exec_when, text );
 }
