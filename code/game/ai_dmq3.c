@@ -4468,7 +4468,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 #ifdef OBSTACLEDEBUG
 	ClientName(bs->client, netname, sizeof(netname));
 	BotAI_Print(PRT_MESSAGE, "%s: I'm blocked by model %d\n", netname, entinfo.modelindex);
-#endif OBSTACLEDEBUG
+#endif
 	// if blocked by a bsp model and the bot wants to activate it
 	if (activate && entinfo.modelindex > 0 && entinfo.modelindex <= max_bspmodelindex) {
 		// find the bsp entity which should be activated in order to get the blocking entity out of the way

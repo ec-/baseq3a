@@ -104,23 +104,6 @@ static const char *sortkey_items[] = {
 	NULL
 };
 
-static char* gamenames[] = {
-	"DM ",	// deathmatch
-	"1v1",	// tournament
-	"SP ",	// single player
-	"Team DM",	// team deathmatch
-	"CTF",	// capture the flag
-	"One Flag CTF",		// one flag ctf
-	"OverLoad",				// Overload
-	"Harvester",			// Harvester
-	"Rocket Arena 3",	// Rocket Arena 3
-	"Q3F",						// Q3F
-	"Urban Terror",		// Urban Terror
-	"OSP",						// Orange Smoothie Productions
-	"???",			// unknown
-	NULL
-};
-
 static char* netnames[] = {
 	"???",
 	"UDP",
@@ -227,8 +210,8 @@ static int				g_sortkey;
 static int				g_emptyservers;
 static int				g_fullservers;
 
-static void	ArenaServers_UpdateList();
-static void	ArenaServers_UpdatePicture();
+static void ArenaServers_UpdateList( void );
+static void ArenaServers_UpdatePicture( void );
 
 /*
 =================

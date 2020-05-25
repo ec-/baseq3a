@@ -499,7 +499,7 @@ void CG_LoadFonts( void )
 static float DrawStringLength( const char *string, float ax, float aw, float max_ax, int proportional )
 {
 	const font_metric_t	*fm;
-	float			aw1;
+	//float			aw1;
 	float			x_end;
 	const byte		*s;
 	float			xx;
@@ -523,11 +523,11 @@ static float DrawStringLength( const char *string, float ax, float aw, float max
 		//fm = &font->metrics[ *s ];
 		fm = &metrics[ *s ];
 		if ( proportional ) {
-			aw1 = fm->width * aw;
+			//aw1 = fm->width * aw;
 			ax += fm->space1 * aw;			// add extra space if required by metrics
 			x_end = ax + fm->space2 * aw;	// final position
 		} else {
-			aw1 = aw;
+			//aw1 = aw;
 			x_end = ax + aw;
 		}
 

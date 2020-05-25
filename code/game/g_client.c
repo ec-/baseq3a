@@ -579,7 +579,7 @@ returns qfalse in case of invalid userinfo
 */
 qboolean ClientUserinfoChanged( int clientNum ) {
 	gentity_t *ent;
-	int		teamTask, teamLeader, team, health;
+	int		teamTask, teamLeader, health;
 	char	*s;
 	char	model[MAX_QPATH];
 	char	headModel[MAX_QPATH];
@@ -685,8 +685,6 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	// set model
 	Q_strncpyz( model, Info_ValueForKey( userinfo, "model" ), sizeof( model ) );
 	Q_strncpyz( headModel, Info_ValueForKey( userinfo, "headmodel" ), sizeof( headModel ) );
-
-	team = client->sess.sessionTeam;
 
 	// team task (0 = none, 1 = offence, 2 = defence)
 	teamTask = atoi(Info_ValueForKey(userinfo, "teamtask"));

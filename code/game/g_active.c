@@ -1087,7 +1087,6 @@ while a slow client may have multiple ClientEndFrame between ClientThink.
 void ClientEndFrame( gentity_t *ent ) {
 	static gentity_t sent;
 	int			i;
-	clientPersistant_t	*pers;
 	gclient_t	*client;
 	// unlagged
 	int			frames;
@@ -1103,7 +1102,6 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	client = ent->client;
-	pers = &client->pers;
 
 	// turn off any expired powerups
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
