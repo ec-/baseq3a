@@ -391,46 +391,50 @@ RespawnItem
 */
 void RespawnItem( gentity_t *ent ) {
 	
-	if (!ent)
+	if ( !ent ) {
 		return;
+	}
 	
 	// randomly select from teamed entities
-	if (ent->team) {
-		gentity_t	*master;
+	if ( ent->team ) {
+		gentity_t *master;
 		int	count;
 		int choice;
 
 		if ( !ent->teammaster ) {
-			G_Error( "RespawnItem: bad teammaster");
+			G_Error( "RespawnItem: bad teammaster" );
 		}
+
 		master = ent->teammaster;
 
-		for (count = 0, ent = master; ent; ent = ent->teamchain, count++)
-			;
+		for ( count = 0, ent = master; ent; ent = ent->teamchain, count++ ) {
+			// reset spawn timers on all teamed entities
+			ent->nextthink = 0;
+		}
 
 		choice = rand() % count;
 
-		for (count = 0, ent = master; ent && count < choice; ent = ent->teamchain, count++)
+		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain, count++ )
 			;
 	}
 
-	if ( !ent )
+	if ( !ent ) {
 		return;
+	}
 
 	ent->r.contents = CONTENTS_TRIGGER;
 	ent->s.eFlags &= ~EF_NODRAW;
 	ent->r.svFlags &= ~SVF_NOCLIENT;
-	trap_LinkEntity (ent);
+	trap_LinkEntity( ent );
 
 	if ( ent->item->giType == IT_POWERUP ) {
 		// play powerup spawn sound to all clients
 		gentity_t	*te;
 
 		// if the powerup respawn sound should Not be global
-		if (ent->speed) {
+		if ( ent->speed ) {
 			te = G_TempEntity( ent->s.pos.trBase, EV_GENERAL_SOUND );
-		}
-		else {
+		} else {
 			te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_SOUND );
 		}
 		te->s.eventParm = G_SoundIndex( "sound/items/poweruprespawn.wav" );

@@ -1650,14 +1650,20 @@ static void G_WarmupEnd( void )
 				ent->r.contents = 0;
 				ent->activator = NULL;
 				ent->think = RespawnItem;
-				ent->nextthink = level.time + t;
 			} else {
+				t = FRAMETIME;
 				if ( ent->activator ) {
 					ent->activator = NULL;
 					ent->think = RespawnItem;
 				}
-				ent->nextthink = level.time + FRAMETIME;
 			}
+			if ( ent->random ) {
+				t += (crandom() * ent->random) * 1000;
+				if ( t < FRAMETIME ) {
+					t = FRAMETIME;
+				}
+			}
+			ent->nextthink = level.time + t;
 
 		} else if ( ent->s.eType == ET_MISSILE ) {
 			// remove all launched missiles
