@@ -43,7 +43,6 @@ int SpawnTime( gentity_t *ent, qboolean firstSpawn )
 		return 0;
 
 	switch( ent->item->giType ) {
-
 	case IT_WEAPON:
 		if ( firstSpawn )
 			return SPAWN_WEAPONS;
@@ -75,9 +74,10 @@ int SpawnTime( gentity_t *ent, qboolean firstSpawn )
 
 	case IT_HOLDABLE:
 		return firstSpawn ? SPAWN_HOLDABLE : RESPAWN_HOLDABLE;
-	}
 
-	return 0;
+	default: // IT_BAD and others
+		return 0;
+	}
 } 
 
 
