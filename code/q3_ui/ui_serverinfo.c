@@ -203,15 +203,15 @@ void UI_ServerInfoMenu( void )
 
 	max = 0;
 	s = s_serverinfo.info;
-	while ( s ) {
-		Info_NextPair( &s, key, value );
-		if ( !key[0] ) {
+	do {
+		s = Info_NextPair( s, key, value );
+		if ( key[0] == '\0' ) {
 			break;
 		}
 		len = strlen( key );
 		if ( len > max )
 			max = len;
-	}
+	} while ( *s != '\0' );
 
 	s_serverinfo.list.generic.type		= MTYPE_SCROLLLIST;
 	s_serverinfo.list.generic.flags		= QMF_PULSEIFFOCUS;
@@ -227,9 +227,9 @@ void UI_ServerInfoMenu( void )
 
 	s_serverinfo.list.numitems = 0;
 	s = s_serverinfo.info;
-	while ( s ) {
-		Info_NextPair( &s, key, value );
-		if ( !key[0] || s_serverinfo.list.numitems >= MAX_INFO_LINES )
+	do {
+		s = Info_NextPair( s, key, value );
+		if ( key[0] == '\0' )
 			break;
 
 		str = show_info[s_serverinfo.list.numitems];
@@ -247,7 +247,9 @@ void UI_ServerInfoMenu( void )
 		buf[INFO_LINE_WIDTH*3-1] = '\0';
 		strcpy( str, buf );
 		s_serverinfo.list.numitems++;
-	}
+		if ( s_serverinfo.list.numitems >= MAX_INFO_LINES )
+			break;
+	} while ( *s != '\0' );
 
 	Menu_AddItem( &s_serverinfo.menu, (void*) &s_serverinfo.banner );
 	Menu_AddItem( &s_serverinfo.menu, (void*) &s_serverinfo.framel );
