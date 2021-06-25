@@ -918,7 +918,7 @@ static void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chat
 	int			j;
 	gentity_t	*other;
 	int			color;
-	char		name[64];
+	char		name[64 + 64 + 12]; // name + location + formatting
 	// don't let text be too long for malicious reasons
 	char		text[MAX_SAY_TEXT];
 	char		location[64];
