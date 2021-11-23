@@ -47,7 +47,7 @@ vmCvar_t	g_motd;
 vmCvar_t	g_synchronousClients;
 vmCvar_t	g_warmup;
 vmCvar_t	g_predictPVS;
-vmCvar_t	g_restarted;
+//vmCvar_t	g_restarted;
 vmCvar_t	g_log;
 vmCvar_t	g_logSync;
 vmCvar_t	g_blood;
@@ -86,7 +86,7 @@ static cvarTable_t gameCvarTable[] = {
 	// noset vars
 	{ NULL, "gamename", GAMEVERSION , CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
 	{ NULL, "gamedate", __DATE__ , CVAR_ROM, 0, qfalse  },
-	{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
+	//{ &g_restarted, "g_restarted", "0", CVAR_ROM, 0, qfalse  },
 	{ &g_mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM, 0, qfalse  },
 	{ &sv_fps, "sv_fps", "30", CVAR_ARCHIVE, 0, qfalse  },
 
