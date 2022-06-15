@@ -1,0 +1,375 @@
+name: build
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '*.txt'
+      - '.gitignore'
+      - 'docs/*'
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '*.txt'
+      - '.gitignore'
+      - 'docs/*'
+  release:
+    types: [published]
+
+  workflow_dispatch:
+
+jobs:
+  windows-msys:
+    name: ${{ matrix.config }} Windows ${{ matrix.arch }}
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x86_64]
+        cc: [gcc]
+        config: [Release]
+        include:
+          - arch: x86
+            msystem: MINGW32
+            prefix: mingw-w64-i686
+
+          - arch: x86_64
+            msystem: MINGW64
+            prefix: mingw-w64-x86_64
+
+          - config: Release
+            rule: install
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        install: ${{ matrix.prefix }}-binutils ${{ matrix.prefix }}-make ${{ matrix.prefix }}-${{ matrix.cc }}
+        msystem: ${{ matrix.msystem }}
+        path-type: minimal
+        release: false
+        update: false
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: |
+        mkdir bin
+        cd build/linux
+        make release -j 8 ARCH=${{ matrix.arch }} CC=${{ matrix.cc }} \
+          PLATFORM=mingw32 V=1
+        cd ../../
+        mv build/linux/build/release-mingw32-*/baseq3a/*.dll bin/
+        #mv build/linux/build/release-mingw32-*/baseq3a/*.pdb bin/
+
+    - uses: actions/upload-artifact@v2
+      if: matrix.cc == 'gcc' && matrix.config == 'Release'
+      with:
+        name: windows-mingw-${{ matrix.arch }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+
+  windows-msvc:
+    name: ${{ matrix.config }} Windows ${{ matrix.arch }}
+    runs-on: windows-2019
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64, x86, x64]
+        config: [Release]
+        include:
+          - arch: arm64
+            platform: ARM64
+            suffix: .arm64
+            pkg_suffix: arm64
+
+          - arch: x86
+            platform: Win32
+            pkg_suffix: x86
+
+          - arch: x64
+            platform: x64
+            suffix: .x64
+            pkg_suffix: x86_64
+
+    steps:
+    - uses: microsoft/setup-msbuild@v1.0.2
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: |
+        mkdir bin
+
+        msbuild build\win32-msvc2017\cgame.vcxproj -m -p:TargetName=cgame,Configuration=${{ matrix.config }},Platform=${{ matrix.platform }}
+
+        copy build\win32-msvc2017\output\cgame.dll bin\cgame${{ matrix.suffix }}.dll
+
+        msbuild build\win32-msvc2017\game.vcxproj -m -p:TargetName=qagame,Configuration=${{ matrix.config }},Platform=${{ matrix.platform }}
+
+        copy build\win32-msvc2017\output\qagame.dll bin\qagame${{ matrix.suffix }}.dll
+
+        msbuild build\win32-msvc2017\q3_ui.vcxproj -m -p:TargetName=ui,Configuration=${{ matrix.config }},Platform=${{ matrix.platform }}
+
+        copy build\win32-msvc2017\output\ui.dll bin\ui${{ matrix.suffix }}.dll
+
+    - uses: actions/upload-artifact@v2
+      if: ${{ matrix.config == 'Release' }}
+      with:
+        name: windows-msvc-${{ matrix.pkg_suffix }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+        
+  ubuntu-x86:
+    name: ${{ matrix.config }} Ubuntu ${{ matrix.arch }}
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x86_64, bytecode]
+        cc: [gcc]
+        config: [Release]
+        include:
+          - config: Release
+            rule: install
+          - arch: x86
+            use_sdl: USE_SDL=0
+            platform: linux
+            copy_target: /build/release-*/baseq3a/*.so
+          - arch: x86_64
+            use_sdl: USE_SDL=1
+            platform: linux
+            copy_target: /build/release-*/baseq3a/*.so
+          - arch: bytecode
+            platform: qvms
+            copy_target: /*.pk3
+            
+    steps:
+    - name: Install tools
+      run: |
+        if [ ${{ matrix.arch }} == "x86" ]; then
+          sudo dpkg --add-architecture i386
+          sudo apt-get -qq update
+          sudo apt-get -y install gcc-multilib libcurl4-openssl-dev:i386 mesa-common-dev:i386 libxxf86dga-dev:i386 libxrandr-dev:i386 libxxf86vm-dev:i386 libasound-dev:i386
+        else
+          sudo apt-get -qq update
+          sudo apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev libsdl2-dev
+        fi
+        wget https://github.com/briancullinan/q3lcc/releases/download/latest/q3lcc-linux-x86_64.zip
+        unzip q3lcc-linux-x86_64.zip -d ../
+        wget https://github.com/briancullinan/q3asm/releases/download/latest/q3asm-linux-x86_64.zip
+        unzip q3asm-linux-x86_64.zip -d ../
+        chmod a+x ../*
+        pwd
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: |
+        mkdir bin
+        mkdir bin/vm
+        cd build/linux
+        ls -la ../../../
+        make release -j 8 ARCH=${{ matrix.arch }} \
+          PLATFORM=${{ matrix.platform }} V=1
+        cd ../../
+        mv build/linux${{ matrix.copy_target }} bin/
+
+    - uses: actions/upload-artifact@v2
+      if: matrix.cc == 'gcc' && matrix.config == 'Release'
+      with:
+        name: ${{ matrix.platform }}-${{ matrix.arch }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+
+  ubuntu-arm:
+    name: ${{ matrix.config }} Ubuntu ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [aarch64, armv7]
+        cc: [gcc]
+        config: [Release]
+        include:
+          - config: Release
+            rule: install
+
+    steps:
+    - uses: actions/checkout@v2
+      if: false
+      with:
+        submodules: recursive
+
+    - name: Build ${{ matrix.arch }}
+      uses: uraimo/run-on-arch-action@v2.0.5
+      if: false
+      with:
+        arch: ${{ matrix.arch }}
+        distro: ubuntu20.04
+        githubToken: ${{ github.token }}
+        shell: /bin/sh
+        run: |
+          apt-get -qq update
+          apt-get install -y make gcc g++
+          apt-get -y install libcurl4-openssl-dev mesa-common-dev libxxf86dga-dev libxrandr-dev libxxf86vm-dev libasound-dev
+          cd build/linux
+          make release -j 4 ARCH=${{ matrix.arch }} CC=${{ matrix.cc }}
+          cd ../../
+          mv build/linux/build/release-linux-arm64/baseq3a/*.so bin/
+
+    - uses: actions/upload-artifact@v2
+      if: false
+      #if: matrix.cc == 'gcc' && matrix.config == 'Release'
+      with:
+        name: linux-${{ matrix.arch }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+
+  macos-x86:
+    name: ${{ matrix.config }} macOS x86_64
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64]
+        cc: [clang]
+        config: [Release]
+        include:
+          - config: Release
+            rule: install
+
+    steps:
+    - name: Install tools
+      run: brew install coreutils sdl2
+
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Build
+      run: |
+        mkdir bin
+        cd build/linux
+        make release -j 4 CC=${{ matrix.cc }} INSTALL=ginstall 
+        cd ../../
+        mv build/linux/build/release-darwin-x86_64/baseq3a/*.dylib bin/
+
+    - uses: actions/upload-artifact@v2
+      if: matrix.cc == 'clang' && matrix.config == 'Release'
+      with:
+        name: macos-${{ matrix.arch }}
+        path: bin
+        if-no-files-found: error
+        retention-days: 5
+
+  create-testing:
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: [windows-msys, windows-msvc, ubuntu-x86, ubuntu-arm, macos-x86]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Create binary archives
+        run: |
+          7z a -r baseq3a-full-x86_64.zip         ./macos-x86_64/*
+          7z a -r baseq3a-full-x86_64.zip         ./linux-x86_64/*
+          7z a -r baseq3a-full-x86_64.zip         ./windows-mingw-x86_64/*
+          7z a -r baseq3a-full-x86_64.zip         ./windows-msvc-x86_64/*
+          7z a -r baseq3a-full-x86_64.zip         ./windows-msvc-arm64/*
+          7z a -r baseq3a-full-x86_64.zip         ./qvms-bytecode/*
+          cp      ./qvms-bytecode/*.pk3           ./pak8a.pk3
+#         7z a -r baseq3a-qvms.zip              ./qvms-bytecode/*
+#         7z a -r baseq3a-linux-x86.zip           ./linux-x86/*
+#         7z a -r baseq3a-linux-x86_64.zip         ./linux-x86_64/*
+#         7z a -r baseq3a-windows-mingw-x86.zip    ./windows-mingw-x86/*
+#         7z a -r baseq3a-windows-mingw-x86_64.zip ./windows-mingw-x86_64/*
+#         7z a -r baseq3a-windows-msvc-x86.zip     ./windows-msvc-x86/*
+#         7z a -r baseq3a-windows-msvc-x86_64.zip  ./windows-msvc-x86_64/*
+#         7z a -r baseq3a-windows-msvc-arm64.zip   ./windows-msvc-arm64/*
+#         7z a -r baseq3a-macos-x86_64.zip         ./macos-x86_64/*
+#         7z a -r q3lcc-linux-aarch64.zip  ./linux-aarch64/*
+#         7z a -r q3lcc-linux-armv7.zip    ./linux-armv7/*
+
+      - name: Create latest build
+        uses: ec-/action-automatic-releases@test
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: Latest Build
+          files: |
+            *.zip
+            *.pk3
+
+  update-release:
+    if: ${{ github.event_name == 'release' }}
+    needs: [windows-msys, windows-msvc, ubuntu-x86, ubuntu-arm, macos-x86]
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          # - artifact_dir: linux-aarch64
+          #   artifact_name: quake3e-linux-aarch64.zip
+
+          # - artifact_dir: linux-armv7
+          #  artifact_name: quake3e-linux-armv7.zip
+
+          - artifact_dir: linux-x86
+            artifact_name: quake3e-linux-x86.zip
+
+          - artifact_dir: linux-x86_64
+            artifact_name: quake3e-linux-x86_64.zip
+
+          - artifact_dir: windows-mingw-x86
+#           artifact_name: quake3e-windows-mingw-x86.zip
+            artifact_name: quake3e-windows-x86.zip 
+
+          - artifact_dir: windows-mingw-x86_64
+#           artifact_name: quake3e-windows-mingw-x86_64.zip
+            artifact_name: quake3e-windows-x86_64.zip
+
+#         - artifact_dir: windows-msvc-x86
+#           artifact_name: quake3e-windows-msvc-x86.zip
+
+#         - artifact_dir: windows-msvc-x86_64
+#           artifact_name: quake3e-windows-msvc-x86_64.zip
+
+          - artifact_dir: windows-msvc-arm64
+#           artifact_name: quake3e-windows-msvc-arm64.zip
+            artifact_name: quake3e-windows-arm64.zip
+
+          - artifact_dir: macos-x86_64
+            artifact_name: quake3e-macos-x86_64.zip
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Create archive
+        run: 7z a -r ${{ matrix.artifact_name }} ./${{ matrix.artifact_dir }}/*
+
+      - name: Upload archive
+        uses: "svenstaro/upload-release-action@v2"
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file: ${{ matrix.artifact_name }}

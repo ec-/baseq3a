@@ -67,6 +67,11 @@
 
 //#pragma intrinsic( memset, memcpy )
 
+#define ID_INLINE __inline
+#define PATH_SEP '\\'
+#define PATH_SEP_FOREIGN '/'
+#define DLL_EXT ".dll"
+
 #endif
 
 // for windows fastcall option
@@ -85,6 +90,30 @@
 #define ID_INLINE __inline 
 
 #define	PATH_SEP '\\'
+
+#endif
+
+// ================================ APPLE ===================================
+
+#ifdef __APPLE__
+
+#define stricmp strcasecmp
+
+#define ID_INLINE inline
+
+#define	PATH_SEP '/'
+
+#endif // __APPLE__
+
+//===============================EMSCRIPTEN=================================
+
+#ifdef EMSCRIPTEN
+
+#define stricmp strcasecmp
+
+#define ID_INLINE inline
+
+#define PATH_SEP '/'
 
 #endif
 

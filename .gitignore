@@ -1,0 +1,6 @@
+/build/linux/build
+/build/debug*
+/.vscode
+/build/*/Makefile.local
+/build/*.pk3
+/build/*/*.pk3
