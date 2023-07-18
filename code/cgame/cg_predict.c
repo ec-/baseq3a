@@ -618,9 +618,10 @@ static void CG_CheckTimers( void ) {
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 )
 		return;
 
+	cg.timeResidual += 1000;
 	// periodic tasks
 	if ( cg.timeResidual && cg.predictedPlayerState.commandTime >= cg.timeResidual && !cg.thisFrameTeleport ) {
-		cg.timeResidual += 1000;
+		cg.timeResidual -= 1000;
 		if ( cg.predictedPlayerState.powerups[ PW_REGEN ] ) {
 			int maxhealth = cg.predictedPlayerState.stats[ STAT_MAX_HEALTH ];
 			if ( cg.predictedPlayerState.stats[ STAT_HEALTH ] < maxhealth ) {
