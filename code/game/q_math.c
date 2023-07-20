@@ -675,8 +675,6 @@ void SetPlaneSignbits (cplane_t *out) {
 	out->signbits = bits;
 }
 
-#if !( (defined __linux__ || __FreeBSD__) && (defined __i386__) && (!defined C_ONLY)) // rb010123
-
 // Looks like that's MSVC exclusive, MinGW doesn't even allow 
 // because uses GAS (GNU Assembly) syntax. That code was based on Kenny Edition
 #if defined _MSC_VER
@@ -992,7 +990,6 @@ int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
 	return sides;
 }
 
-#endif
 #endif
 
 /*
