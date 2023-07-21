@@ -675,7 +675,6 @@ void SetPlaneSignbits (cplane_t *out) {
 	out->signbits = bits;
 }
 
-// That code was based on XreaL
 
 /*
 ==================
@@ -684,7 +683,7 @@ BoxOnPlaneSide
 Returns 1, 2, or 1 + 2
 ==================
 */
-int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p)
+int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *p) // That code was based on XreaL
 {
 	float	dist1, dist2;
 	int		sides;
