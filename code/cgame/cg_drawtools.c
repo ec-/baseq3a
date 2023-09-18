@@ -496,13 +496,41 @@ void CG_LoadFonts( void )
 }
 
 
-static float DrawStringLength( const char *string, float ax, float aw, float max_ax, int proportional )
+// Extended Control Characters: convert hex rgb string to color -wiz
+static qboolean HexColor( const byte *hex, vec4_t color )
+{
+	int i, r, g, b;
+	
+	for (i = 0; i < 6; i++) {
+		if (!((hex[i] >= '0' && hex[i] <= '9')
+		   || (hex[i] >= 'A' && hex[i] <= 'F')
+		   || (hex[i] >= 'a' && hex[i] <= 'f')))
+			return qfalse;
+	}
+
+	if (color)
+	{
+		r = hex2dec(hex[0]) * 16 + hex2dec(hex[1]);
+		g = hex2dec(hex[2]) * 16 + hex2dec(hex[3]);
+		b = hex2dec(hex[4]) * 16 + hex2dec(hex[5]);
+
+		color[0] = (float)r / 255;
+		color[1] = (float)g / 255;
+		color[2] = (float)b / 255;
+	}
+
+	return qtrue;
+}
+
+
+static float DrawStringLength( const char *string, float ax, float aw, float max_ax, int proportional, qboolean flash )
 {
 	const font_metric_t	*fm;
 	//float			aw1;
 	float			x_end;
 	const byte		*s;
 	float			xx;
+	qboolean		flashSkip;
 
 	if ( !string )
 		return 0.0f;
@@ -510,15 +538,43 @@ static float DrawStringLength( const char *string, float ax, float aw, float max
 	s = (const byte*)string;
 
 	xx = ax;
+	flashSkip = qfalse;
 
 	while ( *s != '\0' ) {
-
 		if ( *s == Q_COLOR_ESCAPE && s[1] != '\0' && s[1] != '^' ) {
+		/*
 			//if ( !(flags & DS_SHOW_CODE) ) {
 			s += 2;
 			continue;
 			//}
 		}
+		*/
+
+			// Extended Control Characters: support flashing text -wiz
+			s++;
+			if ( *s == 'F' ) { // ^F - makes the text display only at the first half of a second
+				flashSkip = !flash;
+			}
+			else if ( *s == 'f' ) { // ^f - makes the text display only at the last half of a second
+				flashSkip = flash;
+			}
+			else if ( *s == 'N' || *s == 'n' ) { // ^N - resets control stuff like ^B, ^F, ^f 
+				flashSkip = qfalse;
+			}
+			else if ( !flashSkip ) {
+				if ( Q_IsExtHexColor(s) ) { // ^Xrrggbb - allows the user to define the color using the rgb values (hex)
+					s += 6;
+					continue;
+				}
+			}
+			s++;
+			continue;
+		}
+		if ( flashSkip ) {
+			s++;
+			continue;
+		}
+		//
 
 		//fm = &font->metrics[ *s ];
 		fm = &metrics[ *s ];
@@ -556,6 +612,10 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 	int				i;
 	qhandle_t		sh;
 	int				proportional;
+	// Extended Control Characters -wiz
+	float			alpha, fade;
+	qboolean		flash, flashSkip;
+	//
 
 	if ( !string )
 		return;
@@ -574,13 +634,22 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 		max_ax = ax + aw * maxChars;
 	}
 
+	// Extended Control Characters -wiz
+	fade = 0.5 + 0.25 * sin(cg.time * 0.0025);
+	// blink - this is separate than OSP blink (system specified blink)
+	alpha = (flags & DS_BLINK) ? Com_Clamp(0, setColor[3], fade) : setColor[3];
+	// OSP flash : true = first half of second, false = last half of second
+	flash = (cg.time % 1000 < 500) ? qtrue : qfalse;
+	flashSkip = qfalse;
+	//
+
 	proportional = (flags & DS_PROPORTIONAL);
 
 	if ( flags & ( DS_CENTER | DS_RIGHT ) ) {
 		if ( flags & DS_CENTER ) {
-			ax -= 0.5f * DrawStringLength( string, ax, aw, max_ax, proportional );
+			ax -= 0.5f * DrawStringLength( string, ax, aw, max_ax, proportional, flash );
 		} else {
-			ax -= DrawStringLength( string, ax, aw, max_ax, proportional );
+			ax -= DrawStringLength( string, ax, aw, max_ax, proportional, flash );
 		}
 	}
 
@@ -600,11 +669,62 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 
 		while ( *s != '\0' ) {
 			if ( *s == Q_COLOR_ESCAPE && s[1] != '\0' && s[1] != '^' ) {
+			/*
 				//if ( !(options & DS_SHOW_CODE) ) {
 				s += 2;
 				continue;
 				//}
 			}
+			*/
+
+				// Extended Control Characters: support blink, flash, and hex color shadows -wiz
+				s++;
+				if ( *s == 'B' ) { // ^B - make text blink (fade out partway)
+					color[3] = Com_Clamp(0.25f, alpha, fade);
+					if ( !(flags & DS_FORCE_COLOR) ) {
+						trap_R_SetColor(color);
+					}
+				}
+				else if ( *s == 'b' ) { // ^B - make text blink (fade out all the way)
+					color[3] = Com_Clamp(0.0f, alpha, fade);
+					if ( !(flags & DS_FORCE_COLOR) ) {
+						trap_R_SetColor(color);
+					}
+				}
+				else if ( *s == 'F' ) { // ^F - makes the text display only at the first half of a second
+					flashSkip = !flash;
+				}
+				else if ( *s == 'f' ) { // ^f - makes the text display only at the last half of a second
+					flashSkip = flash;
+				}
+				else if ( *s == 'N' || *s == 'n' ) { // ^N - resets control stuff like ^B, ^F, ^f 
+					flashSkip = qfalse;
+					color[3] = alpha;
+					if ( !(flags & DS_FORCE_COLOR) ) {
+						trap_R_SetColor(color);
+					}
+				}
+				else if ( !flashSkip ) {
+					if ( Q_IsExtHexColor(s) ) { // ^Xrrggbb - allows the user to define the color using the rgb values (hex)
+						s++;					
+						if ( HexColor(s, color) ) {
+							if ( !(flags & DS_FORCE_COLOR) ) {
+								trap_R_SetColor(color);
+							}
+							s += 6;
+						}
+						continue;
+					}					
+				}
+				s++;
+				continue;
+			}
+			else if ( flashSkip ) {
+				s++;
+				continue;
+			}
+			//
+
 			//fm = &font->metrics[ *s ];
 			fm = &metrics[ *s ];
 			if ( proportional ) {
@@ -640,11 +760,15 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 	}
 	
 	Vector4Copy( setColor, color );
+	color[3] = alpha;
 	trap_R_SetColor( color );
 	
+	flashSkip = qfalse;
+		
 	while ( *s != '\0' ) {
 
 		if ( *s == Q_COLOR_ESCAPE && s[1] != '\0' && s[1] != '^' ) {
+		/*
 			if ( !( flags & DS_FORCE_COLOR ) ) {
 				VectorCopy( g_color_table[ ColorIndex( s[1] ) ], color );
 				trap_R_SetColor( color );
@@ -654,6 +778,56 @@ void CG_DrawString( float x, float y, const char *string, const vec4_t setColor,
 			continue;
 			//}
 		}
+		*/
+
+			// Extended Control Characters: support blink, flash, and hex colors -wiz
+			s++;
+			if ( *s == 'B' ) { // ^B - make text blink (fade out partway)
+				color[3] = Com_Clamp(0.25f, alpha, fade);
+				if ( !(flags & DS_FORCE_COLOR) ) {
+					trap_R_SetColor(color);
+				}
+			}
+			else if ( *s == 'b' ) { // ^B - make text blink (fade out all the way)
+				color[3] = Com_Clamp(0.0f, alpha, fade);
+				if ( !(flags & DS_FORCE_COLOR) ) {
+					trap_R_SetColor(color);
+				}
+			}
+			else if ( *s == 'F' ) { // ^F - makes the text display only at the first half of a second
+				flashSkip = !flash;
+			}
+			else if ( *s == 'f' ) { // ^f - makes the text display only at the last half of a second
+				flashSkip = flash;
+			}
+			else if ( *s == 'N' || *s == 'n' ) { // ^N - resets control stuff like ^B, ^F, ^f 
+				flashSkip = qfalse;
+				color[3] = alpha;
+				if ( !(flags & DS_FORCE_COLOR) ) {
+					trap_R_SetColor(color);
+				}
+			}
+			else if ( !flashSkip ) {
+				if ( Q_IsExtHexColor(s) ) { // ^Xrrggbb - allows the user to define the color using the rgb values (hex)				
+					s++;
+					if ( HexColor(s, color) ) {
+						s += 6;
+					}
+					continue;
+				}
+				else if ( !(flags & DS_FORCE_COLOR) ) {
+					VectorCopy(g_color_table[ColorIndexFromChar(*s)], color);
+					trap_R_SetColor(color);
+				}
+			}
+			s++;
+			continue;
+		}
+		if ( flashSkip ) {
+			s++;
+			continue;
+		}
+		//	
 
 		//fm = &font->metrics[ *s ];
 		fm = &metrics[ *s ];
@@ -733,6 +907,11 @@ int CG_DrawStrlen( const char *str ) {
 
 	while ( *s ) {
 		if ( Q_IsColorString( s ) ) {
+			// Extended Control Characters: hex codes -wiz
+			if ( Q_IsExtHexColor(s+1) ) {
+				s += 6;
+			}
+			//
 			s += 2;
 		} else {
 			count++;

@@ -121,3 +121,14 @@ Miscellaneous
     Click on score line to follow selected player
 
 
+========================
+Extended Control Characters (OSP Style)
+
+The following control characters can be used to enhance player names and game messages.
+
+^B and ^b - make text blink
+^F        - makes the text display only at the first half of a second
+^f        - makes the text display only at the last half of a second
+^N        - resets control stuff like ^B, ^F, ^f
+^Xrrggbb  - allows the user to define the color using the rgb values (hex)
+            (e.g. ^XFF0000 is red, ^X00FF00 is green, ^X0000FF is blue).

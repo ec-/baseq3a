@@ -318,6 +318,11 @@ extern	vec4_t		colorDkGrey;
 #define Q_COLOR_ESCAPE	'^'
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
 
+// Extended Control Characters -wiz
+#define Q_IsHexChar(p) ( ( *p >= '0' || *p <= '9' ) || ( *p >= 'A' || *p <= 'F' ) || ( *p >= 'a' || *p <= 'f' ) )
+#define Q_IsExtHexColor(p) ( (*p == 'X' || *p == 'x') && Q_IsHexChar( p+1 ) && Q_IsHexChar( p+2 ) && Q_IsHexChar( p+3 ) && Q_IsHexChar( p+4 ) && Q_IsHexChar( p+5 ) && Q_IsHexChar( p+6 ) )
+//
+
 #define COLOR_BLACK		'0'
 #define COLOR_RED		'1'
 #define COLOR_GREEN		'2'
@@ -339,7 +344,11 @@ extern	vec4_t		colorDkGrey;
 
 #define S_COLOR_STRIP	S_COLOR_WHITE
 
-extern vec4_t	g_color_table[8];
+// Extended Control Characters -wiz
+//extern vec4_t	g_color_table[8];
+extern vec4_t g_color_table[36];
+extern int ColorIndexFromChar(char ccode);
+//
 
 #define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
 #define	MAKERGBA( v, r, g, b, a ) v[0]=r;v[1]=g;v[2]=b;v[3]=a

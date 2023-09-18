@@ -1240,7 +1240,8 @@ enum {
 	DS_FORCE_COLOR = 0x2,
 	DS_PROPORTIONAL = 0x4,
 	DS_CENTER = 0x8,	// alignment
-	DS_RIGHT  = 0x10	// alignment
+	DS_RIGHT  = 0x10,	// alignment
+	DS_BLINK  = 0x20,	// Extended Control Characters -wiz
 };
 void CG_DrawString( float x, float y, const char *s, const vec4_t color, float charWidth, float charHeight, int maxChars, int flags );
 #ifdef USE_NEW_FONT_RENDERER

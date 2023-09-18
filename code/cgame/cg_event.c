@@ -95,6 +95,7 @@ static void CG_Obituary( entityState_t *ent ) {
 		return;
 	}
 	Q_strncpyz( targetName, Info_ValueForKey( targetInfo, "n" ), sizeof(targetName) - 2);
+	BG_RemoveExtendedControlChars( targetName ); // Extended Control Characters -wiz
 	strcat( targetName, S_COLOR_WHITE );
 
 	following = cg.snap->ps.pm_flags & PMF_FOLLOW;
@@ -230,7 +231,8 @@ static void CG_Obituary( entityState_t *ent ) {
 		strcpy( attackerName, "noname" );
 	} else {
 		Q_strncpyz( attackerName, Info_ValueForKey( attackerInfo, "n" ), sizeof(attackerName) - 2);
-		Q_CleanStr( attackerName );
+		// Q_CleanStr( attackerName );
+		BG_RemoveExtendedControlChars(attackerName); // Extended Control Characters -wiz
 		strcat( attackerName, S_COLOR_WHITE );
 		// check for kill messages about the current clientNum
 		if ( target == cg.snap->ps.clientNum ) {

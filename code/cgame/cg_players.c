@@ -664,6 +664,7 @@ CG_ColorFromString
 ====================
 */
 static void CG_ColorFromChar( char v, vec3_t color ) {
+	/*
 	int val;
 
 	val = v - '0';
@@ -682,6 +683,11 @@ static void CG_ColorFromChar( char v, vec3_t color ) {
 			color[2] = 1.0f;
 		}
 	}
+	*/
+
+	// Extended Control Characters -wiz
+	int index = ColorIndexFromChar(v);
+	Vector4Copy(g_color_table[index], color);
 }
 
 

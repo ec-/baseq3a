@@ -1782,13 +1782,50 @@ char *BG_StripColor( char *string ) {
 
 	s = string;
 	d = string;
-	while ((c = *s) != 0 ) 
+	while ( (c = *s) != 0 ) 
 	{
-		if ( Q_IsColorString( s ) )
+		if ( Q_IsColorString( s ) ) {
+			// Extended Control Characters: hex codes are 6 chars -wiz
+			if ( Q_IsExtHexColor(s+1) ) {
+				s += 6;
+			}
+			//
 			s++;
+		}
 		else {
 			*d = c; d++;
 		}
+		s++;
+	}
+	*d = '\0';
+	return string;
+}
+
+
+// Extended Control Characters: removes extended control characters -wiz
+char *BG_RemoveExtendedControlChars( char *string ) {
+	char *d;
+	char *s;
+	int	  c;
+
+	s = string;
+	d = string;
+	while ( (c = *s) != 0 )
+	{
+		if ( Q_IsColorString(s) ) {
+			s++;
+			if ( Q_IsExtHexColor(s) ) {
+				s += 7;
+				continue;
+			}
+			if ( !(*s >= '0' && *s <= '9') ) {
+				s++;
+				continue;
+			}
+			s--;
+		}
+		*d = c;
+		d++;
 		s++;
 	}
 	*d = '\0';
@@ -1828,7 +1865,7 @@ char *EncodedString( const char *in )
 }
 
 
-static int hex2dec ( char chr ) {
+int hex2dec ( char chr ) {
 	switch ( chr ) {
 		case '0':  return 0;
 		case '1':  return 1;
@@ -1970,11 +2007,13 @@ void BG_CleanName( const char *in, char *out, int outSize, const char *blankStri
 				break;
 			}
 
+			/* Extended Control Characters: allow black. -wiz
 			// don't allow black in a name, period
 			if( ColorIndex(*in) == 0 ) {
 				in++;
 				continue;
 			}
+			*/
 
 			// make sure room in dest for both chars
 			if( len > outSize - 2 ) {
@@ -1987,10 +2026,12 @@ void BG_CleanName( const char *in, char *out, int outSize, const char *blankStri
 			continue;
 		}
 
+		/* Extended Control Characters: allow special quake characters (like atari.cfg) -wiz
 		// let's keep it in printable range
 		if ( ch < ' ' || ch > 126 ) {
 			continue;
 		}
+		*/
 
 		// don't allow too many consecutive spaces
 		if( ch == ' ' ) {

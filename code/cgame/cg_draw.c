@@ -1894,6 +1894,55 @@ CENTER PRINTING
 */
 
 
+// Extended Control Characters: count word length for word wrapping taking color codes into account -wiz
+static int wordlen( const char *str ) {
+	int tempindex = 0;
+	int len = 0;
+
+	while (str[tempindex] != '\0' && str[tempindex] != ' ' && str[tempindex] != '\n')
+	{
+		if (str[tempindex] == '^' && str[tempindex + 1] != '\0') {
+			if ( Q_IsExtHexColor(str + tempindex + 1) ) {
+				tempindex += 6;
+			}
+			tempindex += 2;
+			continue;
+		}
+		tempindex++;
+		len++;
+	}
+	return len;
+}
+
+// Extended Control Characters: insert word wrapping line breaks into string based on line length. -wiz
+static void wrap( char *s, const int linelen ) {
+	int index = 0;
+	int curlinelen = 0;
+
+	while (s[index] != '\0')
+	{
+		if (s[index] == '\n') {
+			curlinelen = -1;
+		}
+		else if (s[index] == ' ') {
+			if (curlinelen + wordlen(&s[index + 1]) >= linelen) {
+				s[index] = '\n';
+				curlinelen = -1;
+			}
+		}
+		else if (s[index] == '^' && s[index + 1] != '\0') {
+			if ( Q_IsExtHexColor(s + index + 1) ) {
+				index += 6;
+			}
+			index += 2;
+			continue;
+		}
+		curlinelen++;
+		index++;
+	}	
+}
+
+
 /*
 ==============
 CG_CenterPrint
@@ -1904,8 +1953,15 @@ for a few moments
 */
 void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	char	*s;
+	int		wraplen;
 
 	Q_strncpyz( cg.centerPrint, str, sizeof(cg.centerPrint) );
+
+	// Extended Control Characters: word wrapping -wiz
+	//wraplen = (cgs.screenXmax - cgs.screenXmin) / charWidth;
+	wraplen = ( ( ( 320 * cgs.screenXScale ) + cgs.glconfig.vidWidth)  / ( charWidth * cgs.screenXScale ) ) - 10;
+	wrap(cg.centerPrint, wraplen);
+	//
 
 	cg.centerPrintTime = cg.time;
 	cg.centerPrintY = y;
@@ -1954,7 +2010,9 @@ static void CG_DrawCenterString( void ) {
 	while ( 1 ) {
 		char linebuffer[1024];
 
-		for ( l = 0; l < 50; l++ ) {
+		//for ( l = 0; l < 50; l++ ) {
+		 // Extended Control Characters: word wrapping will take care of length, support longer text with color codes. -wiz
+		for ( l = 0; l < sizeof(linebuffer); l++ ) {
 			if ( !start[l] || start[l] == '\n' ) {
 				break;
 			}

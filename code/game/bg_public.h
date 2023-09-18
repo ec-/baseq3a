@@ -753,9 +753,11 @@ char *Q_stristr( const char * str1, const char * str2 );
 char *strtok( char *strToken, const char *strDelimit );
 char *EncodedString( const char *str );
 char *DecodedString( const char *str );
+int hex2dec(char chr);
 
 void BG_CleanName( const char *in, char *out, int outSize, const char *blankString );
 char *BG_StripColor( char *string );
+char *BG_RemoveExtendedControlChars( char *string ); // Extended Control Characters -wiz
 
 void Q_strcpy( char *dst, const char *src );
 char *Q_stradd( char *dst, const char *src );

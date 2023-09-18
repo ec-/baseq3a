@@ -1013,7 +1013,8 @@ Cmd_Argc() / Cmd_Argv()
 */
 static void CG_ServerCommand( void ) {
 	const char	*cmd, *id;
-	char		text[MAX_SAY_TEXT];
+	//char		text[MAX_SAY_TEXT];
+	char		text[256];  // print text can be longer -wiz
 
 	cmd = CG_Argv(0);
 
@@ -1033,7 +1034,12 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "print" ) ) {
-		CG_Printf( "%s", CG_Argv(1) );
+		//CG_Printf( "%s", CG_Argv(1) );
+		// Extended Control Characters -wiz
+		Q_strncpyz(text, CG_Argv(1), sizeof(text));
+		BG_RemoveExtendedControlChars(text);
+		CG_Printf(text);
+		//
 #ifdef MISSIONPACK
 		cmd = CG_Argv(1);			// yes, this is obviously a hack, but so is the way we hear about
 									// votes passing or failing
@@ -1051,6 +1057,7 @@ static void CG_ServerCommand( void ) {
 			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			CG_RemoveChatEscapeChar( text );
+			BG_RemoveExtendedControlChars( text ); // Extended Control Characters -wiz
 			id = CG_Argv( 2 );
 			if ( *id >= '0' && *id <= '9' )
 				CG_Printf( "(%i) %s\n", atoi( id ), text );
@@ -1064,6 +1071,7 @@ static void CG_ServerCommand( void ) {
 		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
+		BG_RemoveExtendedControlChars( text ); // Extended Control Characters -wiz
 		CG_AddToTeamChat( text );
 		id = CG_Argv( 2 );
 		if ( *id >= '0' && *id <= '9' )
