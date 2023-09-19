@@ -154,9 +154,11 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 #endif
 	// draw the score line
 	if ( score->ping == -1 ) {
-		BG_sprintf( string, " connecting" );
+		//BG_sprintf( string, " connecting" );
+		BG_sprintf( string, " %s", S_COLOR_GREEN "connecting" S_COLOR_WHITE ); // make it green -wiz
 	} else if ( ci->team == TEAM_SPECTATOR ) {
-		BG_sprintf( string, " SPECT %3i %4i", score->ping, score->time );
+		//BG_sprintf( string, " SPECT %3i %4i", score->ping, score->time );
+		BG_sprintf( string, " %s %3i %4i", S_COLOR_CYAN "SPECT" S_COLOR_WHITE, score->ping, score->time ); // make it cyan -wiz
 	} else {
 		BG_sprintf( string, "%5i %4i %4i", score->score, score->ping, score->time );
 	}
@@ -206,7 +208,8 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 	// add the "ready" marker for intermission exiting
 	if ( cg.snap->ps.stats[ STAT_CLIENTS_READY ] & ( 1 << score->client ) ) {
-		CG_DrawString( iconx, y, "READY", color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_FORCE_COLOR );
+		//CG_DrawString( iconx, y, "READY", color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_FORCE_COLOR );
+		CG_DrawString( iconx, y, "READY", colorYellow, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_FORCE_COLOR ); // make it yellow -wiz
 	}
 
 	// set bounds for scoreboard clicks

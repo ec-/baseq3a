@@ -903,6 +903,7 @@ static float CG_DrawTimer( float y ) {
 	const char	*s;
 	int			mins, seconds;
 	int			msec;
+	vec_t		*color;
 
 	msec = cg.time - cgs.levelStartTime;
 
@@ -910,8 +911,12 @@ static float CG_DrawTimer( float y ) {
 	mins = seconds / 60;
 	seconds -= mins * 60;
 
+	// make color yellow if less than 1 minute remaining -wiz
+	color = cgs.timelimit > 0 && mins >= (cgs.timelimit - 1) ? colorYellow : colorWhite;
+
 	s = va( "%i:%02i", mins, seconds );
-	CG_DrawString( cgs.screenXmax - 4, y + 2, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_RIGHT | DS_PROPORTIONAL );
+	//CG_DrawString( cgs.screenXmax - 4, y + 2, s, colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_RIGHT | DS_PROPORTIONAL );
+	CG_DrawString( cgs.screenXmax - 4, y + 2, s, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_RIGHT | DS_PROPORTIONAL );
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
@@ -2203,9 +2208,12 @@ CG_DrawSpectator
 =================
 */
 static void CG_DrawSpectator( void ) {
-	CG_DrawString( 320, cgs.screenYmax - 40 + 1, "SPECTATOR", colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+	// make "SPECTATOR" and "waiting to play" yellow and blinking -wiz
+	//CG_DrawString( 320, cgs.screenYmax - 40 + 1, "SPECTATOR", colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+	CG_DrawString( 320, cgs.screenYmax - 40 + 1, "SPECTATOR", colorYellow, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL | DS_BLINK );
 	if ( cgs.gametype == GT_TOURNAMENT ) {
-		CG_DrawString( 320, cgs.screenYmax - 20 + 1, "waiting to play", colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+		//CG_DrawString( 320, cgs.screenYmax - 20 + 1, "waiting to play", colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
+		CG_DrawString( 320, cgs.screenYmax - 20 + 1, "waiting to play", colorYellow, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL | DS_BLINK );
 	} else if ( cgs.gametype >= GT_TEAM ) {
 		CG_DrawString( 320, cgs.screenYmax - 20 + 1, "press ESC and use the JOIN menu to play", colorWhite, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_CENTER | DS_PROPORTIONAL );
 	}
@@ -2241,8 +2249,12 @@ static void CG_DrawVote( void ) {
 	s = "or press ESC then click Vote";
 	CG_DrawString( cgs.screenXmin - 0, 58 + SMALLCHAR_HEIGHT + 2, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DF_PROPORTIONAL );
 #else
-	s = va( "VOTE(%i):%s yes:%i no:%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
-	CG_DrawString( cgs.screenXmin - 0, 58, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL ); // DS_SHADOW?
+	//s = va( "VOTE(%i):%s yes:%i no:%i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
+	//CG_DrawString( cgs.screenXmin - 0, 58, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL ); // DS_SHADOW?
+	
+	// center vote and format like OSP -wiz
+	s = va( S_COLOR_WHITE "VOTE( %i ): " S_COLOR_YELLOW "%s" S_COLOR_WHITE "  yes( F1 ): %i  no( F2 ): %i", sec, cgs.voteString, cgs.voteYes, cgs.voteNo );
+	CG_DrawString(320, 58, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL | DS_CENTER);	
 #endif
 }
 
@@ -2277,10 +2289,14 @@ static void CG_DrawTeamVote(void) {
 	if ( sec < 0 ) {
 		sec = 0;
 	}
-	s = va("TEAMVOTE(%i):%s yes:%i no:%i", sec, cgs.teamVoteString[cs_offset],
-							cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset] );
+	// s = va("TEAMVOTE(%i):%s yes:%i no:%i", sec, cgs.teamVoteString[cs_offset],
+	// 						cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset] );
 
-	CG_DrawString( cgs.screenXmin - 0, 90, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL ); // DF_SHADOW?
+	// CG_DrawString( cgs.screenXmin - 0, 90, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL ); // DF_SHADOW?
+
+	// center vote and format like OSP -wiz
+	s = va( S_COLOR_WHITE "TEAMVOTE( %i ): " S_COLOR_YELLOW "%s" S_COLOR_WHITE "  yes( F1 ): %i  no( F2 ): %i", sec, cgs.teamVoteString[cs_offset], cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset]);
+	CG_DrawString(320, 58, s, colorWhite, SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0, DS_PROPORTIONAL | DS_CENTER);
 }
 
 
@@ -2790,7 +2806,8 @@ static void CG_WarmupEvents( void ) {
 				trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
 				cg.warmupFightSound = cg.time + 750;
 			}
-			CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+			//CG_CenterPrint( "FIGHT!", 120, GIANTCHAR_WIDTH*2 );
+			CG_CenterPrint( S_COLOR_RED "FIGHT!", 120, GIANTCHAR_WIDTH*2 );  // make it red -wiz
 			break;
 
 		case 1:
