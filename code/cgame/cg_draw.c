@@ -1434,6 +1434,7 @@ static int CG_DrawPickupItem( int y ) {
 	int		value;
 	float	*fadeColor;
 	const char *text;
+	int		x;
 
 	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
 		return y;
@@ -1445,16 +1446,19 @@ static int CG_DrawPickupItem( int y ) {
 	if ( value ) {
 		fadeColor = CG_FadeColorTime( cg.itemPickupTime, 3000, 250 );
 		if ( fadeColor ) {
+			// offset pickup item when permanent weapon bar is showing on the left -wiz
+			x = cgs.screenXmin + ( cg_drawWeaponSelect.integer <= -3 ? 96 : 0 );
+
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
-			CG_DrawPic( cgs.screenXmin + 8, y, PICKUP_ICON_SIZE, PICKUP_ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( x + 8, y, PICKUP_ICON_SIZE, PICKUP_ICON_SIZE, cg_items[ value ].icon );
 			if ( cg.itemPickupCount > 1 ) {
 				text = va( "%s x%i", bg_itemlist[ value ].pickup_name, cg.itemPickupCount );
 			} else {
 				text = bg_itemlist[ value ].pickup_name;
 			}
 
-			CG_DrawString( cgs.screenXmin + PICKUP_ICON_SIZE + 16, y + (PICKUP_ICON_SIZE/2 - PICKUP_TEXT_SIZE/2), 
+			CG_DrawString( x + PICKUP_ICON_SIZE + 16, y + (PICKUP_ICON_SIZE/2 - PICKUP_TEXT_SIZE/2), 
 				text, fadeColor, PICKUP_TEXT_SIZE, PICKUP_TEXT_SIZE, 0, DS_SHADOW | DS_PROPORTIONAL );
 			
 			trap_R_SetColor( NULL );

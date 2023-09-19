@@ -1537,6 +1537,7 @@ void CG_DrawWeaponSelect( void ) {
 	const char *name;
 	float	*color;
 	char	buf[16];
+	int		selectedWeapon;
 
 	// don't display if dead
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 || cg_drawWeaponSelect.integer == 0 ) {
@@ -1555,8 +1556,14 @@ void CG_DrawWeaponSelect( void ) {
 
 	weaponSelect = abs( cg_drawWeaponSelect.integer );
 
-	// showing weapon select clears pickup item display, but not the blend blob
-	cg.itemPickupTime = 0;
+	// when spectating the selected weapon is based on playerstate -wiz
+	selectedWeapon = ( cg.snap->ps.pm_flags & PMF_FOLLOW || cg.demoPlayback ) ? cg.snap->ps.weapon : cg.weaponSelect;
+
+	 // don't reset item pickup time for permanent weapon bar -wiz
+	if ( cg_drawWeaponSelect.integer >= 0 ) {
+		// showing weapon select clears pickup item display, but not the blend blob
+		cg.itemPickupTime = 0;
+	}
 
 	// count the number of weapons owned
 	bits = cg.snap->ps.stats[ STAT_WEAPONS ];
@@ -1590,7 +1597,8 @@ void CG_DrawWeaponSelect( void ) {
 		CG_DrawPic( x, y, 32, 32, cg_weapons[i].weaponIcon );
 
 		// draw selection marker
-		if ( i == cg.weaponSelect ) {
+		//if ( i == cg.weaponSelect ) {
+		if ( i == selectedWeapon ) {
 			CG_DrawPic( x-4, y-4, 32+8, 32+8, cgs.media.selectShader );
 		}
 
