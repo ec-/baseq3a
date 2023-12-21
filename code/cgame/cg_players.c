@@ -713,10 +713,10 @@ static void CG_SetColorInfo( const char *color, clientInfo_t *info )
 	CG_ColorFromChar( color[4], info->color2 );
 }
 
-static const int CG_ToBase7(int number){
-    if(number == 0)
+static const int CG_ToBase7( int number ) {
+    if( number == 0 )
         return number;
-    return (number % 7) + 10*CG_ToBase7(number / 7);
+    return ( number % 7 ) + 10 * CG_ToBase7( number / 7 );
 }
 
 static const char *CG_GetColors( const char *color, team_t team, int clientNum ) {
@@ -731,13 +731,11 @@ static const char *CG_GetColors( const char *color, team_t team, int clientNum )
 		default: break;
     }
 
-	if ( !strcmp(color,"cid") ) {
-		if (clientNum < 7) {
-			return va("00%i",clientNum);
+	if ( !strcmp( color, "cid" ) ) {
+		if ( clientNum < 7 ) {
+			return va( "00%i", clientNum );
 		}
-		else {
-			return va("0%i",CG_ToBase7(clientNum));
-		}
+		return va( "0%i", CG_ToBase7( clientNum ) );
 	}
 
 	return str;
