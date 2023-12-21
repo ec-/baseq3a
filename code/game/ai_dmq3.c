@@ -4447,7 +4447,7 @@ open, which buttons to activate etc.
 */
 void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	int movetype, bspent;
-	vec3_t hordir, start, end, mins, maxs, sideward, angles, up = {0, 0, 1};
+	vec3_t hordir, start, /*end, mins, maxs,*/ sideward, angles, up = {0, 0, 1};
 	aas_entityinfo_t entinfo;
 	bot_activategoal_t activategoal;
 
@@ -4468,7 +4468,7 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 #ifdef OBSTACLEDEBUG
 	ClientName(bs->client, netname, sizeof(netname));
 	BotAI_Print(PRT_MESSAGE, "%s: I'm blocked by model %d\n", netname, entinfo.modelindex);
-#endif OBSTACLEDEBUG
+#endif
 	// if blocked by a bsp model and the bot wants to activate it
 	if (activate && entinfo.modelindex > 0 && entinfo.modelindex <= max_bspmodelindex) {
 		// find the bsp entity which should be activated in order to get the blocking entity out of the way
@@ -4511,9 +4511,9 @@ void BotAIBlocked(bot_state_t *bs, bot_moveresult_t *moveresult, int activate) {
 	// the bot might be able to crouch through
 	VectorCopy(bs->origin, start);
 	start[2] += 18;
-	VectorMA(start, 5, hordir, end);
-	VectorSet(mins, -16, -16, -24);
-	VectorSet(maxs, 16, 16, 4);
+	//VectorMA(start, 5, hordir, end);
+	//VectorSet(mins, -16, -16, -24);
+	//VectorSet(maxs, 16, 16, 4);
 	//
 	//bsptrace = AAS_Trace(start, mins, maxs, end, bs->entitynum, MASK_PLAYERSOLID);
 	//if (bsptrace.fraction >= 1) movetype = MOVE_CROUCH;

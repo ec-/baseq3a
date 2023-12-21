@@ -658,7 +658,7 @@ qboolean Info_SetValueForKey( char *s, const char *key, const char *value );
 qboolean Info_SetValueForKey_Big( char *s, const char *key, const char *value );
 qboolean Info_Validate( const char *s );
 qboolean Info_ValidateKeyValue( const char *s );
-void Info_NextPair( const char **s, char *key, char *value );
+const char *Info_NextPair( const char *s, char *key, char *value );
 
 // this is only here so the functions in q_shared.c and bg_*.c can link
 void	QDECL Com_Error( int level, const char *fmt, ... );

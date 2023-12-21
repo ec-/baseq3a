@@ -51,8 +51,6 @@ typedef struct {
 
 static playersettings_t	s_playersettings;
 
-static int gamecodetoui[] = {4,2,3,0,5,1,6};
-
 static const char *handicap_items[] = {
 	"None",
 	"95",

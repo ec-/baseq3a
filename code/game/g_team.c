@@ -27,8 +27,9 @@ void Team_InitGame( void ) {
 
 	switch( g_gametype.integer ) {
 	case GT_CTF:
-		teamgame.redStatus = teamgame.blueStatus = -1; // Invalid to force update
+		teamgame.redStatus = -1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_RED, FLAG_ATBASE );
+		teamgame.blueStatus = -1; // Invalid to force update
 		Team_SetFlagStatus( TEAM_BLUE, FLAG_ATBASE );
 		break;
 #ifdef MISSIONPACK
@@ -180,38 +181,40 @@ static void Team_SetFlagStatus( team_t team, flagStatus_t status ) {
 
 	switch( team ) {
 	case TEAM_RED:	// CTF
-		if( teamgame.redStatus != status ) {
+		if ( teamgame.redStatus != status ) {
 			teamgame.redStatus = status;
 			modified = qtrue;
 		}
 		break;
 
 	case TEAM_BLUE:	// CTF
-		if( teamgame.blueStatus != status ) {
+		if ( teamgame.blueStatus != status ) {
 			teamgame.blueStatus = status;
 			modified = qtrue;
 		}
 		break;
 
 	case TEAM_FREE:	// One Flag CTF
-		if( teamgame.flagStatus != status ) {
+		if ( teamgame.flagStatus != status ) {
 			teamgame.flagStatus = status;
 			modified = qtrue;
 		}
 		break;
+
+	default:
+		return;
 	}
 
-	if( modified ) {
+	if ( modified ) {
 		char st[4];
 
-		if( g_gametype.integer == GT_CTF ) {
+		if ( g_gametype.integer == GT_CTF ) {
 			st[0] = ctfFlagStatusRemap[teamgame.redStatus];
 			st[1] = ctfFlagStatusRemap[teamgame.blueStatus];
-			st[2] = 0;
-		}
-		else {		// GT_1FCTF
+			st[2] = '\0';
+		} else {	// GT_1FCTF
 			st[0] = oneFlagStatusRemap[teamgame.flagStatus];
-			st[1] = 0;
+			st[1] = '\0';
 		}
 
 		trap_SetConfigstring( CS_FLAGSTATUS, st );
@@ -583,14 +586,14 @@ static void Team_ReturnFlagSound( gentity_t *ent, team_t team ) {
 static void Team_TakeFlagSound( gentity_t *ent, team_t team ) {
 	gentity_t	*te;
 
-	if (ent == NULL) {
-		G_Printf ("Warning:  NULL passed to Team_TakeFlagSound\n");
+	if ( ent == NULL ) {
+		G_Printf( "Warning:  NULL passed to Team_TakeFlagSound\n" );
 		return;
 	}
 
 	// only play sound when the flag was at the base
 	// or not picked up the last 10 seconds
-	switch(team) {
+	switch ( team ) {
 		case TEAM_RED:
 			if( teamgame.blueStatus != FLAG_ATBASE ) {
 				if (teamgame.blueTakenTime > level.time - 10000)
@@ -606,6 +609,9 @@ static void Team_TakeFlagSound( gentity_t *ent, team_t team ) {
 			}
 			teamgame.redTakenTime = level.time;
 			break;
+
+		default:
+			return;
 	}
 
 	te = G_TempEntity( ent->s.pos.trBase, EV_GLOBAL_TEAM_SOUND );

@@ -101,7 +101,7 @@ __rescan:
 		if ( tk[0] == '\0' ) 
 			break;
 
-		if ( tk[0] == '$' ) // cvar name
+		if ( tk[0] == '$' && tk[1] != '\0' ) // cvar name
 		{
 			 // save cvar name
 			strcpy( cvar, tk+1 );
@@ -190,7 +190,7 @@ __rescan:
 		reqIndex = 1;
 
 	trap_Cvar_Set( SV_ROTATION, va( "%i", reqIndex ) );
-	trap_Cvar_Set( "g_restarted", "1" );
+	//trap_Cvar_Set( "g_restarted", "1" );
 	G_LoadMap( map );
 
 	return qtrue;

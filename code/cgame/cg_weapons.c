@@ -1410,7 +1410,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			radius = MG_FLASH_RADIUS + (rand() & WEAPON_FLASH_RADIUS_MOD);
 		else
 			radius = WEAPON_FLASH_RADIUS + (rand() & WEAPON_FLASH_RADIUS_MOD);
-			
+
 		if ( weapon->flashDlightColor[0] || weapon->flashDlightColor[1] || weapon->flashDlightColor[2] ) {
 			trap_R_AddLightToScene( flash.origin, radius, 
 				weapon->flashDlightColor[0], weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
@@ -1533,20 +1533,27 @@ void CG_DrawWeaponSelect( void ) {
 	int		count;
 	int		x, y;
 	int		dx, dy;
+	int		weaponSelect;
 	const char *name;
 	float	*color;
 	char	buf[16];
 
 	// don't display if dead
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 || cg_drawWeaponSelect.integer <= 0 ) {
+	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 || cg_drawWeaponSelect.integer == 0 ) {
 		return;
 	}
 
-	color = CG_FadeColor( cg.weaponSelectTime, WEAPON_SELECT_TIME );
-	if ( !color ) {
-		return;
+	if ( cg_drawWeaponSelect.integer < 0 ) {
+		color = colorWhite;
+	} else {
+		color = CG_FadeColor( cg.weaponSelectTime, WEAPON_SELECT_TIME );
+		if ( !color ) {
+			return;
+		}
 	}
 	trap_R_SetColor( color );
+
+	weaponSelect = abs( cg_drawWeaponSelect.integer );
 
 	// showing weapon select clears pickup item display, but not the blend blob
 	cg.itemPickupTime = 0;
@@ -1560,7 +1567,7 @@ void CG_DrawWeaponSelect( void ) {
 		}
 	}
 
-	if ( cg_drawWeaponSelect.integer < 3 ) {
+	if ( weaponSelect < 3 ) {
 		x = 320 - count * 20;
 		y = cgs.screenYmax + 1 - 100; // - STATUSBAR_HEIGHT - 40
 		dx = 40;
@@ -1590,10 +1597,10 @@ void CG_DrawWeaponSelect( void ) {
 		// no ammo cross on top
 		if ( !cg.snap->ps.ammo[ i ] ) {
 			CG_DrawPic( x, y, 32, 32, cgs.media.noammoShader );
-		} else if ( cg_drawWeaponSelect.integer > 1 && cg.snap->ps.ammo[ i ] > 0 ) {
+		} else if ( weaponSelect > 1 && cg.snap->ps.ammo[ i ] > 0 ) {
 			// ammo counter
 			BG_sprintf( buf, "%i", cg.snap->ps.ammo[ i ] );
-			if ( cg_drawWeaponSelect.integer == 2 ) {
+			if ( weaponSelect == 2 ) {
 				// horizontal ammo counters
 				CG_DrawString( x + 32/2, y - 20, buf, color, AMMO_FONT_SIZE, AMMO_FONT_SIZE, 0, DS_CENTER | DS_PROPORTIONAL );
 			} else {
@@ -1607,7 +1614,7 @@ void CG_DrawWeaponSelect( void ) {
 	}
 
 	// draw the selected name
-	if ( cg_weapons[ cg.weaponSelect ].item && cg_drawWeaponSelect.integer == 1 ) {
+	if ( cg_weapons[ cg.weaponSelect ].item && weaponSelect == 1 ) {
 		name = cg_weapons[ cg.weaponSelect ].item->pickup_name;
 		if ( name ) {
 			CG_DrawString( 320, y - 22, name, color, BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, DS_SHADOW | DS_PROPORTIONAL | DS_CENTER | DS_FORCE_COLOR );
@@ -1799,6 +1806,11 @@ void CG_FireWeapon( centity_t *cent ) {
 		return;
 	}
 	weap = &cg_weapons[ ent->weapon ];
+
+	if ( ent->number >= 0 && ent->number < MAX_CLIENTS && cent != &cg.predictedPlayerEntity ) {
+		// point from external event to client entity
+		cent = &cg_entities[ ent->number ];
+	}
 
 	// mark the entity as muzzle flashing, so when it is added it will
 	// append the flash to the weapon model

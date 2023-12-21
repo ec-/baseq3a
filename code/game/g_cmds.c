@@ -732,7 +732,7 @@ void StopFollowing( gentity_t *ent, qboolean release ) {
 Cmd_Team_f
 =================
 */
-void Cmd_Team_f( gentity_t *ent ) {
+static void Cmd_Team_f( gentity_t *ent ) {
 	char		s[MAX_TOKEN_CHARS];
 
 	if ( trap_Argc() != 2 ) {
@@ -748,6 +748,8 @@ void Cmd_Team_f( gentity_t *ent ) {
 			break;
 		case TEAM_SPECTATOR:
 			trap_SendServerCommand( ent-g_entities, "print \"Spectator team\n\"" );
+			break;
+		default:
 			break;
 		}
 		return;
@@ -777,7 +779,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 Cmd_Follow_f
 =================
 */
-void Cmd_Follow_f( gentity_t *ent ) {
+static void Cmd_Follow_f( gentity_t *ent ) {
 	int		i;
 	char	arg[MAX_TOKEN_CHARS];
 
@@ -912,11 +914,11 @@ static void G_SayTo( gentity_t *ent, gentity_t *other, int mode, int color, cons
 
 #define EC		"\x19"
 
-void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) {
+static void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) {
 	int			j;
 	gentity_t	*other;
 	int			color;
-	char		name[64];
+	char		name[64 + 64 + 12]; // name + location + formatting
 	// don't let text be too long for malicious reasons
 	char		text[MAX_SAY_TEXT];
 	char		location[64];
@@ -1275,18 +1277,6 @@ void Cmd_Where_f( gentity_t *ent ) {
 	trap_SendServerCommand( ent-g_entities, va("print \"%s\n\"", vtos( ent->s.origin ) ) );
 }
 
-
-static const char *gameNames[] = {
-	"Free For All",
-	"Tournament",
-	"Single Player",
-	"Team Deathmatch",
-	"Capture the Flag",
-	"One Flag CTF",
-	"Overload",
-	"Harvester"
-};
-
 static const char *voteCommands[] = {
 	"map_restart",
 	"map",
@@ -1484,7 +1474,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 Cmd_Vote_f
 ==================
 */
-void Cmd_Vote_f( gentity_t *ent ) {
+static void Cmd_Vote_f( gentity_t *ent ) {
 	char		msg[64];
 
 	if ( !level.voteTime ) {
@@ -1563,7 +1553,7 @@ void G_RevertVote( gclient_t *client ) {
 Cmd_CallTeamVote_f
 ==================
 */
-void Cmd_CallTeamVote_f( gentity_t *ent ) {
+static void Cmd_CallTeamVote_f( gentity_t *ent ) {
 	int		i, team, cs_offset;
 	char	arg1[MAX_STRING_TOKENS];
 	char	arg2[MAX_STRING_TOKENS];
@@ -1701,7 +1691,7 @@ void Cmd_CallTeamVote_f( gentity_t *ent ) {
 Cmd_TeamVote_f
 ==================
 */
-void Cmd_TeamVote_f( gentity_t *ent ) {
+static void Cmd_TeamVote_f( gentity_t *ent ) {
 	int			team, cs_offset;
 	char		msg[64];
 
@@ -1751,7 +1741,7 @@ void Cmd_TeamVote_f( gentity_t *ent ) {
 Cmd_SetViewpos_f
 =================
 */
-void Cmd_SetViewpos_f( gentity_t *ent ) {
+static void Cmd_SetViewpos_f( gentity_t *ent ) {
 	vec3_t		origin, angles;
 	char		buffer[MAX_TOKEN_CHARS];
 	int			i;
@@ -1784,7 +1774,7 @@ void Cmd_SetViewpos_f( gentity_t *ent ) {
 Cmd_Stats_f
 =================
 */
-void Cmd_Stats_f( gentity_t *ent ) {
+static void Cmd_Stats_f( gentity_t *ent ) {
 /*
 	int max, n, i;
 

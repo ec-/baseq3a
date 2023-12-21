@@ -1087,7 +1087,6 @@ while a slow client may have multiple ClientEndFrame between ClientThink.
 void ClientEndFrame( gentity_t *ent ) {
 	static gentity_t sent;
 	int			i;
-	clientPersistant_t	*pers;
 	gclient_t	*client;
 	// unlagged
 	int			frames;
@@ -1103,7 +1102,6 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	client = ent->client;
-	pers = &client->pers;
 
 	// turn off any expired powerups
 	for ( i = 0 ; i < MAX_POWERUPS ; i++ ) {
@@ -1189,8 +1187,10 @@ void ClientEndFrame( gentity_t *ent ) {
 		// limit lagged player prediction to 2 server frames
 		frames = 2;
 		// and add the EF_CONNECTION flag if we haven't gotten commands recently
-		client->ps.eFlags |= EF_CONNECTION;
-		ent->s.eFlags |= EF_CONNECTION;
+		if ( !( ent->r.svFlags & SVF_BOT ) ) {
+			client->ps.eFlags |= EF_CONNECTION;
+			ent->s.eFlags |= EF_CONNECTION;
+		}
 	}
 
 	if ( frames > 0 && g_smoothClients.integer ) {

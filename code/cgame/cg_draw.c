@@ -2415,7 +2415,9 @@ CG_DrawWarmup
 static void CG_DrawWarmup( void ) {
 	int			w;
 	int			i;
+#ifdef MISSIONPACK
 	float scale;
+#endif
 	clientInfo_t *ci1, *ci2;
 	int			cw;
 	const char	*s;
@@ -2496,23 +2498,30 @@ static void CG_DrawWarmup( void ) {
 
 	s = va( "Starts in: %i", cg.warmupCount );
 
-	scale = 0.45f;
 	switch ( cg.warmupCount ) {
 	case 1:
 		cw = 28;
+#ifdef MISSIONPACK
 		scale = 0.54f;
+#endif
 		break;
 	case 2:
 		cw = 24;
+#ifdef MISSIONPACK
 		scale = 0.51f;
+#endif
 		break;
 	case 3:
 		cw = 20;
+#ifdef MISSIONPACK
 		scale = 0.48f;
+#endif
 		break;
 	default:
 		cw = 16;
+#ifdef MISSIONPACK
 		scale = 0.45f;
+#endif
 		break;
 	}
 

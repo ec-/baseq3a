@@ -7,12 +7,14 @@ cg_followKiller <0|1>
 
 
 ========================
-cg_drawWeaponSelect <0|1|2|3>
+cg_drawWeaponSelect <0|1|2|3|-1|-2|-3>
 
     0 - disabled
-    1 - horozontal with weapon name
+    1 - horizontal with weapon name
     2 - horizontal with ammo counters
     3 - vectical with ammo counters
+
+    use negative values to force permanent display
 
 
 ========================
@@ -22,7 +24,7 @@ cg_drawSpeed <0|1|2>
 
     0 - disabled
     1 - in top-right corner
-    2 - unders crosshair
+    2 - under crosshair
 
 
 ========================

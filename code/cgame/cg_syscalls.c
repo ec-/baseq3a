@@ -425,10 +425,6 @@ qboolean trap_R_inPVS( const vec3_t p1, const vec3_t p2 ) {
 
 // extension interface
 
-int dll_com_trapGetValue;
-int dll_trap_R_AddRefEntityToScene2;
-int dll_trap_R_AddLinearLightToScene;
-
 qboolean trap_GetValue( char *value, int valueSize, const char *key ) {
 	return syscall( dll_com_trapGetValue, value, valueSize, key );
 }
