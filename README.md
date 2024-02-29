@@ -21,6 +21,7 @@ Unofficial Quake III Arena gamecode patch
  * colored skins
  * high-quality proportional font renderer
  * single-line cvar declaration, improved cvar code readability and development efficiency
+ * added support for OSP extended control characters 
 
 # TODO:
 
