@@ -20,7 +20,11 @@ Unofficial Quake III Arena gamecode patch
  * damage-based hitsounds
  * colored skins
  * high-quality proportional font renderer
- * single-line cvar declaration, improved cvar code readability and development efficiency
+ * single-line cvar declaration, improved cvar code readability and development efficiency+
+
+# BUILD
+
+See [BUILD.md](BUILD.md)
 
 # TODO:
 
