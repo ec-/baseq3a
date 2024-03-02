@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommand>$(QUAKE3DIR)\quake3e.x64.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(QUAKE3DIR)\$(QUAKE3EXE)</LocalDebuggerCommand>
     <LocalDebuggerCommandArguments>+set fs_game baseq3 +set sv_pure 0 +g_gametype 4 +set r_fullscreen 0 +set r_mode -1 +set r_customWidth 800 +set r_customHeight 600 +set vm_game 0 +set vm_cgame 0 +set vm_ui 0 +devmap q3ctf1</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
