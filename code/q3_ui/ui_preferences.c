@@ -38,7 +38,7 @@ GAME OPTIONS MENU
 #define ID_SYNCEVERYFRAME		134
 #define ID_FORCEMODEL			135
 #define ID_DRAWTEAMOVERLAY		136
-#define ID_ALLOWDOWNLOAD			137
+#define ID_ALLOWDOWNLOAD		137
 #define ID_BACK					138
 #define ID_CROSSHAIRCOLOR		139
 
@@ -69,7 +69,7 @@ typedef struct {
 	qhandle_t			crosshairShader[NUM_CROSSHAIRS];
 
 	qhandle_t			fxBasePic;
-	qhandle_t			fxPic[7];
+	qhandle_t			fxPic[8];
 } preferences_t;
 
 static preferences_t s_preferences;
@@ -86,16 +86,17 @@ static preferences_t s_preferences;
 =====================================================
 If any number isn't in the UI table to assign, it will always map to WHITE
 */
-static int gamecodetoui[] = {4,2,3,0,5,1,6};
-static int uitogamecode[] = {5,7,3,4,2,6,8};
+static int gamecodetoui[] = {4,2,3,0,5,1,6,7};
+static int uitogamecode[] = {1,2,3,4,6,5,7,0};
 static float *uiSliderColors[] = {
 	colorRed,
-	colorYellow,
 	colorGreen,
-	colorCyan,
+	colorYellow,
 	colorBlue,
 	colorMagenta,
-	colorWhite
+	colorCyan,		
+	colorWhite,
+	colorBlack
 };
 static int uiSliderColorIndex;
 
@@ -347,7 +348,7 @@ static void Preferences_MenuInit( void ) {
 	s_preferences.crosshaircolor.generic.bottom	  = y + 20;
 	s_preferences.crosshaircolor.generic.left	  = PREFERENCES_X_POS - ( ( (int)strlen(s_preferences.crosshaircolor.generic.name) + 1 ) * SMALLCHAR_WIDTH );
 	s_preferences.crosshaircolor.generic.right	  = PREFERENCES_X_POS + 48;
-	s_preferences.crosshaircolor.numitems	      = 7;
+	s_preferences.crosshaircolor.numitems	      = 8;
 
 	y += BIGCHAR_HEIGHT+24;
 	s_preferences.simpleitems.generic.type        = MTYPE_RADIOBUTTON;
@@ -493,11 +494,11 @@ void Preferences_Cache( void ) {
 
 	s_preferences.fxBasePic = trap_R_RegisterShaderNoMip( ART_FX_BASE );
 	s_preferences.fxPic[0]  = trap_R_RegisterShaderNoMip( ART_FX_RED );
-	s_preferences.fxPic[1]  = trap_R_RegisterShaderNoMip( ART_FX_YELLOW );
-	s_preferences.fxPic[2]  = trap_R_RegisterShaderNoMip( ART_FX_GREEN );
-	s_preferences.fxPic[3]  = trap_R_RegisterShaderNoMip( ART_FX_TEAL );
-	s_preferences.fxPic[4]  = trap_R_RegisterShaderNoMip( ART_FX_BLUE );
-	s_preferences.fxPic[5]  = trap_R_RegisterShaderNoMip( ART_FX_CYAN );
+	s_preferences.fxPic[1]  = trap_R_RegisterShaderNoMip( ART_FX_GREEN );
+	s_preferences.fxPic[2]  = trap_R_RegisterShaderNoMip( ART_FX_YELLOW );
+	s_preferences.fxPic[3]  = trap_R_RegisterShaderNoMip( ART_FX_BLUE );
+	s_preferences.fxPic[4]  = trap_R_RegisterShaderNoMip( ART_FX_CYAN );
+	s_preferences.fxPic[5]  = trap_R_RegisterShaderNoMip( ART_FX_TEAL );
 	s_preferences.fxPic[6]  = trap_R_RegisterShaderNoMip( ART_FX_WHITE );
 }
 

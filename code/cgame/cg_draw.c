@@ -2004,20 +2004,20 @@ static void CG_SetCrosshairColor( void ) {
 	static int		colorNum;
 	static float	*colors[] = {
 		colorBlack,
-		colorBlue,
-		colorGreen,
-		colorCyan,
 		colorRed,
-		colorMagenta,
+		colorGreen,
 		colorYellow,
+		colorBlue,						
+		colorCyan,		
+		colorMagenta,		
 		colorWhite
 	};
 
 	colorNum = cg_crosshairColor.integer;
-	if ( !colorNum ) { // if it's 0, then set to yellow
+	if ( colorNum < 0 || colorNum > 7 ) { // if it's 0, then set to yellow
 		colorNum = 7;
 	}
-	colorNum = ( colorNum - 1 ) % ARRAY_LEN( colors );
+	colorNum = colorNum % ARRAY_LEN( colors );
 
 	trap_R_SetColor( colors[colorNum] );
 }
