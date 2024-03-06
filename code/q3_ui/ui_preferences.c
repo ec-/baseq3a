@@ -20,11 +20,11 @@ GAME OPTIONS MENU
 #define ART_FX_BASE				"menu/art/fx_base"
 #define ART_FX_BLUE				"menu/art/fx_blue"
 #define ART_FX_CYAN				"menu/art/fx_cyan"
-#define ART_FX_GREEN			"menu/art/fx_grn"
+#define ART_FX_GREEN				"menu/art/fx_grn"
 #define ART_FX_RED				"menu/art/fx_red"
 #define ART_FX_TEAL				"menu/art/fx_teal"
-#define ART_FX_WHITE			"menu/art/fx_white"
-#define ART_FX_YELLOW			"menu/art/fx_yel"
+#define ART_FX_WHITE				"menu/art/fx_white"
+#define ART_FX_YELLOW				"menu/art/fx_yel"
 
 #define PREFERENCES_X_POS		360
 
@@ -52,8 +52,8 @@ typedef struct {
 	menubitmap_s		framel;
 	menubitmap_s		framer;
 
-	menulist_s			crosshair;
-	menulist_s			crosshaircolor;
+	menulist_s		crosshair;
+	menulist_s		crosshaircolor;
 	menuradiobutton_s	simpleitems;
 	menuradiobutton_s	brass;
 	menuradiobutton_s	wallmarks;
@@ -62,14 +62,14 @@ typedef struct {
 	menuradiobutton_s	highqualitysky;
 	menuradiobutton_s	synceveryframe;
 	menuradiobutton_s	forcemodel;
-	menulist_s			drawteamoverlay;
+	menulist_s		drawteamoverlay;
 	menuradiobutton_s	allowdownload;
 	menubitmap_s		back;
 
-	qhandle_t			crosshairShader[NUM_CROSSHAIRS];
+	qhandle_t		crosshairShader[NUM_CROSSHAIRS];
 
-	qhandle_t			fxBasePic;
-	qhandle_t			fxPic[8];
+	qhandle_t		fxBasePic;
+	qhandle_t		fxPic[8];
 } preferences_t;
 
 static preferences_t s_preferences;
@@ -88,7 +88,6 @@ static preferences_t s_preferences;
 If any number isn't in the UI table to assign, it will always map to WHITE
 */
 static int gamecodetoui[] = {7,0,1,2,3,5,4,6};
-//static int gamecodetoui[] = {3,4,5,6,0,7,1,2};
 static int uitogamecode[] = {1,2,3,4,6,5,7,0};
 static float *uiSliderColors[] = {
 	colorRed,
