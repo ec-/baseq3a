@@ -76,18 +76,19 @@ static preferences_t s_preferences;
 
 /*===================================================
  INDEX  -  UI SLIDER BAR COLOR VALUE  >  CGAME VALUE
-   0    -      RED             4      >        1
-   1    -      GREEN           2      >        2
-   2    -      YELLOW          3      >        3
-   3    -      BLUE            0      >        4   
-   4    -      TEAL (CYAN)     5      >        5   
-   5    -      MAGENTA         1      >        6
-   6    -      WHITE           6      >        7
-   7    -      BLACK           7      >        0
+   0    -      RED             7      >        1
+   1    -      GREEN           0      >        2
+   2    -      YELLOW          1      >        3
+   3    -      BLUE            2      >        4   
+   4    -      TEAL (CYAN)     3      >        5   
+   5    -      MAGENTA         5      >        6
+   6    -      WHITE           4      >        7
+   7    -      BLACK           6      >        0
 =====================================================
 If any number isn't in the UI table to assign, it will always map to WHITE
 */
-static int gamecodetoui[] = {4,2,3,0,5,1,6,7};
+static int gamecodetoui[] = {7,0,1,2,3,5,4,6};
+//static int gamecodetoui[] = {3,4,5,6,0,7,1,2};
 static int uitogamecode[] = {1,2,3,4,6,5,7,0};
 static float *uiSliderColors[] = {
 	colorRed,
@@ -115,14 +116,14 @@ static void Preferences_SetMenuItems( void ) {
 
 	s_preferences.crosshair.curvalue		= (int)trap_Cvar_VariableValue( "cg_drawCrosshair" ) % NUM_CROSSHAIRS;
 
-	c = (int)trap_Cvar_VariableValue( "cg_crosshairColor" ) - 1;
-	if ( c == -1 ) { // keep it to YELLOW
-		c = 6;
+	c = (int)trap_Cvar_VariableValue( "cg_crosshairColor" );
+	if ( c < 0 || c > 7 ) { // keep it to WHITE
+		c = 7;
 	}
-	if ( c < -1 || c == 0 || c > 7 ) { // if there are other numbers, set to WHITE
-		c = 6;
+	if ( c < 0 || c > 7 ) { // if there are other numbers, set to WHITE
+		c = 7;
 	} else {
-		c = ( c - 1 ) % ARRAY_LEN( uiSliderColors );
+		c = c % ARRAY_LEN( uiSliderColors );
 	}
 	uiSliderColorIndex = s_preferences.crosshaircolor.curvalue = gamecodetoui[c];
 
