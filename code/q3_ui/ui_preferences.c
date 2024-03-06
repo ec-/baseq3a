@@ -76,13 +76,14 @@ static preferences_t s_preferences;
 
 /*===================================================
  INDEX  -  UI SLIDER BAR COLOR VALUE  >  CGAME VALUE
-   0    -      RED             4      >        5
-   1    -      YELLOW          2      >        7
-   2    -      GREEN           3      >        3
-   3    -      TEAL (CYAN)     0      >        4
-   4    -      BLUE            5      >        2
+   0    -      RED             4      >        1
+   1    -      GREEN           2      >        2
+   2    -      YELLOW          3      >        3
+   3    -      BLUE            0      >        4   
+   4    -      TEAL (CYAN)     5      >        5   
    5    -      MAGENTA         1      >        6
-   6    -      WHITE           6      >        8
+   6    -      WHITE           6      >        7
+   7    -      BLACK           7      >        0
 =====================================================
 If any number isn't in the UI table to assign, it will always map to WHITE
 */
