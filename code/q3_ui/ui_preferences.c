@@ -20,11 +20,11 @@ GAME OPTIONS MENU
 #define ART_FX_BASE				"menu/art/fx_base"
 #define ART_FX_BLUE				"menu/art/fx_blue"
 #define ART_FX_CYAN				"menu/art/fx_cyan"
-#define ART_FX_GREEN			"menu/art/fx_grn"
+#define ART_FX_GREEN				"menu/art/fx_grn"
 #define ART_FX_RED				"menu/art/fx_red"
 #define ART_FX_TEAL				"menu/art/fx_teal"
-#define ART_FX_WHITE			"menu/art/fx_white"
-#define ART_FX_YELLOW			"menu/art/fx_yel"
+#define ART_FX_WHITE				"menu/art/fx_white"
+#define ART_FX_YELLOW				"menu/art/fx_yel"
 
 #define PREFERENCES_X_POS		360
 
@@ -116,8 +116,8 @@ static void Preferences_SetMenuItems( void ) {
 	s_preferences.crosshair.curvalue		= (int)trap_Cvar_VariableValue( "cg_drawCrosshair" ) % NUM_CROSSHAIRS;
 
 	c = (int)trap_Cvar_VariableValue( "cg_crosshairColor" );
-	if ( c < 0 || c > 7 ) { 
-		c = 7;  //set to white if cvar is invalid
+	if ( c < 0 || c > 7 ) { // if cvar is invalid, set to white
+		c = 7;
 	}
 
 	uiSliderColorIndex = s_preferences.crosshaircolor.curvalue = gamecodetoui[c];
