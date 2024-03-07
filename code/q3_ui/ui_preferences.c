@@ -321,13 +321,13 @@ static void Preferences_MenuInit( void ) {
 	y = 144;
 	s_preferences.crosshair.generic.type		= MTYPE_TEXT;
 	s_preferences.crosshair.generic.flags		= QMF_PULSEIFFOCUS|QMF_SMALLFONT|QMF_NODEFAULTINIT|QMF_OWNERDRAW;
-	s_preferences.crosshair.generic.x			= PREFERENCES_X_POS;
-	s_preferences.crosshair.generic.y			= y;
+	s_preferences.crosshair.generic.x		= PREFERENCES_X_POS;
+	s_preferences.crosshair.generic.y		= y;
 	s_preferences.crosshair.generic.name		= "Crosshair:";
 	s_preferences.crosshair.generic.callback	= Preferences_Event;
 	s_preferences.crosshair.generic.ownerdraw	= Crosshair_Draw;
-	s_preferences.crosshair.generic.id			= ID_CROSSHAIR;
-	s_preferences.crosshair.generic.top			= y - 4;
+	s_preferences.crosshair.generic.id		= ID_CROSSHAIR;
+	s_preferences.crosshair.generic.top		= y - 4;
 	s_preferences.crosshair.generic.bottom		= y + 20;
 	s_preferences.crosshair.generic.left		= PREFERENCES_X_POS - ( ( strlen(s_preferences.crosshair.generic.name) + 1 ) * SMALLCHAR_WIDTH );
 	s_preferences.crosshair.generic.right		= PREFERENCES_X_POS + 48;
