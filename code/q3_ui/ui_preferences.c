@@ -116,14 +116,10 @@ static void Preferences_SetMenuItems( void ) {
 	s_preferences.crosshair.curvalue		= (int)trap_Cvar_VariableValue( "cg_drawCrosshair" ) % NUM_CROSSHAIRS;
 
 	c = (int)trap_Cvar_VariableValue( "cg_crosshairColor" );
-	if ( c < 0 || c > 7 ) { // keep it to WHITE
-		c = 7;
+	if ( c < 0 || c > 7 ) { 
+		c = 7;  //set to white if cvar is invalid
 	}
-	if ( c < 0 || c > 7 ) { // if there are other numbers, set to WHITE
-		c = 7;
-	} else {
-		c = c % ARRAY_LEN( uiSliderColors );
-	}
+
 	uiSliderColorIndex = s_preferences.crosshaircolor.curvalue = gamecodetoui[c];
 
 	s_preferences.simpleitems.curvalue	= trap_Cvar_VariableValue( "cg_simpleItems" ) != 0;
