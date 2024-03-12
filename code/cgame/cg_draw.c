@@ -2014,7 +2014,7 @@ static void CG_SetCrosshairColor( void ) {
 	};
 
 	colorNum = cg_crosshairColor.integer;
-	if ( colorNum > 8 || colorNum < 0 ) { // if it's larger than 8 or less than 0, set it to white
+	if ( colorNum > 7 || colorNum < 0 ) { // if it's larger than 7 or less than 0, set it to white
 		colorNum = 7;
 	}
 	colorNum = colorNum % ARRAY_LEN( colors );
