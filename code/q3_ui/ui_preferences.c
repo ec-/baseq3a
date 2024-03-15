@@ -17,15 +17,6 @@ GAME OPTIONS MENU
 #define ART_BACK0				"menu/art/back_0"
 #define ART_BACK1				"menu/art/back_1"
 
-#define ART_FX_BASE				"menu/art/fx_base"
-#define ART_FX_BLUE				"menu/art/fx_blue"
-#define ART_FX_CYAN				"menu/art/fx_cyan"
-#define ART_FX_GREEN				"menu/art/fx_grn"
-#define ART_FX_RED				"menu/art/fx_red"
-#define ART_FX_TEAL				"menu/art/fx_teal"
-#define ART_FX_WHITE				"menu/art/fx_white"
-#define ART_FX_YELLOW				"menu/art/fx_yel"
-
 #define PREFERENCES_X_POS		360
 
 #define ID_CROSSHAIR			127
