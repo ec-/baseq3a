@@ -488,15 +488,6 @@ void Preferences_Cache( void ) {
 	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
 		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
 	}
-
-	s_preferences.fxBasePic = trap_R_RegisterShaderNoMip( ART_FX_BASE );
-	s_preferences.fxPic[0]  = trap_R_RegisterShaderNoMip( ART_FX_RED );
-	s_preferences.fxPic[1]  = trap_R_RegisterShaderNoMip( ART_FX_GREEN );
-	s_preferences.fxPic[2]  = trap_R_RegisterShaderNoMip( ART_FX_YELLOW );
-	s_preferences.fxPic[3]  = trap_R_RegisterShaderNoMip( ART_FX_BLUE );
-	s_preferences.fxPic[4]  = trap_R_RegisterShaderNoMip( ART_FX_CYAN );
-	s_preferences.fxPic[5]  = trap_R_RegisterShaderNoMip( ART_FX_TEAL );
-	s_preferences.fxPic[6]  = trap_R_RegisterShaderNoMip( ART_FX_WHITE );
 }
 
 
