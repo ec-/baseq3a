@@ -69,7 +69,7 @@ typedef struct {
 	qhandle_t		crosshairShader[NUM_CROSSHAIRS];
 
 	qhandle_t		fxBasePic;
-	qhandle_t		fxPic[8];
+	qhandle_t		fxPic;
 } preferences_t;
 
 static preferences_t s_preferences;
@@ -281,7 +281,7 @@ static void CrosshairColor_Draw( void *self ) {
 	UI_DrawString( item->generic.x - SMALLCHAR_WIDTH, item->generic.y, item->generic.name, style|UI_RIGHT, color );
 
 	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 - 20, item->generic.y + 8, 128, 8, s_preferences.fxBasePic );
-	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 + item->curvalue * 16 + 8 - 20, item->generic.y + 6, 16, 12, s_preferences.fxPic[item->curvalue] );
+	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 + item->curvalue * 16 + 8 - 20, item->generic.y + 6, 16, 12, s_preferences.fxPic );
 }
 
 
