@@ -17,6 +17,15 @@ GAME OPTIONS MENU
 #define ART_BACK0				"menu/art/back_0"
 #define ART_BACK1				"menu/art/back_1"
 
+#define ART_FX_BASE				"menu/art/fx_base"
+#define ART_FX_BLUE				"menu/art/fx_blue"
+#define ART_FX_CYAN				"menu/art/fx_cyan"
+#define ART_FX_GREEN				"menu/art/fx_grn"
+#define ART_FX_RED				"menu/art/fx_red"
+#define ART_FX_TEAL				"menu/art/fx_teal"
+#define ART_FX_WHITE				"menu/art/fx_white"
+#define ART_FX_YELLOW				"menu/art/fx_yel"
+
 #define PREFERENCES_X_POS		360
 
 #define ID_CROSSHAIR			127
@@ -60,7 +69,7 @@ typedef struct {
 	qhandle_t		crosshairShader[NUM_CROSSHAIRS];
 
 	qhandle_t		fxBasePic;
-	qhandle_t		fxPic;
+	qhandle_t		fxPic[8];
 } preferences_t;
 
 static preferences_t s_preferences;
@@ -272,7 +281,7 @@ static void CrosshairColor_Draw( void *self ) {
 	UI_DrawString( item->generic.x - SMALLCHAR_WIDTH, item->generic.y, item->generic.name, style|UI_RIGHT, color );
 
 	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 - 20, item->generic.y + 8, 128, 8, s_preferences.fxBasePic );
-	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 + item->curvalue * 16 + 8 - 20, item->generic.y + 6, 16, 12, s_preferences.fxPic );
+	UI_DrawHandlePic( item->generic.x + BIGCHAR_HEIGHT+4 + item->curvalue * 16 + 8 - 20, item->generic.y + 6, 16, 12, s_preferences.fxPic[item->curvalue] );
 }
 
 
@@ -479,6 +488,15 @@ void Preferences_Cache( void ) {
 	for( n = 0; n < NUM_CROSSHAIRS; n++ ) {
 		s_preferences.crosshairShader[n] = trap_R_RegisterShaderNoMip( va("gfx/2d/crosshair%c", 'a' + n ) );
 	}
+
+	s_preferences.fxBasePic = trap_R_RegisterShaderNoMip( ART_FX_BASE );
+	s_preferences.fxPic[0]  = trap_R_RegisterShaderNoMip( ART_FX_RED );
+	s_preferences.fxPic[1]  = trap_R_RegisterShaderNoMip( ART_FX_GREEN );
+	s_preferences.fxPic[2]  = trap_R_RegisterShaderNoMip( ART_FX_YELLOW );
+	s_preferences.fxPic[3]  = trap_R_RegisterShaderNoMip( ART_FX_BLUE );
+	s_preferences.fxPic[4]  = trap_R_RegisterShaderNoMip( ART_FX_CYAN );
+	s_preferences.fxPic[5]  = trap_R_RegisterShaderNoMip( ART_FX_TEAL );
+	s_preferences.fxPic[6]  = trap_R_RegisterShaderNoMip( ART_FX_WHITE );
 }
 
 
