@@ -2335,7 +2335,7 @@ reswitch:
 			width = va_arg( ap, int );
 			goto rflag;
 		case 'c':
-			*buf_p = va_arg( ap, char ); buf_p++;
+			*buf_p = (char)va_arg( ap, int ); buf_p++;
 			break;
 		case 'd':
 		case 'i':
@@ -2355,7 +2355,7 @@ reswitch:
 			flags |= REDUCE;
 			goto rflag;
 		default:
-			*buf_p = va_arg( ap, char ); buf_p++;
+			*buf_p = (char)va_arg( ap, int ); buf_p++;
 			break;
 		} // switch ( ch )
 	} // while ( qtrue )
