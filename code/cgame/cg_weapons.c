@@ -556,11 +556,9 @@ void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi ) {
 	ent->trailTime = cg.time;
 
 	memset( &beam, 0, sizeof( beam ) );
-	//FIXME adjust for muzzle position
-	VectorCopy ( cg_entities[ ent->currentState.otherEntityNum ].lerpOrigin, beam.origin );
-	beam.origin[2] += 26;
-	AngleVectors( cg_entities[ ent->currentState.otherEntityNum ].lerpAngles, forward, NULL, up );
-	VectorMA( beam.origin, -6, up, beam.origin );
+
+	AngleVectors( cg_entities[ es->otherEntityNum ].lerpAngles, forward, NULL, up );
+	VectorCopy ( cg_entities[ es->otherEntityNum ].pe.muzzleOrigin, beam.origin );
 	VectorCopy( origin, beam.oldorigin );
 
 	if (Distance( beam.origin, beam.oldorigin ) < 64 )
@@ -695,6 +693,8 @@ void CG_RegisterWeapon( int weaponNum ) {
 		MAKERGB( weaponInfo->missileDlightColor, 1, 0.75f, 0 );
 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/melee/fsthum.wav", qfalse );
 		weaponInfo->firingSound = trap_S_RegisterSound( "sound/weapons/melee/fstrun.wav", qfalse );
+		cgs.media.lightningShader = trap_R_RegisterShader( "lightningBoltNew");
+
 		break;
 
 #ifdef MISSIONPACK
@@ -1346,7 +1346,8 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		// continuous flash
 	} else {
 		// impulse flash
-		if ( cg.time - cent->muzzleFlashTime > MUZZLE_FLASH_TIME && !cent->pe.railgunFlash ) {
+		if ( cg.time - cent->muzzleFlashTime > MUZZLE_FLASH_TIME && !cent->pe.railgunFlash
+		&& weaponNum != WP_GRAPPLING_HOOK ) {
 			return;
 		}
 	}
@@ -1375,6 +1376,11 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 	CG_PositionRotatedEntityOnTag( &flash, &gun, weapon->weaponModel, "tag_flash" );
 	trap_R_AddRefEntityToScene( &flash );
+
+	// attach muzzle origin to tag_flash for grappling hook
+	if ( cg_drawGun.integer || cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum ) {
+		VectorCopy( flash.origin, nonPredictedCent->pe.muzzleOrigin );
+	}
 
 	if ( ps || cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum ) {
 		int radius;
@@ -1453,10 +1459,12 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	if ( !cg_drawGun.integer ) {
 		vec3_t		origin;
 
-		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
-			// special hack for lightning gun...
+		if ( ( cg.predictedPlayerState.eFlags & EF_FIRING )
+		|| ps->weapon == WP_GRAPPLING_HOOK ) {
+			// special hack for lightning gun and grappling hook...
 			VectorCopy( cg.refdef.vieworg, origin );
 			VectorMA( origin, -8, cg.refdef.viewaxis[2], origin );
+			VectorCopy( origin, cg_entities[ps->clientNum].pe.muzzleOrigin );
 			CG_LightningBolt( &cg_entities[ps->clientNum], origin );
 		}
 		return;

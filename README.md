@@ -12,6 +12,7 @@ Unofficial Quake III Arena gamecode patch
  * fixed in-game crosshair proportions
  * fixed UI mouse sensitivity for high-resolution
  * fixed server browser + faster scanning
+ * fixed grappling hook muzzle position visuals
  * new demo UI (subfolders,filtering,sorting)
  * updated serverinfo UI
  * map rotation system
