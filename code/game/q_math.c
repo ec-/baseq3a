@@ -288,29 +288,6 @@ float NormalizeColor( const vec3_t in, vec3_t out ) {
 	return max;
 }
 
-
-/*
-=====================
-PlaneFromPoints
-
-Returns false if the triangle is degenrate.
-The normal will point out of the clock for clockwise ordered points
-=====================
-*/
-qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c ) {
-	vec3_t	d1, d2;
-
-	VectorSubtract( b, a, d1 );
-	VectorSubtract( c, a, d2 );
-	CrossProduct( d2, d1, plane );
-	if ( VectorNormalize( plane ) == 0 ) {
-		return qfalse;
-	}
-
-	plane[3] = DotProduct( a, plane );
-	return qtrue;
-}
-
 /*
 ===============
 RotatePointAroundVector
