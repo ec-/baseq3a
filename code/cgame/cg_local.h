@@ -152,6 +152,8 @@ typedef struct {
 	qboolean		painIgnore;
 	int				lightningFiring;
 
+	vec3_t			muzzleOrigin;
+
 	// railgun trail spawning
 	vec3_t			railgunImpact;
 	qboolean		railgunFlash;
