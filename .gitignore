@@ -1,0 +1,17 @@
+build/linux/build*
+
+build/linux-qvm/vm*
+build/linux-qvm/*.pk3
+
+build/win32-msvc/.vs
+build/win32-msvc/Backup
+build/win32-msvc/Win32
+build/win32-msvc/Win64
+build/win32-msvc/baseq3e.sln
+build/win32-msvc/*.vcxproj
+build/win32-msvc/*.vcxproj.filters
+build/win32-msvc/*.htm
+
+build/win32-qvm/vm*
+build/win32-qvm/*.pk3
+build/win32-qvm/*.pk3.tmp

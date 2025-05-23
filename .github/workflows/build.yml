@@ -1,0 +1,103 @@
+name: Build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        arch: [x86, x86_64]
+        include:
+          # Windows
+          - os: windows-latest
+            arch: x86
+            platform: windows
+          - os: windows-latest
+            arch: x86_64
+            platform: windows
+          # Linux
+          - os: ubuntu-latest
+            arch: x86
+            platform: linux
+          - os: ubuntu-latest
+            arch: x86_64
+            platform: linux
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      if: ${{ matrix.os != 'windows-latest' }}
+      shell: bash
+      run: |
+        sudo apt-get update # && sudo apt-get upgrade -y
+        sudo apt-get install -y build-essential libc6-dev-i386 g++-multilib gcc-mingw-w64 p7zip-full
+
+    - name: Build for ${{ matrix.os }} ${{ matrix.arch }}
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows build steps
+          cd build/win32-qvm
+          ./compile.bat
+        else
+          # Linux build steps
+          cd build/linux
+          make -j8 release ARCH="${{ matrix.arch }}"
+          make -j8 debug ARCH="${{ matrix.arch }}"
+
+          # compiles DLL behaving like MINGW:
+          make -j8 release PLATFORM=mingw64 ARCH="${{ matrix.arch }}"
+          make -j8 debug PLATFORM=mingw64 ARCH="${{ matrix.arch }}"
+
+          # compiling QVMs
+          cd ../../build/linux-qvm
+          sudo chmod 777 tools/* # make all of them executable
+          make
+        fi
+      env:
+        ARCHIVE: 1
+
+    - name: Store QVM artifacts
+      # store only with Linux x86_64
+      if: ${{ matrix.os != 'windows-latest' && matrix.arch != 'x86' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: QVMs
+        path: |
+          build/linux-qvm/*.pk3
+        if-no-files-found: error
+        retention-days: 5
+
+    - name: Store Linux ${{ matrix.arch }} .so artifacts
+      if: ${{ matrix.os != 'windows-latest' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.platform }}-${{ matrix.arch }}
+        path: |
+          build/linux/build/release-${{ matrix.platform }}-${{ matrix.arch }}/baseq3a/*.so
+          build/linux/build/debug-${{ matrix.platform }}-${{ matrix.arch }}/baseq3a/*.so
+        if-no-files-found: error
+        retention-days: 5
+
+    - name: Store Windows ${{ matrix.arch }} DLL artifacts (compiled on Linux)
+      if: ${{ matrix.os != 'windows-latest' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-${{ matrix.arch }}
+        path: |
+          build/linux/build/release-mingw64-${{ matrix.arch }}/baseq3a/*.dll
+          build/linux/build/debug-mingw64-${{ matrix.arch }}/baseq3a/*.dll
+        if-no-files-found: error
+        retention-days: 5
+
+    - name: Publish a release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        files: |
+          *.pk3
+          *.dll
+          *.so
