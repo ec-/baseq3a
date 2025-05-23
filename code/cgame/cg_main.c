@@ -224,7 +224,7 @@ void QDECL CG_Printf( const char *msg, ... ) {
 	char		text[1024];
 
 	va_start (argptr, msg);
-	ED_vsprintf (text, msg, argptr);
+	Q_vsprintf (text, msg, argptr);
 	va_end (argptr);
 
 	trap_Print( text );
@@ -235,7 +235,7 @@ void QDECL CG_Error( const char *msg, ... ) {
 	char		text[1024];
 
 	va_start (argptr, msg);
-	ED_vsprintf (text, msg, argptr);
+	Q_vsprintf (text, msg, argptr);
 	va_end (argptr);
 
 	trap_Error( text );
@@ -249,7 +249,7 @@ void QDECL Com_Error( int level, const char *error, ... ) {
 	char		text[1024];
 
 	va_start (argptr, error);
-	ED_vsprintf (text, error, argptr);
+	Q_vsprintf (text, error, argptr);
 	va_end (argptr);
 
 	trap_Error( text );
@@ -260,7 +260,7 @@ void QDECL Com_Printf( const char *msg, ... ) {
 	char		text[1024];
 
 	va_start (argptr, msg);
-	ED_vsprintf (text, msg, argptr);
+	Q_vsprintf (text, msg, argptr);
 	va_end (argptr);
 
 	trap_Print( text );
@@ -1004,6 +1004,7 @@ void CG_StartMusic( void ) {
 
 	trap_S_StartBackgroundTrack( parm1, parm2 );
 }
+
 #ifdef MISSIONPACK
 char *CG_GetMenuBuffer(const char *filename) {
 	int	len;
@@ -1508,18 +1509,14 @@ static void CG_FeederSelection(float feederID, int index) {
 		cg.selectedScore = index;
 	}
 }
-#endif
 
-#ifdef MISSIONPACK
 static float CG_Cvar_Get(const char *cvar) {
 	char buff[128];
 	memset(buff, 0, sizeof(buff));
 	trap_Cvar_VariableStringBuffer(cvar, buff, sizeof(buff));
 	return atof(buff);
 }
-#endif
 
-#ifdef MISSIONPACK
 void CG_Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const char *text, int cursorPos, char cursor, int limit, int style) {
 	CG_Text_Paint(x, y, scale, color, text, 0, limit, style);
 }

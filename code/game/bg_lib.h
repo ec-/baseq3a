@@ -47,7 +47,7 @@ int toupper( int c );
 double atof( const char *string );
 int atoi( const char *string );
 
-int ED_vsprintf( char *buffer, const char *fmt, va_list argptr );
+int Q_vsprintf( char *buffer, const char *fmt, va_list argptr );
 int Q_sscanf( const char *buffer, const char *fmt, ... );
 
 // Memory functions
