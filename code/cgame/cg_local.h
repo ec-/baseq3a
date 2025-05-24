@@ -1440,6 +1440,9 @@ void CG_ScoreboardClick( void );
 //
 qboolean CG_ConsoleCommand( void );
 void CG_InitConsoleCommands( void );
+#ifdef MISSIONPACK
+void Menu_Reset( void );
+#endif
 
 //
 // cg_servercmds.c
