@@ -120,7 +120,7 @@ char *COM_Parse( char **data_p )
 }
 
 
-extern int ED_vsprintf( char *buffer, const char *fmt, va_list argptr );
+extern int Q_vsprintf( char *buffer, const char *fmt, va_list argptr );
 
 
 void COM_ParseError( char *format, ... )
@@ -129,7 +129,7 @@ void COM_ParseError( char *format, ... )
 	static char string[4096];
 
 	va_start (argptr, format);
-	ED_vsprintf (string, format, argptr);
+	Q_vsprintf (string, format, argptr);
 	va_end (argptr);
 
 	Com_Printf("ERROR: %s, line %d: %s\n", com_parsename, com_lines, string);
@@ -142,7 +142,7 @@ void COM_ParseWarning( char *format, ... )
 	static char string[4096];
 
 	va_start (argptr, format);
-	ED_vsprintf (string, format, argptr);
+	Q_vsprintf (string, format, argptr);
 	va_end (argptr);
 
 	Com_Printf("WARNING: %s, line %d: %s\n", com_parsename, com_lines, string);
@@ -982,7 +982,7 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ... ) {
 	int len;
 
 	va_start( argptr, fmt );
-	len = ED_vsprintf( dest, fmt, argptr );
+	len = Q_vsprintf( dest, fmt, argptr );
 	va_end( argptr );
 
 	if ( len >= size ) {
@@ -1013,7 +1013,7 @@ char * QDECL va( const char *format, ... )
 	index ^= 1;
 
 	va_start( argptr, format );
-	ED_vsprintf( buf, format, argptr );
+	Q_vsprintf( buf, format, argptr );
 	va_end( argptr );
 
 	return buf;

@@ -77,7 +77,7 @@ void QDECL BotAI_Print( int type, const char *fmt, ... ) {
 	va_list ap;
 
 	va_start(ap, fmt);
-	ED_vsprintf(str, fmt, ap);
+	Q_vsprintf(str, fmt, ap);
 	va_end(ap);
 
 	switch(type) {

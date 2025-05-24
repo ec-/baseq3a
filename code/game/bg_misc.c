@@ -2154,7 +2154,7 @@ static void AddString( char **buf_p, const char *string, int width, int prec ) {
 
 
 /*
-ED_vsprintf
+Q_vsprintf
 
 I'm not going to support a bunch of the more arcane stuff in here
 just to keep it simpler.  For example, the '$' is not
@@ -2163,7 +2163,7 @@ parse and ignore formats we don't support.
 
 returns: number of char written without ending '\0'
 */
-int ED_vsprintf( char *buffer, const char *fmt, va_list ap ) {
+int Q_vsprintf( char *buffer, const char *fmt, va_list ap ) {
 	char	*buf_p;
 	char	ch;
 	int		flags;
@@ -2269,7 +2269,7 @@ int BG_sprintf( char *buf, const char *format, ... )
 	int len;
 	va_list	argptr;
 	va_start( argptr, format );
-	len = ED_vsprintf( buf, format, argptr );
+	len = Q_vsprintf( buf, format, argptr );
 	va_end( argptr );
 	return len;
 }

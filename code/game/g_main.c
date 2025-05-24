@@ -102,7 +102,7 @@ void QDECL G_Printf( const char *fmt, ... ) {
 	int			len;
 
 	va_start( argptr, fmt );
-	len = ED_vsprintf( text, fmt, argptr );
+	len = Q_vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
 	text[4095] = '\0'; // truncate to 1.32b/c max print buffer size
@@ -128,7 +128,7 @@ void QDECL G_Error( const char *fmt, ... ) {
 	char		text[1024];
 
 	va_start( argptr, fmt );
-	ED_vsprintf( text, fmt, argptr );
+	Q_vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
 	trap_Error( text );
@@ -534,7 +534,7 @@ void QDECL Com_Error( int level, const char *fmt, ... ) {
 	char		text[4096];
 
 	va_start( argptr, fmt );
-	ED_vsprintf( text, fmt, argptr );
+	Q_vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
 	trap_Error( text );
@@ -546,7 +546,7 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	char		text[4096];
 
 	va_start( argptr, fmt );
-	ED_vsprintf( text, fmt, argptr );
+	Q_vsprintf( text, fmt, argptr );
 	va_end( argptr );
 
 	trap_Print( text );
@@ -1108,7 +1108,7 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 	len = Com_sprintf( string, sizeof( string ), "%3i:%02i.%i ", min, sec, tsec );
 
 	va_start( argptr, fmt );
-	ED_vsprintf( string + len, fmt,argptr );
+	Q_vsprintf( string + len, fmt,argptr );
 	va_end( argptr );
 
 	n = (int)strlen( string );
