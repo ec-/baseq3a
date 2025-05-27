@@ -39,7 +39,7 @@ cg_enemyModel [ pm | modelname ]
 ========================    
 cg_enemyColors [colorstring]
 
-    colorstring is a 3 [or 5] char-length string, where 
+    colorstring is a 3 [or 5] char-length string, or value 'cid', where 
 
     1st char - head color, all colors forced to '???' if not set
     2nd char - torso color, forced to white if not set
@@ -49,6 +49,8 @@ cg_enemyColors [colorstring]
     5th char - optional, color2 override
 
     '?' will be replaced to white in FFA games or corresponding team color (red or blue) in team games
+
+    'cid' will use a unique combination of colors per enemy (works up to 48 clients, the remaining clients will be white)
 
     !!! will work only if cg_enemyModel is set !!!
 
