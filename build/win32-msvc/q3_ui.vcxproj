@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{96D17D51-0760-4732-89C1-26DFD5B581BF}</ProjectGuid>
+    <RootNamespace>q3_ui</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>17.0.34511.75</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>.\$(Platform)\$(Configuration)_$(ProjectName)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>ui$(ARCHL)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>.\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>.\$(Platform)\$(Configuration)_$(ProjectName)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <TargetName>ui$(ARCHL)</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>.\$(Platform)\$(Configuration)_$(ProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>.\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>.\$(Platform)\$(Configuration)_$(ProjectName)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)uix86.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(ProjectDir)$(ARCH)\$(Configuration)\$(TargetName)$(TargetExt) "$(QUAKE3DIR)\$(MODDIR)"
+copy $(ProjectDir)$(ARCH)\$(Configuration)\$(TargetName).pdb "$(QUAKE3DIR)\$(MODDIR)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)uix86_64.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(ProjectDir)$(ARCH)\$(Configuration)\$(TargetName)$(TargetExt) "$(QUAKE3DIR)\$(MODDIR)"
+copy $(ProjectDir)$(ARCH)\$(Configuration)\$(TargetName).pdb "$(QUAKE3DIR)\$(MODDIR)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)uix86.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <OutputFile>$(OutDir)uix86_64.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\code\game\bg_lib.c" />
+    <ClCompile Include="..\..\code\game\bg_misc.c" />
+    <ClCompile Include="..\..\code\game\q_math.c" />
+    <ClCompile Include="..\..\code\game\q_shared.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_addbots.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_atoms.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_cdkey.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_cinematics.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_confirm.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_connect.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_controls2.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_credits.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_demo2.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_display.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_gameinfo.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_ingame.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_loadconfig.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_main.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_menu.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_mfield.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_mods.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_network.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_options.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_playermodel.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_players.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_playersettings.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_preferences.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_qmenu.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_removebots.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_saveconfig.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_serverinfo.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_servers2.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_setup.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_sound.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_sparena.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_specifyserver.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_splevel.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_sppostgame.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_spreset.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_spskill.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_startserver.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_syscalls.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_team.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_teamorders.c" />
+    <ClCompile Include="..\..\code\q3_ui\ui_video.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\code\game\bg_lib.h" />
+    <ClInclude Include="..\..\code\game\bg_public.h" />
+    <ClInclude Include="..\..\code\game\match.h" />
+    <ClInclude Include="..\..\code\game\q_shared.h" />
+    <ClInclude Include="..\..\code\q3_ui\keycodes.h" />
+    <ClInclude Include="..\..\code\q3_ui\ui_local.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

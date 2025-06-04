@@ -1995,6 +1995,33 @@ CROSSHAIR
 ================================================================================
 */
 
+/*
+=================
+CG_SetCrosshairColor
+=================
+*/
+static void CG_SetCrosshairColor( void ) {
+	static int		colorNum;
+	static float	*colors[] = {
+		colorBlack,		//0
+		colorRed,		//1
+		colorGreen,		//2
+		colorYellow,	//3
+		colorBlue,		//4
+		colorCyan,		//5
+		colorMagenta,	//6
+		colorWhite,		//7
+	};
+
+	colorNum = cg_crosshairColor.integer;
+	if ( colorNum > 7 || colorNum < 0 ) { // if it's larger than 7 or less than 0, set it to white
+		colorNum = 7;
+	}
+	colorNum = colorNum % ARRAY_LEN( colors );
+
+	trap_R_SetColor( colors[colorNum] );
+}
+
 
 /*
 =================
@@ -2027,7 +2054,7 @@ static void CG_DrawCrosshair( void ) {
 		CG_ColorForHealth( hcolor );
 		trap_R_SetColor( hcolor );
 	} else {
-		trap_R_SetColor( NULL );
+		CG_SetCrosshairColor();
 	}
 
 	w = h = cg_crosshairSize.value;
