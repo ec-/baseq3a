@@ -568,6 +568,8 @@ Generated a bunch of gibs launching out from the bodies location
 */
 #define	GIB_VELOCITY	250
 #define	GIB_JUMP		250
+// TODO get player maxs and mins (in case of ducking (crouching)),
+// and the direction they're facing.
 void CG_GibPlayer( const vec3_t playerOrigin ) {
 	vec3_t	origin, velocity;
 
@@ -576,6 +578,9 @@ void CG_GibPlayer( const vec3_t playerOrigin ) {
 	}
 
 	VectorCopy( playerOrigin, origin );
+	// Viewheight instead of maxs because it more closely corresponds
+	// to the head position.
+	origin[2] += DEFAULT_VIEWHEIGHT;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
@@ -591,54 +596,69 @@ void CG_GibPlayer( const vec3_t playerOrigin ) {
 	}
 
 	VectorCopy( playerOrigin, origin );
+	origin[0] += 1;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibAbdomen );
 
 	VectorCopy( playerOrigin, origin );
+	// TODO player look direction?
+	origin[1] += 8; // See `PM_CheckDuck`, `15`, player width.
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibArm );
 
 	VectorCopy( playerOrigin, origin );
+	origin[2] += DEFAULT_VIEWHEIGHT * 3 / 4;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibChest );
 
 	VectorCopy( playerOrigin, origin );
+	origin[1] += -8; // See `PM_CheckDuck`, `15`, player width.
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibFist );
 
 	VectorCopy( playerOrigin, origin );
+	origin[2] += MINS_Z + 1;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibFoot );
 
 	VectorCopy( playerOrigin, origin );
+	origin[1] += -8; // See `PM_CheckDuck`, `15`, player width.
+	origin[2] += DEFAULT_VIEWHEIGHT / 2; // See `PM_CheckDuck`, `15`, player width.
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibForearm );
 
 	VectorCopy( playerOrigin, origin );
+	origin[0] += 3;
+	origin[1] += 1;
+	origin[2] += 1;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibIntestine );
 
 	VectorCopy( playerOrigin, origin );
+	origin[2] += MINS_Z / 2;
+	origin[1] += 15 / 2;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
 	CG_LaunchGib( origin, velocity, cgs.media.gibLeg );
 
 	VectorCopy( playerOrigin, origin );
+	origin[2] += MINS_Z / 2;
+	origin[1] += -15 / 2;
 	velocity[0] = crandom()*GIB_VELOCITY;
 	velocity[1] = crandom()*GIB_VELOCITY;
 	velocity[2] = GIB_JUMP + crandom()*GIB_VELOCITY;
