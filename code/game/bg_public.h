@@ -31,8 +31,11 @@
 
 #define	DROPPED_TIME		30000   // 30 seconds before removing  dropped items
 
+#define PLAYER_WIDTH		15
 #define	MINS_Z				-24
+#define MAXS_Z				32
 #define	DEFAULT_VIEWHEIGHT	26
+#define CROUCH_MAXS_Z		16
 #define CROUCH_VIEWHEIGHT	12
 #define	DEAD_VIEWHEIGHT		-16
 
