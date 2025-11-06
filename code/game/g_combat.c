@@ -600,7 +600,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// But this is already handled in `PM_CheckDuck`,
 	// so maybe it's just leftover code.
 	//
-	// self->r.maxs[2] = -8;
+	// self->r.maxs[2] = DEAD_MAXS_Z;
 
 	// don't allow respawn until the death anim is done
 	// g_forcerespawn may force spawning at some later time

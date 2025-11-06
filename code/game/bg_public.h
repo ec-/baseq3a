@@ -37,6 +37,7 @@
 #define	DEFAULT_VIEWHEIGHT	26
 #define CROUCH_MAXS_Z		16
 #define CROUCH_VIEWHEIGHT	12
+#define DEAD_MAXS_Z			-8
 #define	DEAD_VIEWHEIGHT		-16
 
 #define	PM_STEP_HEIGHT		18
