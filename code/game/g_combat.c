@@ -220,7 +220,7 @@ void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) 
 GibEntity
 ==================
 */
-void GibEntity( gentity_t *self, int killer ) {
+void GibEntity( gentity_t *self, int killer, vec3_t dir ) {
 #ifdef MISSIONPACK
 	gentity_t *ent;
 	int i;
@@ -242,7 +242,9 @@ void GibEntity( gentity_t *self, int killer ) {
 	}
 #endif
 
-	G_AddEvent( self, EV_GIB_PLAYER, killer );
+	// `killer` used to get passed as `eventParm`,
+	// but it's unused apparently
+	G_AddEvent( self, EV_GIB_PLAYER, DirToByte( dir ) );
 	self->takedamage = qfalse;
 	self->s.eType = ET_INVISIBLE;
 	self->r.contents = 0;
@@ -253,7 +255,7 @@ void GibEntity( gentity_t *self, int killer ) {
 body_die
 ==================
 */
-void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
+void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, int damage, int meansOfDeath ) {
 	if ( self->health > GIB_HEALTH ) {
 		return;
 	}
@@ -262,7 +264,7 @@ void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 		return;
 	}
 
-	GibEntity( self, 0 );
+	GibEntity( self, 0, dir );
 }
 
 
@@ -393,7 +395,7 @@ void CheckAlmostScored( gentity_t *self, gentity_t *attacker ) {
 player_die
 ==================
 */
-void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
+void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, int damage, int meansOfDeath ) {
 	gentity_t	*ent;
 	int			anim;
 	int			contents;
@@ -595,7 +597,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// never gib in a nodrop
 	if ( (self->health <= GIB_HEALTH && !(contents & CONTENTS_NODROP) && g_blood.integer) || meansOfDeath == MOD_SUICIDE) {
 		// gib death
-		GibEntity( self, killer );
+		GibEntity( self, killer, dir );
 	} else {
 		// normal death
 		static int i;
@@ -867,6 +869,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	}
 
 	// figure momentum add, even if the damage won't be taken
+	// TODO so we can calculate the gib velocity here?
+	// Instead of it being a normalized vector.
 	if ( knockback && targ->client ) {
 		vec3_t	kvel;
 		float	mass;
@@ -1030,7 +1034,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 				targ->health = -999;
 
 			targ->enemy = attacker;
-			targ->die (targ, inflictor, attacker, take, mod);
+			targ->die (targ, inflictor, attacker, dir, take, mod);
 			return;
 		} else if ( targ->pain ) {
 			targ->pain (targ, attacker, take);
