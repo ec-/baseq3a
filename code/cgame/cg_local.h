@@ -1406,7 +1406,8 @@ void CG_LightningBoltBeam( vec3_t start, vec3_t end );
 #endif
 void CG_ScorePlum( int client, const vec3_t origin, int score );
 
-void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles );
+void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
+				const vec3_t playerVelocity );
 void CG_GibPlayerOld( const vec3_t playerOrigin );
 void CG_BigExplode( vec3_t playerOrigin );
 

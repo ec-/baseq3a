@@ -765,7 +765,7 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 		VectorClear( angles );
 
 		le->endTime = 0;
-		CG_GibPlayer( le->refEntity.origin, angles );
+		CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta );
 	}
 	else {
 		trap_R_AddRefEntityToScene( &le->refEntity );
