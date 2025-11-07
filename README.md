@@ -13,7 +13,11 @@ Unofficial Quake III Arena gamecode patch
  * fixed UI mouse sensitivity for high-resolution
  * fixed not being able to gib after match end (right before showing the scores)
  * fixed shotgun not gibbing unless aiming at the feet
- * improved gibs starting positions
+ * improved gibs physics, new CVARs
+   * `cg_oldGibs`
+   * `cg_gibsInheritPlayerVelocity`
+   * `cg_gibsExtraRandomVelocity`
+   * `cg_gibsExtraVerticalVelocity`
  * fixed server browser + faster scanning
  * fixed grappling hook muzzle position visuals
  * new demo UI (subfolders,filtering,sorting)
