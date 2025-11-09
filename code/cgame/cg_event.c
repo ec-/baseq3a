@@ -1215,7 +1215,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 #else
 		trap_S_StartSound( NULL, es->number, CHAN_BODY, cgs.media.gibSound );
 #endif
-		CG_GibPlayer( cent->lerpOrigin );
+		if (cg_oldGibs.integer) {
+			CG_GibPlayerOld( cent->lerpOrigin );
+		} else {
+			CG_GibPlayer( cent->lerpOrigin );
+		}
 		break;
 
 	case EV_STOPLOOPINGSOUND:
