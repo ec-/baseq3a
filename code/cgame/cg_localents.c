@@ -764,7 +764,11 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 		if (cg_oldGibs.integer) {
 			CG_GibPlayerOld( le->refEntity.origin );
 		} else {
-			CG_GibPlayer( le->refEntity.origin );
+			vec3_t angles;
+			// Angles don't matter much here.
+			VectorClear( angles );
+
+			CG_GibPlayer( le->refEntity.origin, angles );
 		}
 	}
 	else {

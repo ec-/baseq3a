@@ -1218,7 +1218,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 		if (cg_oldGibs.integer) {
 			CG_GibPlayerOld( cent->lerpOrigin );
 		} else {
-			CG_GibPlayer( cent->lerpOrigin );
+			CG_GibPlayer( cent->lerpOrigin, cent->lerpAngles );
 		}
 		break;
 
