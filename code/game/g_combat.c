@@ -900,7 +900,10 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	if ( knockback > 200 ) {
 		knockback = 200;
 	}
-	if ( targ->flags & FL_NO_KNOCKBACK ) {
+	if (
+		client && client->ps.pm_flags & PMF_NO_KNOCKBACK ||
+		targ->flags & FL_NO_KNOCKBACK
+	) {
 		knockback = 0;
 	}
 	if ( dflags & DAMAGE_NO_KNOCKBACK ) {
@@ -1064,8 +1067,26 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 			
 		if ( targ->health <= 0 ) {
-			if ( client )
-				targ->flags |= FL_NO_KNOCKBACK;
+			// In the original code we used to set `FL_NO_KNOCKBACK` here
+			// and not need `PMF_NO_KNOCKBACK` at all.
+			// However, that made it so that when fragging with the shotgun,
+			// the dead body does not gain momentum (knockback)
+			// from the pellets that come after the pellet
+			// that made the health go below 0.
+			// That resulted in the dead body not getting pushed
+			// as far as it should have been, and, most importantly,
+			// the gibs not getting enough momentum. See
+			// https://github.com/ec-/baseq3a/pull/53.
+			//
+			// Now we set the NO_KNOCKBACK flag inside of Pmove,
+			// which is ran after all the pellets of the shotgun shot
+			// have done their thing.
+			//
+			// This issiue is similar to
+			// https://github.com/ioquake/ioq3/issues/794.
+			//
+			// if ( client )
+			// 	targ->flags |= FL_NO_KNOCKBACK;
 
 			if (targ->health < -999)
 				targ->health = -999;

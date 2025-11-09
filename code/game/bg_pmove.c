@@ -809,6 +809,8 @@ PM_DeadMove
 static void PM_DeadMove( void ) {
 	float	forward;
 
+	pm->ps->pm_flags |= PMF_NO_KNOCKBACK;
+
 	if ( !pml.walking ) {
 		return;
 	}
