@@ -761,7 +761,11 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 	}
 	if ( t > 5000 ) {
 		le->endTime = 0;
-		CG_GibPlayer( le->refEntity.origin );
+		if (cg_oldGibs.integer) {
+			CG_GibPlayerOld( le->refEntity.origin );
+		} else {
+			CG_GibPlayer( le->refEntity.origin );
+		}
 	}
 	else {
 		trap_R_AddRefEntityToScene( &le->refEntity );
