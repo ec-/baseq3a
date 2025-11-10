@@ -181,9 +181,11 @@ void CG_FragmentBounceSound( localEntity_t *le, trace_t *trace ) {
 
 	}
 
-	// don't allow a fragment to make multiple bounce sounds,
-	// or it gets too noisy as they settle
-	le->leBounceSoundType = LEBS_NONE;
+	// This is no longer needed, because we now decide whether to play a sound
+	// purely based on impact velocity.
+	// // don't allow a fragment to make multiple bounce sounds,
+	// // or it gets too noisy as they settle
+	// le->leBounceSoundType = LEBS_NONE;
 }
 
 
@@ -299,8 +301,10 @@ static void CG_AddFragment( localEntity_t *le ) {
 		CG_FragmentBounceMark( le, &trace );
 	}
 
-	// do a bouncy sound
-	CG_FragmentBounceSound( le, &trace );
+	if ( VectorLengthSquared( impactVelocityDiff ) >= Square( cg_bounceSoundMinImpactSpeed.value ) ) {
+		// do a bouncy sound
+		CG_FragmentBounceSound( le, &trace );
+	}
 
 	trap_R_AddRefEntityToScene( &le->refEntity );
 }
