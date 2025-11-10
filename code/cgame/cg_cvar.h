@@ -39,6 +39,8 @@ CG_CVAR( cg_crosshairY, "cg_crosshairY", "0", CVAR_ARCHIVE )
 CG_CVAR( cg_brassTime, "cg_brassTime", "2500", CVAR_ARCHIVE )
 CG_CVAR( cg_simpleItems, "cg_simpleItems", "0", CVAR_ARCHIVE )
 CG_CVAR( cg_addMarks, "cg_marks", "1", CVAR_ARCHIVE )
+// Note that ~290 corresponds to a free fall with no bounce from player height.
+CG_CVAR( cg_bounceMarksMinImpactSpeed, "cg_bounceMarksMinImpactSpeed", "350", CVAR_ARCHIVE )
 CG_CVAR( cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE )
 CG_CVAR( cg_railTrailTime, "cg_railTrailTime", "400", CVAR_ARCHIVE  )
 CG_CVAR( cg_railTrailRadius, "cg_railTrailRadius", "0", CVAR_ARCHIVE  )
