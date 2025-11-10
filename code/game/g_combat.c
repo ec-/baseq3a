@@ -24,6 +24,37 @@ void ScorePlum( gentity_t *ent, vec3_t origin, int score ) {
 
 /*
 ============
+DamagePlum
+============
+*/
+void DamagePlum( gentity_t *attacker, vec3_t origin, int damage ) {
+	gentity_t *plum;
+	char userinfo[MAX_INFO_STRING];
+	int damagePlumsEnabled;
+
+	if ( !attacker || !attacker->client ) {
+		return;
+	}
+
+	// check if the client supports damage plums
+	trap_GetUserinfo( attacker->s.number, userinfo, sizeof( userinfo ) );
+	damagePlumsEnabled = atoi( Info_ValueForKey( userinfo, "cg_damagePlums" ) );
+
+	if ( !damagePlumsEnabled ) {
+		return;
+	}
+
+	plum = G_TempEntity( origin, EV_DAMAGEPLUM );
+	// only send this temp entity to the attacker
+	plum->r.svFlags |= SVF_SINGLECLIENT;
+	plum->r.singleClient = attacker->s.number;
+	//
+	plum->s.otherEntityNum = attacker->s.number;
+	plum->s.time = damage;
+}
+
+/*
+============
 AddScore
 
 Adds score to both the client and his team
@@ -805,6 +836,8 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	int			asave;
 	int			knockback;
 	int			max;
+	int			i;
+	qboolean	found;
 #ifdef MISSIONPACK
 	vec3_t		bouncedir, impactpoint;
 #endif
@@ -1018,6 +1051,24 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			attacker->client->damage.amount += take + asave;
 		}
 #endif
+		if ( !OnSameTeam( targ, attacker ) ) {
+			// accumulate damage per target for damage plums
+			found = qfalse;
+			for ( i = 0; i < attacker->client->damagePlumCount; i++ ) {
+				if ( attacker->client->damagePlums[i].clientNum == targ->s.number ) {
+					attacker->client->damagePlums[i].damage += take + asave;
+					found = qtrue;
+					break;
+				}
+			}
+			if ( !found && attacker->client->damagePlumCount < MAX_CLIENTS ) {
+				attacker->client->damagePlums[attacker->client->damagePlumCount].clientNum = targ->s.number;
+				attacker->client->damagePlums[attacker->client->damagePlumCount].damage = take + asave;
+				VectorCopy( targ->r.currentOrigin, attacker->client->damagePlums[attacker->client->damagePlumCount].origin );
+				attacker->client->damagePlums[attacker->client->damagePlumCount].origin[2] += 48;
+				attacker->client->damagePlumCount++;
+			}
+		}
 	}
 
 	// add to the damage inflicted on a player this frame

@@ -1217,6 +1217,12 @@ void ClientEndFrame( gentity_t *ent ) {
 		client->damage.team = 0;
 	}
 
+	// send accumulated damage plums
+	for ( i = 0; i < client->damagePlumCount; i++ ) {
+		DamagePlum( ent, client->damagePlums[i].origin, client->damagePlums[i].damage );
+	}
+	client->damagePlumCount = 0;
+
 	// set the bit for the reachability area the client is currently in
 //	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );
 //	ent->client->areabits[i >> 3] |= 1 << (i & 7);

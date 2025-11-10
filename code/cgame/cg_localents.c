@@ -870,6 +870,110 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	}
 }
 
+/*
+===================
+CG_AddDamagePlum
+===================
+*/
+void CG_AddDamagePlum( localEntity_t *le ) {
+	refEntity_t	*re;
+	vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
+	float		c, len;
+	int			i, damage, digits[10], numdigits, negative;
+	float		progress, fade;
+	float		spread_x, spread_y;
+	float		vertical_offset, peak_height;
+	float		rise_progress, fall_progress;
+
+	re = &le->refEntity;
+
+	c = ( le->endTime - cg.time ) * le->lifeRate;
+
+	damage = le->radius;
+
+	// Color based on damage amount - gradient from white to red
+	if (damage >= 50) {
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0x00;
+		re->shaderRGBA[2] = 0x00;
+	} else if (damage >= 25) {
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0x80;
+		re->shaderRGBA[2] = 0x00;
+	} else if (damage >= 10) {
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0xff;
+		re->shaderRGBA[2] = 0x00;
+	} else {
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0xff;
+		re->shaderRGBA[2] = 0xff;
+	}
+
+	// Fade out after 250ms (after peak at 25% progress)
+	progress = 1.0 - c;  // 0.0 at start, 1.0 at end
+	if (progress < 0.25) {
+		fade = 1.0;  // Full opacity for first 250ms
+	} else {
+		fade = 1.0 - ((progress - 0.25) / 0.75);  // Fade out over remaining 750ms
+	}
+	re->shaderRGBA[3] = 0xff * fade;
+
+	re->radius = NUMBER_SIZE / 2;
+
+	VectorCopy(le->pos.trBase, origin);
+
+	spread_x = le->pos.trDelta[0] * 70.0 * progress;
+	spread_y = le->pos.trDelta[1] * 70.0 * progress;
+	origin[0] += spread_x;
+	origin[1] += spread_y;
+
+	peak_height = 30.0 * le->pos.trDelta[2];
+
+	if (progress < 0.25) {
+		rise_progress = progress / 0.25;
+		vertical_offset = peak_height * (1.0 - (1.0 - rise_progress) * (1.0 - rise_progress));
+	} else {
+		fall_progress = (progress - 0.25) / 0.75;
+		vertical_offset = peak_height - (peak_height + 48.0) * fall_progress * fall_progress;
+	}
+	origin[2] += vertical_offset;
+
+	VectorSubtract(cg.refdef.vieworg, origin, dir);
+	CrossProduct(dir, up, vec);
+	VectorNormalize(vec);
+
+	// if the view would be "inside" the sprite, kill the sprite
+	VectorSubtract( origin, cg.refdef.vieworg, delta );
+	len = VectorLength( delta );
+	if ( len < 20 ) {
+		CG_FreeLocalEntity( le );
+		return;
+	}
+
+	negative = qfalse;
+	if (damage < 0) {
+		negative = qtrue;
+		damage = -damage;
+	}
+
+	for (numdigits = 0; !(numdigits && !damage); numdigits++) {
+		digits[numdigits] = damage % 10;
+		damage = damage / 10;
+	}
+
+	if (negative) {
+		digits[numdigits] = 10;
+		numdigits++;
+	}
+
+	for (i = 0; i < numdigits; i++) {
+		VectorMA(origin, (float) (((float) numdigits / 2) - i) * NUMBER_SIZE, vec, re->origin);
+		re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
+		trap_R_AddRefEntityToScene( re );
+	}
+}
+
 
 
 
@@ -934,6 +1038,10 @@ void CG_AddLocalEntities( void ) {
 
 		case LE_SCOREPLUM:
 			CG_AddScorePlum( le );
+			break;
+
+		case LE_DAMAGEPLUM:
+			CG_AddDamagePlum( le );
 			break;
 
 #ifdef MISSIONPACK
