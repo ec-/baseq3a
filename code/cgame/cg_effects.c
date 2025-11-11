@@ -553,7 +553,7 @@ static void CG_LaunchGib( const vec3_t origin, const vec3_t velocity, qhandle_t 
 	VectorCopy( velocity, le->pos.trDelta );
 	le->pos.trTime = cg.time;
 
-	le->bounceFactor = 0.6f;
+	le->bounceFactor = cg_oldGibs.integer ? 0.6f : cg_gibsBounceFactor.value;
 
 	le->leBounceSoundType = LEBS_BLOOD;
 	le->leMarkType = LEMT_BLOOD;
