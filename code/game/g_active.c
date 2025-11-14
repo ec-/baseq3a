@@ -1154,6 +1154,12 @@ void ClientEndFrame( gentity_t *ent ) {
 
 	client->ps.stats[STAT_HEALTH] = ent->health;	// FIXME: get rid of ent->health...
 
+	// This is not present in the original game code,
+	// see comments about `FL_NO_KNOCKBACK` in `g_combat`.
+	if ( client->ps.pm_type & PM_DEAD ) {
+		ent->flags |= FL_NO_KNOCKBACK;
+	}
+
 	G_SetClientSound( ent );
 
 	// set the latest info
