@@ -70,6 +70,11 @@ else
 endif
 export CROSS_COMPILING
 
+ifndef BUNDLE_ASSETS
+  BUNDLE_ASSETS=proprietary
+endif
+export BUNDLE_ASSETS
+
 #ifndef MOD_CFLAGS
 #MOD_CFLAGS= -std=c99
 #endif
@@ -210,6 +215,12 @@ endif
 
 ifdef DEFAULT_BASEDIR
   BASE_CFLAGS += -DDEFAULT_BASEDIR=\\\"$(DEFAULT_BASEDIR)\\\"
+endif
+
+# Otherwise we can't include the fonts and we cannot USE_NEW_FONT_RENDERER
+# because it relies on those fonts.
+ifneq ($(BUNDLE_ASSETS),free)
+  CFLAGS += -DUSE_NEW_FONT_RENDERER
 endif
 
 ifeq ($(NO_STRIP),1)

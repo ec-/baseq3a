@@ -1234,8 +1234,6 @@ void CG_DrawRect( float x, float y, float width, float height, float size, const
 void CG_DrawSides(float x, float y, float w, float h, float size);
 void CG_DrawTopBottom(float x, float y, float w, float h, float size);
 
-#define USE_NEW_FONT_RENDERER
-
 // flags for CG_DrawString
 enum {
 	DS_SHADOW      = 0x1,

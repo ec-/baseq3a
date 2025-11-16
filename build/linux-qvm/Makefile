@@ -12,8 +12,18 @@ dirs:
 
 .PHONY: all dirs
 
+ifndef BUNDLE_ASSETS
+	BUNDLE_ASSETS=proprietary
+endif
+export BUNDLE_ASSETS
+
 $(PK3): vm/qagame.qvm vm/cgame.qvm vm/ui.qvm
+ifneq ($(BUNDLE_ASSETS),free)
 	$(7Z) $@ vm/*.qvm vm/*.jts ../../assets/*
+else
+	$(7Z) $@ vm/*.qvm vm/*.jts ../../assets/menu ../../assets/scripts
+endif
+
 
 cc = cd vm/$1 && $(Q3LCC) $2 -o $(notdir $@).tmp ../../$< && mv $(notdir $@).tmp $(notdir $@)
 qa_cc = $(call cc,game,$(QA_CFLAGS))

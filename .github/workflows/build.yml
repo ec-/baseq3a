@@ -8,6 +8,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         arch: [x86, x86_64]
+        bundle_assets: [free, proprietary]
         include:
           # Windows
           - os: windows-latest
@@ -23,6 +24,11 @@ jobs:
           - os: ubuntu-latest
             arch: x86_64
             platform: linux
+        exclude:
+          - bundle_assets: free
+            os: windows-latest
+          - bundle_assets: free
+            arch: x86
 
     steps:
     - uses: actions/checkout@v4
@@ -44,17 +50,17 @@ jobs:
         else
           # Linux build steps
           cd build/linux
-          make -j8 release ARCH="${{ matrix.arch }}"
-          make -j8 debug ARCH="${{ matrix.arch }}"
+          make -j8 release ARCH="${{ matrix.arch }}" BUNDLE_ASSETS="${{ matrix.bundle_assets }}"
+          make -j8 debug ARCH="${{ matrix.arch }}" BUNDLE_ASSETS="${{ matrix.bundle_assets }}"
 
           # compiles DLL behaving like MINGW:
-          make -j8 release PLATFORM=mingw64 ARCH="${{ matrix.arch }}"
-          make -j8 debug PLATFORM=mingw64 ARCH="${{ matrix.arch }}"
+          make -j8 release PLATFORM=mingw64 ARCH="${{ matrix.arch }}" BUNDLE_ASSETS="${{ matrix.bundle_assets }}"
+          make -j8 debug PLATFORM=mingw64 ARCH="${{ matrix.arch }}" BUNDLE_ASSETS="${{ matrix.bundle_assets }}"
 
           # compiling QVMs
           cd ../../build/linux-qvm
           sudo chmod 777 tools/* # make all of them executable
-          make
+          make BUNDLE_ASSETS="${{ matrix.bundle_assets }}"
         fi
       env:
         ARCHIVE: 1
@@ -64,14 +70,14 @@ jobs:
       if: ${{ matrix.os != 'windows-latest' && matrix.arch != 'x86' }}
       uses: actions/upload-artifact@v4
       with:
-        name: QVMs
+        name: QVMs-${{ matrix.bundle_assets }}
         path: |
           build/linux-qvm/*.pk3
         if-no-files-found: error
         retention-days: 5
 
     - name: Store Linux ${{ matrix.arch }} .so artifacts
-      if: ${{ matrix.os != 'windows-latest' }}
+      if: ${{ matrix.os != 'windows-latest' && matrix.bundle_assets != 'free' }}
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.platform }}-${{ matrix.arch }}
@@ -82,7 +88,7 @@ jobs:
         retention-days: 5
 
     - name: Store Windows ${{ matrix.arch }} DLL artifacts (compiled on Linux)
-      if: ${{ matrix.os != 'windows-latest' }}
+      if: ${{ matrix.os != 'windows-latest' && matrix.bundle_assets != 'free' }}
       uses: actions/upload-artifact@v4
       with:
         name: windows-${{ matrix.arch }}
