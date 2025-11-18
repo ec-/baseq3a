@@ -317,6 +317,27 @@ static qboolean ShotgunPellet( const vec3_t start, const vec3_t end, gentity_t *
 				continue;
 			}
 #else
+
+			// The below piece of code has been added in
+			// https://github.com/ec-/baseq3a/pull/60.
+			// When shooting through a corpse, gib it,
+			// but don't "absorb" the pellet, i.e. allow to hit a player
+			// through a corpse.
+			// This is mostly to compensate for the balance changes
+			// that are introduced by the removal of the `self->r.maxs[2] = -8;`
+			// line in `player_die`.
+			// But it's probably also sensible otherwise that corpses
+			// affect "more serious" gameplay less.
+			// See
+			// - https://github.com/ioquake/ioq3/issues/794
+			// - https://github.com/OpenArena/gamecode/pull/349
+			if ( traceEnt->client && traceEnt->client->ps.pm_type == PM_DEAD ) {
+				G_Damage( traceEnt, ent, ent, forward, tr.endpos, damage, 0, MOD_SHOTGUN );
+				passent = traceEnt->s.number;
+				VectorCopy( tr.endpos, tr_start );
+				continue;
+			}
+
 			if ( LogAccuracyHit( traceEnt, ent ) ) {
 				hitClient = qtrue;
 			}

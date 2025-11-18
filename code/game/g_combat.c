@@ -589,11 +589,10 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// unless you aim at the feet.
 	// See https://github.com/ioquake/ioq3/issues/794.
 	//
-	// Note that without this line, when shooting at two players standing
-	// behind each other, the second target will take less damage,
-	// because the dead body of the first player will absorb the pellets
-	// until it gets gibbed (that is, up to 4 pellets,
-	// see `GIB_HEALTH` and `DEFAULT_SHOTGUN_DAMAGE`).
+	// Not executing this line makes is so that the corpse
+	// doesn't get shorter immediately on death
+	// and instead can still take up other pellets
+	// from the same shotgun shot.
 	//
 	// The purpose and the effect of this line is not entirely clear.
 	// Maybe it's to transition the player hitbox
