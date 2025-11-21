@@ -624,6 +624,13 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 		client->pers.predictItemPickup = qtrue;
 	}
 
+	// client wants damage plum data?
+	if ( atoi( Info_ValueForKey( userinfo, "cg_damagePlums" ) ) ) {
+		client->pers.damagePlums = qtrue;
+	} else {
+		client->pers.damagePlums = qfalse;
+	}
+
 	// set name
 	Q_strncpyz( oldname, client->pers.netname, sizeof( oldname ) );
 	s = Info_ValueForKey( userinfo, "name" );

@@ -407,10 +407,10 @@ void CG_ScorePlum( int client, const vec3_t origin, int score ) {
 	le->endTime = cg.time + 4000;
 	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
 
-
+	
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;
 	le->radius = score;
-
+	
 	VectorCopy( origin, le->pos.trBase );
 	if ( origin[2] >= lastPos[2] - 20 && origin[2] <= lastPos[2] + 20 ) {
 		le->pos.trBase[2] -= 20;

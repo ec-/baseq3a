@@ -32,15 +32,7 @@ void DamagePlum( gentity_t *attacker, vec3_t origin, int damage ) {
 	char userinfo[MAX_INFO_STRING];
 	int damagePlumsEnabled;
 
-	if ( !attacker || !attacker->client ) {
-		return;
-	}
-
-	// check if the client supports damage plums
-	trap_GetUserinfo( attacker->s.number, userinfo, sizeof( userinfo ) );
-	damagePlumsEnabled = atoi( Info_ValueForKey( userinfo, "cg_damagePlums" ) );
-
-	if ( !damagePlumsEnabled ) {
+	if ( !attacker || !attacker->client || !attacker->client->pers.damagePlums) {
 		return;
 	}
 

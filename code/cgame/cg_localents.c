@@ -944,6 +944,7 @@ void CG_AddDamagePlum( localEntity_t *le ) {
 	VectorNormalize(vec);
 
 	// if the view would be "inside" the sprite, kill the sprite
+	// so it doesn't add too much overdraw
 	VectorSubtract( origin, cg.refdef.vieworg, delta );
 	len = VectorLength( delta );
 	if ( len < 20 ) {
