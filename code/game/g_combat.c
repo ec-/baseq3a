@@ -1057,7 +1057,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 				attacker->client->damagePlums[attacker->client->damagePlumCount].clientNum = targ->s.number;
 				attacker->client->damagePlums[attacker->client->damagePlumCount].damage = take + asave;
 				VectorCopy( targ->r.currentOrigin, attacker->client->damagePlums[attacker->client->damagePlumCount].origin );
-				attacker->client->damagePlums[attacker->client->damagePlumCount].origin[2] += 48;
+				attacker->client->damagePlums[attacker->client->damagePlumCount].origin[2] += 24;
 				attacker->client->damagePlumCount++;
 			}
 		}
