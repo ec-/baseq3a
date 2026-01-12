@@ -240,6 +240,7 @@ typedef struct {
 	int			teamVoted;
 
 	qboolean	inGame;
+	qboolean	damagePlums;		// do we want to display damage numbers?
 } clientPersistant_t;
 
 // unlagged
@@ -334,6 +335,14 @@ struct gclient_s {
 		int		enemy;
 		int		amount;
 	} damage;
+
+	// damage plums - track damage per target for this frame
+	struct {
+		int		clientNum;
+		int		damage;
+		vec3_t	origin;
+	} damagePlums[MAX_CLIENTS];
+	int			damagePlumCount;
 };
 
 
@@ -528,6 +537,7 @@ const char *BuildShaderStateConfig( void );
 qboolean CanDamage (gentity_t *targ, vec3_t origin);
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
 qboolean G_RadiusDamage (vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod);
+void DamagePlum( gentity_t *attacker, vec3_t origin, int damage );
 int G_InvulnerabilityEffect( gentity_t *targ, vec3_t dir, vec3_t point, vec3_t impactpoint, vec3_t bouncedir );
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );
 void TossClientItems( gentity_t *self );

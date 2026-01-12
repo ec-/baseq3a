@@ -870,6 +870,109 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	}
 }
 
+/*
+===================
+CG_AddDamagePlum
+===================
+*/
+void CG_AddDamagePlum( localEntity_t *le ) {
+	refEntity_t	*re;
+	vec3_t		origin, delta, dir, vec, up = {0, 0, 1};
+	float		c, len, distance;
+	int			i, damage, digits[10], numdigits, negative;
+	float		progress, fade, spread_x, spread_y, vertical_offset, peak_height;
+
+	re = &le->refEntity;
+
+	c = ( le->endTime - cg.time ) * le->lifeRate;
+
+	damage = le->radius;
+
+	// Color based on damage amount - gradient from blue to red
+	if (damage > 75) {
+		// Red
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0x00;
+		re->shaderRGBA[2] = 0x00;
+	} else if (damage > 50) {
+		// Orange
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0x80;
+		re->shaderRGBA[2] = 0x00;
+	} else if (damage > 25) {
+		// Yellow
+		re->shaderRGBA[0] = 0xff;
+		re->shaderRGBA[1] = 0xff;
+		re->shaderRGBA[2] = 0x00;
+	} else {
+		// Blue
+		re->shaderRGBA[0] = 0x00;
+		re->shaderRGBA[1] = 0x80;
+		re->shaderRGBA[2] = 0xff;
+	}
+
+	// Fade out after 75% of arc (750ms)
+	progress = 1.0 - c;  // 0.0 at start, 1.0 at end
+	if (progress < 0.75f) {
+		fade = 1.0f;  // Full opacity for first 750ms
+	} else {
+		fade = 1.0f - ((progress - 0.75f) / 0.25f);  // Fade out over remaining 250ms
+	}
+	re->shaderRGBA[3] = 0xff * fade;
+
+	VectorCopy(le->pos.trBase, origin);
+
+	// Calculate distance to base origin for scaling sprite and arc
+	VectorSubtract( origin, cg.refdef.vieworg, delta );
+	len = VectorLengthSquared( delta );
+	if ( len < 20*20 ) {
+		// if the view would be "inside" the sprite, kill the sprite
+		CG_FreeLocalEntity( le );
+		return;
+	}
+
+	distance = sqrt(len);
+	re->radius = (NUMBER_SIZE / 1280.0f) * distance * tan(cg.refdef.fov_x * M_PI / 360.0f);
+
+	// Horizontal spread
+	spread_x = le->pos.trDelta[0] * 20.0 * re->radius * progress;
+	spread_y = le->pos.trDelta[1] * 20.0 * re->radius * progress;
+	origin[0] += spread_x;
+	origin[1] += spread_y;
+
+	// Vertical arc - symmetric rise and fall over the full duration
+	// Uses sine wave for smooth, even arc that peaks at 50% progress
+	peak_height = 15.0 * le->pos.trDelta[2] * re->radius;
+	vertical_offset = peak_height * sin(progress * M_PI);
+	origin[2] += vertical_offset;
+
+	VectorSubtract(cg.refdef.vieworg, origin, dir);
+	CrossProduct(dir, up, vec);
+	VectorNormalize(vec);
+
+	negative = qfalse;
+	if (damage < 0) {
+		negative = qtrue;
+		damage = -damage;
+	}
+
+	for (numdigits = 0; !(numdigits && !damage); numdigits++) {
+		digits[numdigits] = damage % 10;
+		damage = damage / 10;
+	}
+
+	if (negative) {
+		digits[numdigits] = 10;
+		numdigits++;
+	}
+
+	for (i = 0; i < numdigits; i++) {
+		VectorMA(origin, (float) (((float) numdigits / 2) - i) * (re->radius * 2), vec, re->origin);
+		re->customShader = cgs.media.numberShaders[digits[numdigits-1-i]];
+		trap_R_AddRefEntityToScene( re );
+	}
+}
+
 
 
 
@@ -934,6 +1037,10 @@ void CG_AddLocalEntities( void ) {
 
 		case LE_SCOREPLUM:
 			CG_AddScorePlum( le );
+			break;
+
+		case LE_DAMAGEPLUM:
+			CG_AddDamagePlum( le );
 			break;
 
 #ifdef MISSIONPACK

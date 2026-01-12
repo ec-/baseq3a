@@ -428,6 +428,52 @@ void CG_ScorePlum( int client, const vec3_t origin, int score ) {
 	AnglesToAxis( angles, re->axis );
 }
 
+/*
+==================
+CG_DamagePlum
+==================
+*/
+void CG_DamagePlum( vec3_t org, int damage ) {
+	localEntity_t	*le;
+	refEntity_t		*re;
+	vec3_t			angles;
+	float			random_x, random_y;
+
+	if ( cg_damagePlums.integer == 0 ) {
+		return;
+	}
+
+	le = CG_AllocLocalEntity();
+	le->leFlags = 0;
+	le->leType = LE_DAMAGEPLUM;
+	le->startTime = cg.time;
+	le->endTime = cg.time + 1000;
+	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+
+	le->color[0] = 1.0;
+	le->color[1] = 0.5;
+	le->color[2] = 0.0;
+	le->color[3] = 1.0;
+	le->radius = damage;
+
+	VectorCopy( org, le->pos.trBase );
+
+	random_x = (random() * 2.0 - 1.0);
+	random_y = (random() * 2.0 - 1.0);
+
+	le->pos.trDelta[0] = random_x;
+	le->pos.trDelta[1] = random_y;
+	le->pos.trDelta[2] = 0.5 + random() * 0.5;
+
+	re = &le->refEntity;
+
+	re->reType = RT_SPRITE;
+	re->radius = 16;
+
+	VectorClear(angles);
+	AnglesToAxis( angles, re->axis );
+}
+
 
 /*
 ====================
