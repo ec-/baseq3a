@@ -29,8 +29,6 @@ DamagePlum
 */
 void DamagePlum( gentity_t *attacker, vec3_t origin, int damage ) {
 	gentity_t *plum;
-	char userinfo[MAX_INFO_STRING];
-	int damagePlumsEnabled;
 
 	if ( !attacker || !attacker->client || !attacker->client->pers.damagePlums) {
 		return;
