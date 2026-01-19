@@ -556,6 +556,32 @@ static void CG_LaunchGib( const vec3_t origin, const vec3_t angles,
 
 	le->bounceFactor = cg_oldGibs.integer ? 0.6f : cg_gibsBounceFactor.value;
 
+	if (!cg_oldGibs.integer) {
+		// `VectorLength` would be more precise, but this is faster
+		// and good enough for randomness.
+		float speedIsh = fabs(velocity[0]) + fabs(velocity[1]) + fabs(velocity[2]);
+		int i;
+		int mainRotationAxis = rand() % 3;
+
+		le->leFlags = LEF_TUMBLE;
+		le->angles.trType = TR_LINEAR;
+		le->angles.trTime = cg.time;
+		VectorCopy( angles, le->angles.trBase );
+		// Just a few degrees of randomness.
+		le->angles.trBase[PITCH] += rand()&7;
+		le->angles.trBase[YAW] += rand()&7;
+		le->angles.trBase[ROLL] += rand()&7;
+		// TODO the tumble speed should probably depend on damage instead,
+		// or at least on random velocity.
+		for ( i = 0; i < 3; i++ ) {
+			// The numbers are not based on science, but it looks like
+			// having one axis be bigger than others makes rotation look natural.
+			float axisMul = mainRotationAxis == i ? 1 : 0.25;
+			le->angles.trDelta[i] = speedIsh * axisMul * 0.5 *
+				cg_gibsRotationFactor.value * crandom();
+		}
+	}
+
 	le->leBounceSoundType = LEBS_BLOOD;
 	le->leMarkType = LEMT_BLOOD;
 }
