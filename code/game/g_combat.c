@@ -217,6 +217,20 @@ void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) 
 
 /*
 ==================
+KnockbackToKnockbackSpeed
+==================
+*/
+static float KnockbackToKnockbackSpeed( int knockback ) {
+	float	mass;
+
+	mass = 200;
+
+	return g_knockback.value * (float)knockback / mass;
+}
+
+
+/*
+==================
 GibEntity
 ==================
 */
@@ -763,6 +777,77 @@ int G_InvulnerabilityEffect( gentity_t *targ, vec3_t dir, vec3_t point, vec3_t i
 	}
 }
 #endif
+
+/*
+================
+AdjustKnockbackIfDirectMissileHit
+
+Adjusts knockback direction from missiles' direct hits so gibs look better.
+By default the knockback direction is the direction
+in which the missile is flying (see `G_MissileImpact`),
+which is not great when the missile hits just the edge of the player's feet.
+One would expect that the gibs fly up then.
+Which is what this function ensures.
+
+Assumes that the new `targ->health` is already set.
+================
+*/
+static void AdjustKnockbackIfDirectMissileHit( const gentity_t *targ,
+	const gentity_t *inflictor, const vec3_t dir, const vec3_t point,
+	int knockback, const vec3_t oldKvel, int dflags, int mod, vec3_t velChange )
+{
+	vec3_t	dir2; // Direction from the explosion to the player's center.
+	vec3_t	kvel2, finalDir;
+
+	VectorClear( velChange );
+
+	if (!(
+		knockback && targ->client &&
+		inflictor &&
+		inflictor->s.eType == ET_MISSILE &&
+		// Make sure it has big splash radius,
+		// which e.g. is not the case for the nailgun
+		// (only damages on direct hit) and plasmagun (small explosion radius).
+		inflictor->splashRadius > 40 && inflictor->splashDamage > 0 &&
+		// But we only handle direct hits here.
+		!( dflags & DAMAGE_RADIUS )
+		// Another way to check for direct hits.
+		// mod != inflictor->splashMethodOfDeath
+	)) {
+		return;
+	}
+
+	// Note that the missile direction and the direction
+	// from the explosion to the origin could be quite different,
+	// so we need to calculate the direction first
+	// instead of applying velocities right away,
+	// which would have resulted in less knockback speed.
+
+	// Copy-pasted from `G_RadiusDamage`.
+	VectorSubtract (targ->r.currentOrigin, point, dir2);
+	// Set a value lower than the original 24
+	// because that more closely corresponds to the position of the chest.
+	// dir2[2] += 24;
+	dir2[2] += 20;
+	if ( VectorNormalize( dir2 ) <= 0.0 ) {
+		return;
+	}
+
+	VectorClear( finalDir );
+	VectorMA( finalDir, g_gibsMissileDirectionKnockbackWeight.value, dir, finalDir );
+	VectorMA( finalDir, (1 - g_gibsMissileDirectionKnockbackWeight.value), dir2, finalDir );
+	if ( VectorNormalize( finalDir ) <= 0.0 ) {
+		// No particular direction, so let's just apply no knockback at all.
+		VectorScale( oldKvel, -1, velChange );
+		return;
+	}
+
+	// "Cancel" the old knockback.
+	VectorScale( oldKvel, -1, velChange );
+	VectorScale (finalDir, KnockbackToKnockbackSpeed( knockback ), kvel2);
+	VectorAdd (velChange, kvel2, velChange);
+}
+
 /*
 ============
 G_Damage
@@ -793,10 +878,13 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	int			take;
 	int			asave;
 	int			knockback;
+	vec3_t		kvel;
 	int			max;
 #ifdef MISSIONPACK
 	vec3_t		bouncedir, impactpoint;
 #endif
+
+	VectorClear( kvel );
 
 	if (!targ->takedamage) {
 		return;
@@ -898,12 +986,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	// figure momentum add, even if the damage won't be taken
 	if ( knockback && targ->client ) {
-		vec3_t	kvel;
-		float	mass;
-
-		mass = 200;
-
-		VectorScale (dir, g_knockback.value * (float)knockback / mass, kvel);
+		VectorScale (dir, KnockbackToKnockbackSpeed( knockback ), kvel);
 		VectorAdd (targ->client->ps.velocity, kvel, targ->client->ps.velocity);
 
 		// set the timer so that the other client can't cancel
@@ -1075,6 +1158,22 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 			if (targ->health < -999)
 				targ->health = -999;
+
+			if (
+				// If it's not a gib death, do not apply this adjustment,
+				// because some might say that it would affect gameplay.
+				// Namely that dead bodies can e.g. absorb missiles,
+				// so it _does_ matter where they fly.
+				// The condition is copy-pasted from `player_die` (partially).
+				targ->health <= GIB_HEALTH && g_blood.integer &&
+				!g_oldGibs.integer &&
+				g_gibsMissileDirectionKnockbackWeight.value != 1.0 &&
+				targ->client ) {
+				vec3_t velChange;
+				AdjustKnockbackIfDirectMissileHit( targ, inflictor, dir, point,
+					knockback, kvel, dflags, mod, velChange );
+				VectorAdd(targ->client->ps.velocity, velChange, targ->client->ps.velocity);
+			}
 
 			targ->enemy = attacker;
 			targ->die (targ, inflictor, attacker, take, mod);
