@@ -782,7 +782,7 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 			// Angles don't matter much here.
 			VectorClear( angles );
 
-			CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta );
+			CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta, NULL );
 		}
 	}
 	else {

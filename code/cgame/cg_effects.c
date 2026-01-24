@@ -586,6 +586,50 @@ static void CG_LaunchGib( const vec3_t origin, const vec3_t angles,
 	le->leMarkType = LEMT_BLOOD;
 }
 
+// If it's a dead body playing a death animation,
+// gradually transition the body position and angles from upright
+// to "lying flat on the ground".
+void AdjustPositionIfDeathAnimation( const lerpFrame_t *anim, vec3_t origin,
+	vec3_t bodyAngles, vec3_t lookDirAngles ) {
+	// 0 means that the body is fully erect,
+	// 1 means it's lying flat on the ground.
+	float deathAnimationProgress = 0;
+	if (
+		// Is this a death / dead animation?
+		(anim->animationNumber & ~ANIM_TOGGLEBIT) <= BOTH_DEAD3 &&
+		(anim->animationNumber & ~ANIM_TOGGLEBIT) >= BOTH_DEATH1 &&
+		// More sanity checks
+		anim->animation &&
+		anim->animation->numFrames > 0
+	) {
+		const int frameOfAnimation = anim->frame - anim->animation->firstFrame;
+		if (
+			frameOfAnimation < 0 ||
+			frameOfAnimation >= anim->animation->numFrames
+		) {
+			// Out of range. This seems to happen
+			// when we haven't yet managed to start the death animation.
+			// Maybe we're looking at the wrong things,
+			// but this works fine.
+			deathAnimationProgress = 0;
+		} else {
+			deathAnimationProgress =
+				(float)(frameOfAnimation + 1) / anim->animation->numFrames;
+		}
+	}
+
+	// TODO fix: with body sinking, gibs get stuck in the floor.
+	origin[2] += deathAnimationProgress * (MINS_Z + PLAYER_WIDTH / 1.8f);
+	// From upright to facing up.
+	// TODO fix: but sometimes the "dead" animation is such that
+	// the player is facing down.
+	bodyAngles[PITCH] = 360 - deathAnimationProgress * 90;
+	lookDirAngles[PITCH] += - deathAnimationProgress * 90;
+	// Normalize. Doesn't seem to be necessary, but let's do it.
+	if (lookDirAngles[PITCH] < 0) {
+		lookDirAngles[PITCH] += 360;
+	}
+}
 /*
 ===================
 CG_GibPlayer
@@ -597,19 +641,20 @@ Generated a bunch of gibs launching out from the bodies location
 #define	GIB_VELOCITY		250
 #define	GIB_JUMP			250
 void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
-					const vec3_t playerVelocity ) {
-	vec3_t	origin, velocity;
+					const vec3_t playerVelocity,
+					const lerpFrame_t *bodyAnimation ) {
+	vec3_t	baseOrigin, origin, velocity;
 	// Generally only the head should have pitch,
 	// the rest of the body is upright.
 	vec3_t	bodyAngles;
-	vec3_t	angles;
+	vec3_t	lookDirAngles, angles;
 	vec3_t	forward, right, up;
 	// See `playerMins`, `playerMaxs`.
 	// TODO we could try to check the actual `mins` and `maxs`
 	// (do we have them available on the client though?),
-	// to account for crounching or for the "lying on the ground dead" state.
+	// to account for crounching.
 	float playerHeight = 32 - MINS_Z;
-	float playerRadius = 15;
+	float playerRadius = PLAYER_WIDTH;
 	float baseRandomVelocity = cg_gibsExtraRandomVelocity.value;
 	vec3_t playerVelocityScaled;
 	float jump = cg_gibsExtraVerticalVelocity.value;
@@ -620,9 +665,17 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		return;
 	}
 
+	VectorCopy( playerOrigin, baseOrigin );
+	VectorCopy( playerAngles, lookDirAngles );
 	VectorCopy( playerAngles, bodyAngles );
-	// This way `up` is always `{0,0,1}`.
-	bodyAngles[PITCH] = 0;
+	if ( bodyAnimation ) {
+		AdjustPositionIfDeathAnimation( bodyAnimation, baseOrigin, bodyAngles, lookDirAngles );
+	} else {
+		bodyAngles[PITCH] = 0;
+	}
+	// TODO fix: if `AdjustPositionIfDeathAnimation()` ran,
+	// `forward` could potentially be pointing up,
+	// so some of our velocity calculations below are not quite right.
 	AngleVectors( bodyAngles, forward, right, up );
 
 	VectorScale( playerVelocity, cg_gibsInheritPlayerVelocity.value, playerVelocityScaled );
@@ -631,7 +684,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		// Note that one gib will get launched even if `numGibs == 0`.
 		// This is in line with the original behavior of `CG_GibPlayer`.
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA(origin, MINS_Z + 0.95 * playerHeight, up, origin);
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
@@ -644,16 +697,16 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		velocity[2] = jump + random()*baseRandomVelocity;
 		VectorAdd( velocity, playerVelocityScaled, velocity );
 		if ( !skullLaunched && (rand() & 1) ) {
-			CG_LaunchGib( origin, playerAngles, velocity, cgs.media.gibSkull );
+			CG_LaunchGib( origin, lookDirAngles, velocity, cgs.media.gibSkull );
 			skullLaunched = qtrue;
 		} else {
-			CG_LaunchGib( origin, playerAngles, velocity, cgs.media.gibBrain );
+			CG_LaunchGib( origin, lookDirAngles, velocity, cgs.media.gibBrain );
 		}
 		if (--numGibs <= 0) {
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.65 * playerHeight, up, origin );
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
@@ -665,7 +718,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.78 * playerHeight, up, origin );
 		VectorMA( origin, 0.8 * playerRadius, right, origin );
 		VectorMA( origin, -0.3 * playerRadius, forward, origin );
@@ -682,7 +735,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.80 * playerHeight, up, origin );
 		VectorClear( velocity );
 		// Chest is a more "central" and "heavier" piece,
@@ -696,7 +749,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.66 * playerHeight, up, origin );
 		VectorMA( origin, 0.8 * playerRadius, right, origin );
 		VectorMA( origin, 0.2 * playerRadius, forward, origin );
@@ -713,7 +766,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.05 * playerHeight, up, origin );
 		VectorMA( origin, -0.5 * playerRadius, right, origin );
 		VectorMA( origin, -0.5 * playerRadius, forward, origin );
@@ -727,7 +780,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.65 * playerHeight, up, origin );
 		VectorMA( origin, -0.6 * playerRadius, right, origin );
 		VectorMA( origin, +0.2 * playerRadius, forward, origin );
@@ -744,7 +797,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.57 * playerHeight, up, origin );
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
@@ -756,7 +809,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.42 * playerHeight, up, origin );
 		VectorMA( origin, 0.5 * playerRadius, right, origin );
 		VectorMA( origin, 0.1 * playerRadius, forward, origin );
@@ -773,7 +826,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 			return;
 		}
 
-		VectorCopy( playerOrigin, origin );
+		VectorCopy( baseOrigin, origin );
 		VectorMA( origin, MINS_Z + 0.44 * playerHeight, up, origin );
 		VectorMA( origin, -0.5 * playerRadius, right, origin );
 		VectorMA( origin, -0.2 * playerRadius, forward, origin );
