@@ -609,7 +609,6 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 	// (do we have them available on the client though?),
 	// to account for crounching or for the "lying on the ground dead" state.
 	float playerHeight = 32 - MINS_Z;
-	float bottom = playerOrigin[2] + MINS_Z;
 	float playerRadius = 15;
 	float baseRandomVelocity = cg_gibsExtraRandomVelocity.value;
 	vec3_t playerVelocityScaled;
@@ -633,7 +632,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		// This is in line with the original behavior of `CG_GibPlayer`.
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.95 * playerHeight;
+		VectorMA(origin, MINS_Z + 0.95 * playerHeight, up, origin);
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
 		velocity[1] = crandom()*baseRandomVelocity;
@@ -655,7 +654,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.65 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.65 * playerHeight, up, origin );
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
 		velocity[1] = crandom()*baseRandomVelocity;
@@ -667,7 +666,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.78 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.78 * playerHeight, up, origin );
 		VectorMA( origin, 0.8 * playerRadius, right, origin );
 		VectorMA( origin, -0.3 * playerRadius, forward, origin );
 		VectorClear( velocity );
@@ -684,7 +683,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.80 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.80 * playerHeight, up, origin );
 		VectorClear( velocity );
 		// Chest is a more "central" and "heavier" piece,
 		// so it gets less random velocity.
@@ -698,7 +697,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.66 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.66 * playerHeight, up, origin );
 		VectorMA( origin, 0.8 * playerRadius, right, origin );
 		VectorMA( origin, 0.2 * playerRadius, forward, origin );
 		VectorClear( velocity );
@@ -715,7 +714,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.05 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.05 * playerHeight, up, origin );
 		VectorMA( origin, -0.5 * playerRadius, right, origin );
 		VectorMA( origin, -0.5 * playerRadius, forward, origin );
 		VectorClear( velocity );
@@ -729,7 +728,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.65 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.65 * playerHeight, up, origin );
 		VectorMA( origin, -0.6 * playerRadius, right, origin );
 		VectorMA( origin, +0.2 * playerRadius, forward, origin );
 		VectorClear( velocity );
@@ -746,7 +745,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.57 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.57 * playerHeight, up, origin );
 		VectorClear( velocity );
 		velocity[0] = crandom()*baseRandomVelocity;
 		velocity[1] = crandom()*baseRandomVelocity;
@@ -758,7 +757,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.42 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.42 * playerHeight, up, origin );
 		VectorMA( origin, 0.5 * playerRadius, right, origin );
 		VectorMA( origin, 0.1 * playerRadius, forward, origin );
 		VectorClear( velocity );
@@ -775,7 +774,7 @@ void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
 		}
 
 		VectorCopy( playerOrigin, origin );
-		origin[2] = bottom + 0.44 * playerHeight;
+		VectorMA( origin, MINS_Z + 0.44 * playerHeight, up, origin );
 		VectorMA( origin, -0.5 * playerRadius, right, origin );
 		VectorMA( origin, -0.2 * playerRadius, forward, origin );
 		VectorClear( velocity );
