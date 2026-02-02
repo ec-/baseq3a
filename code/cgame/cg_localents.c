@@ -779,10 +779,13 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 			CG_GibPlayerOld( le->refEntity.origin );
 		} else {
 			vec3_t angles;
+			// Just use the default knockback speed for 200 damage.
+			int knockbackSpeed = 200 * 1000 / COMBAT_PLAYER_MASS;
 			// Angles don't matter much here.
 			VectorClear( angles );
 
-			CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta, NULL );
+			CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta,
+				knockbackSpeed, NULL );
 		}
 	}
 	else {

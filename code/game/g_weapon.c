@@ -401,7 +401,10 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 			// because vanilla passes `0` as `eventParm if we are gibbing
 			// a body from body queue.
 			int killer = ent->s.number;
-			GibEntity( ent2, killer );
+			// Just fall back to "half of all the pellets hit".
+			int damageFallback = DEFAULT_SHOTGUN_DAMAGE * s_quadFactor
+				* DEFAULT_SHOTGUN_DAMAGE / 2;
+			GibEntity( ent2, killer, damageFallback );
 		}
 		ent2->gibScheduled = qfalse;
 	}
