@@ -1223,6 +1223,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 				// Just use the default knockback speed for 100 damage.
 				: 100 * 1000 / COMBAT_PLAYER_MASS;
 
+			lerpFrame_t torsoAnimation = es->number == cg.snap->ps.clientNum
+				// `cent->pe.torso` appears to be not good for self.
+				? cg.predictedPlayerEntity.pe.torso
+				: cent->pe.torso;
+			vec3_t torsoAngles;
+
 			// TODO fix: things like `origin` and `angles`
 			// are not in complete sync between clients,
 			// so this seed is not always the same for all players.
@@ -1237,20 +1243,34 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 				randSeed = Q_rand(&randSeed) + ci->name[0];
 			}
 
+			// Torso animation angles seem to be in better sync
+			// between the local state and how others see us,
+			// and overall are closer to other player's viewangles
+			// than `cent->lerpAngles`.
+			// `cent->lerpAngles`, seems to sometimes be pointing
+			// in a completely different direction than the player's body
+			// at the time of death.
+			// Moreover, for non-self pitch seems to be always
+			// not very far from 0.
+			// This could be related to `LookAtKiller()`.
+			// Also see `CG_PlayerAngles`.
+			torsoAngles[PITCH] = torsoAnimation.pitchAngle;
+			torsoAngles[YAW] = torsoAnimation.yawAngle;
+			torsoAngles[ROLL] = 0;
+
 			if ( es->number == cg.snap->ps.clientNum ) {
 				// Apparently at this point `es->pos.trDelta` doesn't yet have
 				// the knockback from the damage that gibbed us,
 				// so we have to differentiate between self and non-self,
 				// and use `cg.predictedPlayerState.velocity`
 				// if it's ourself.
-				// `cent->pe.torso` also appears to be not good here.
-				CG_GibPlayer( cent->lerpOrigin, cent->lerpAngles,
+				CG_GibPlayer( cent->lerpOrigin, torsoAngles,
 					cg.predictedPlayerState.velocity, knockbackSpeed,
-					&cg.predictedPlayerEntity.pe.torso, randSeed );
+					&torsoAnimation, randSeed );
 			} else {
-				CG_GibPlayer( cent->lerpOrigin, cent->lerpAngles,
+				CG_GibPlayer( cent->lerpOrigin, torsoAngles,
 					es->pos.trDelta, knockbackSpeed,
-					&cent->pe.torso, randSeed );
+					&torsoAnimation, randSeed );
 			}
 		}
 		break;
