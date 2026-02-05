@@ -781,11 +781,19 @@ void CG_AddInvulnerabilityJuiced( localEntity_t *le ) {
 			vec3_t angles;
 			// Just use the default knockback speed for 200 damage.
 			int knockbackSpeed = 200 * 1000 / COMBAT_PLAYER_MASS;
+			int randSeed;
 			// Angles don't matter much here.
 			VectorClear( angles );
+			// Since the player with invulnerability is not moving,
+			// we expect its position to be the same for all players,
+			// so we can use it as a seed.
+			randSeed = le->refEntity.origin[0] * 1024;
+			randSeed = Q_rand(&randSeed) + le->refEntity.origin[1] * 1024;
+			randSeed = Q_rand(&randSeed) + le->refEntity.origin[2] * 1024;
+			randSeed = Q_rand(&randSeed) + cgs.levelStartTime;
 
 			CG_GibPlayer( le->refEntity.origin, angles, le->pos.trDelta,
-				knockbackSpeed, NULL );
+				knockbackSpeed, NULL, randSeed );
 		}
 	}
 	else {

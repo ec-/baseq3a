@@ -1223,6 +1223,20 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 				// Just use the default knockback speed for 100 damage.
 				: 100 * 1000 / COMBAT_PLAYER_MASS;
 
+			// TODO fix: things like `origin` and `angles`
+			// are not in complete sync between clients,
+			// so this seed is not always the same for all players.
+			int randSeed = es->number;
+			randSeed = Q_rand(&randSeed) + es->clientNum;
+			randSeed = Q_rand(&randSeed) + es->eventParm;
+			randSeed = Q_rand(&randSeed) + cgs.levelStartTime;
+			// TODO fix: this varies from client to client.
+			// So for now we round it to make it in sync ~95% of the time.
+			randSeed = Q_rand(&randSeed) + cg.snap->serverTime / 2048;
+			if ( ci ) {
+				randSeed = Q_rand(&randSeed) + ci->name[0];
+			}
+
 			if ( es->number == cg.snap->ps.clientNum ) {
 				// Apparently at this point `es->pos.trDelta` doesn't yet have
 				// the knockback from the damage that gibbed us,
@@ -1232,11 +1246,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 				// `cent->pe.torso` also appears to be not good here.
 				CG_GibPlayer( cent->lerpOrigin, cent->lerpAngles,
 					cg.predictedPlayerState.velocity, knockbackSpeed,
-					&cg.predictedPlayerEntity.pe.torso );
+					&cg.predictedPlayerEntity.pe.torso, randSeed );
 			} else {
 				CG_GibPlayer( cent->lerpOrigin, cent->lerpAngles,
 					es->pos.trDelta, knockbackSpeed,
-					&cent->pe.torso );
+					&cent->pe.torso, randSeed );
 			}
 		}
 		break;
