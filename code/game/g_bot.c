@@ -563,7 +563,8 @@ qboolean G_BotConnect( int clientNum, qboolean restart ) {
 G_AddBot
 ===============
 */
-static void G_AddBot( const char *name, float skill, const char *team, int delay, const char *altname ) {
+static void G_AddBot( const char *name, float skill, const char *team, int delay,
+					  const char *altname, const char *handicap ) {
 	int				clientNum;
 	char			*botinfo;
 	gentity_t		*bot;
@@ -601,14 +602,18 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
 	Info_SetValueForKey( userinfo, "snaps", va( "%i", sv_fps.integer ) );
 	Info_SetValueForKey( userinfo, "skill", va("%1.2f", skill) );
 
-	if ( skill >= 1 && skill < 2 ) {
-		Info_SetValueForKey( userinfo, "handicap", "50" );
-	}
-	else if ( skill >= 2 && skill < 3 ) {
-		Info_SetValueForKey( userinfo, "handicap", "70" );
-	}
-	else if ( skill >= 3 && skill < 4 ) {
-		Info_SetValueForKey( userinfo, "handicap", "90" );
+	if ( strlen( handicap ) ) {
+		Info_SetValueForKey( userinfo, "handicap", handicap );
+	} else {
+		if ( skill >= 1 && skill < 2 ) {
+			Info_SetValueForKey( userinfo, "handicap", "50" );
+		}
+		else if ( skill >= 2 && skill < 3 ) {
+			Info_SetValueForKey( userinfo, "handicap", "70" );
+		}
+		else if ( skill >= 3 && skill < 4 ) {
+			Info_SetValueForKey( userinfo, "handicap", "90" );
+		}
 	}
 
 	key = "model";
@@ -707,6 +712,7 @@ void Svcmd_AddBot_f( void ) {
 	char			altname[MAX_TOKEN_CHARS];
 	char			string[MAX_TOKEN_CHARS];
 	char			team[MAX_TOKEN_CHARS];
+	char			handicap[32];
 
 	// are bots enabled?
 	if ( !trap_Cvar_VariableIntegerValue( "bot_enable" ) ) {
@@ -716,7 +722,7 @@ void Svcmd_AddBot_f( void ) {
 	// name
 	trap_Argv( 1, name, sizeof( name ) );
 	if ( !name[0] ) {
-		trap_Print( "Usage: Addbot <botname> [skill 1-5] [team] [msec delay] [altname]\n" );
+		trap_Print( "Usage: Addbot <botname> [skill 1-5] [team] [msec delay] [altname] [handicap]\n" );
 		return;
 	}
 
@@ -748,7 +754,15 @@ void Svcmd_AddBot_f( void ) {
 	// alternative name
 	trap_Argv( 5, altname, sizeof( altname ) );
 
-	G_AddBot( name, skill, team, delay, altname );
+	trap_Argv( 6, handicap, sizeof( handicap ) );
+	if ( !g_cheats.integer ) {
+		if ( strlen( handicap ) ) {
+			G_Printf( S_COLOR_YELLOW "addbot: setting handicap for bots is cheat protected, will use default\n" );
+		}
+		handicap[0] = '\0';
+	}
+
+	G_AddBot( name, skill, team, delay, altname, handicap );
 
 	// if this was issued during gameplay and we are playing locally,
 	// go ahead and load the bot's media immediately
