@@ -15,6 +15,7 @@ Unofficial Quake III Arena gamecode patch
  * fixed shotgun not gibbing unless aiming at the feet
  * fixed server browser + faster scanning
  * fixed grappling hook muzzle position visuals
+ * migrated STAT_DEAD_YAW logic to player_state->damagePitch and player_state->damageYaw to sum the result, now it's renamed as STAT_UNUSED_INDEX and it can be reused even if you want to retain the demo networking in this same enum value field.
  * new demo UI (subfolders,filtering,sorting)
  * updated serverinfo UI
  * map rotation system
