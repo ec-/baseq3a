@@ -602,7 +602,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	// where the shotgun doesn't gib unless you aim at the feet,
 	// because, since the body is shorter, it would stop getting hit
 	// by other pellets from the same shot.
-	if ( !ShouldPostponeDeath( meansOfDeath ) ) {
+	if ( !ShouldPostponeDeathOrGib( meansOfDeath ) ) {
 		SetDeadHeight( self );
 	}
 
@@ -1136,7 +1136,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 			
 		if ( targ->health <= 0 ) {
-			// Not checking `ShouldPostponeDeath` would cause a bug:
+			// Not checking `ShouldPostponeDeathOrGib` would cause a bug:
 			// when fragging with the shotgun,
 			// the dead body would not gain momentum (knockback)
 			// from the pellets that come after the pellet
@@ -1152,7 +1152,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			//
 			// This issiue is similar to
 			// https://github.com/ioquake/ioq3/issues/794.
-			if ( client && !ShouldPostponeDeath( mod ) ) {
+			if ( client && !ShouldPostponeDeathOrGib( mod ) ) {
 				SetFlNoKnockback( targ );
 			}
 

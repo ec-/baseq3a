@@ -382,8 +382,9 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 		}
 	}
 
-	// Do what has been postponed in `G_Damage` due to `ShouldPostponeDeath`.
-	// assert( ShouldPostponeDeath( MOD_SHOTGUN ) );
+	// Do what has been postponed in `G_Damage`
+	// due to `ShouldPostponeDeathOrGib`.
+	// assert( ShouldPostponeDeathOrGib( MOD_SHOTGUN ) );
 	ent2 = &g_entities[0];
 	for (i = 0; i < level.num_entities; i++, ent2++) {
 		if ( !ent2->inuse ) {

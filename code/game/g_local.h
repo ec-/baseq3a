@@ -538,7 +538,7 @@ void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_
 // - https://github.com/ec-/baseq3a/pull/49.
 // - https://github.com/WofWca/quake3-better-gibs-mod/issues/12.
 // - Also `glcient_s.damage_knockback`.
-#define ShouldPostponeDeath( mod ) (mod == MOD_SHOTGUN)
+#define ShouldPostponeDeathOrGib( mod ) (mod == MOD_SHOTGUN)
 #define SetDeadHeight( ent ) {ent->r.maxs[2] = DEAD_MAXS_Z;}
 #define SetFlNoKnockback( ent ) {ent->flags |= FL_NO_KNOCKBACK;}
 qboolean G_RadiusDamage (gentity_t *self, vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod);
