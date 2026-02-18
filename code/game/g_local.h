@@ -125,6 +125,8 @@ struct gentity_s {
 	int			health;
 
 	qboolean	takedamage;
+	// Whether to `GibEntity` after applying all the pellets of a shotgun shot.
+	qboolean	gibScheduled;
 
 	int			damage;
 	int			splashDamage;	// quad will increase this without increasing radius
@@ -527,6 +529,7 @@ const char *BuildShaderStateConfig( void );
 //
 qboolean CanDamage (gentity_t *targ, vec3_t origin);
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
+void GibEntity( gentity_t *self, int killer );
 // The shotgun does `G_Damage` multiple times, per each pellet.
 // Normally that would mean that if the target is at 1 HP,
 // only one pellet would hit them.

@@ -395,6 +395,15 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 			SetDeadHeight( ent2 );
 			SetFlNoKnockback( ent2 );
 		}
+
+		if ( ent2->gibScheduled ) {
+			// Note that this is technically differerent from vanilla,
+			// because vanilla passes `0` as `eventParm if we are gibbing
+			// a body from body queue.
+			int killer = ent->s.number;
+			GibEntity( ent2, killer );
+		}
+		ent2->gibScheduled = qfalse;
 	}
 
 	// unlagged
