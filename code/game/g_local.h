@@ -527,6 +527,19 @@ const char *BuildShaderStateConfig( void );
 //
 qboolean CanDamage (gentity_t *targ, vec3_t origin);
 void G_Damage (gentity_t *targ, gentity_t *inflictor, gentity_t *attacker, vec3_t dir, vec3_t point, int damage, int dflags, int mod);
+// The shotgun does `G_Damage` multiple times, per each pellet.
+// Normally that would mean that if the target is at 1 HP,
+// only one pellet would hit them.
+// But that would mean that the shotgun cannot gib. We don't want that,
+// so we postpone some of the effects of `G_Damage` until after
+// all the pellets have done their thing, in `ShotgunPattern`.
+// See
+// - https://github.com/ioquake/ioq3/issues/794.
+// - https://github.com/ec-/baseq3a/pull/49.
+// - https://github.com/WofWca/quake3-better-gibs-mod/issues/12.
+// - Also `glcient_s.damage_knockback`.
+#define ShouldPostponeDeath( mod ) (mod == MOD_SHOTGUN)
+#define SetDeadHeight( ent ) {ent->r.maxs[2] = DEAD_MAXS_Z;}
 qboolean G_RadiusDamage (gentity_t *self, vec3_t origin, gentity_t *attacker, float damage, float radius, gentity_t *ignore, int mod);
 int G_InvulnerabilityEffect( gentity_t *targ, vec3_t dir, vec3_t point, vec3_t impactpoint, vec3_t bouncedir );
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath );

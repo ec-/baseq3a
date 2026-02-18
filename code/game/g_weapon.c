@@ -325,7 +325,7 @@ static qboolean ShotgunPellet( const vec3_t start, const vec3_t end, gentity_t *
 			// through a corpse.
 			// This is mostly to compensate for the balance changes
 			// that are introduced by the removal of the `self->r.maxs[2] = -8;`
-			// line in `player_die`.
+			// (`SetDeadHeight`) line in `player_die`.
 			// But it's probably also sensible otherwise that corpses
 			// affect "more serious" gameplay less.
 			// See
@@ -358,6 +358,7 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 	vec3_t		end;
 	vec3_t		forward, right, up;
 	qboolean	hitClient = qfalse;
+	gentity_t	*ent2;
 
 	// derive the right and up vectors from the forward vector, because
 	// the client won't have any other information
@@ -378,6 +379,19 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 		if ( ShotgunPellet( origin, end, ent ) && !hitClient ) {
 			hitClient = qtrue;
 			ent->client->accuracy_hits++;
+		}
+	}
+
+	// Do what has been postponed in `G_Damage` due to `ShouldPostponeDeath`.
+	// assert( ShouldPostponeDeath( MOD_SHOTGUN ) );
+	ent2 = &g_entities[0];
+	for (i = 0; i < level.num_entities; i++, ent2++) {
+		if ( !ent2->inuse ) {
+			continue;
+		}
+
+		if ( ent2->client && ent2->client->ps.pm_type == PM_DEAD ) {
+			SetDeadHeight( ent2 );
 		}
 	}
 
