@@ -1268,8 +1268,39 @@ static void PM_CheckDuck (void)
 
 	if (pm->ps->pm_type == PM_DEAD)
 	{
-		pm->maxs[2] = DEAD_MAXS_Z;
-		pm->ps->viewheight = DEAD_VIEWHEIGHT;
+		// Note that we want to support vanilla clients and servers,
+		// which do not have this `if` (they always run the `else` branch).
+		// On the server we check `cg_gibsBetterCameraOnGib` userinfo
+		// before setting `viewheight = NEW_GIBBED_VIEWHEIGHT`.
+		// Vanilla servers never set `viewheight` to `NEW_GIBBED_VIEWHEIGHT`,
+		// so on the client side this check is enough.
+		if ( pm->ps->viewheight == NEW_GIBBED_VIEWHEIGHT ) {
+			// Make the camera fly farther away when getting gibbed,
+			// by making the player's bounding box smaller
+			// and lifting it off the ground,
+			// as if the player became just their head.
+			//
+			// This also fixes the issue with gibs
+			// flying parallel to the ground even when knockback direction
+			// is towards the ground:
+			// https://github.com/WofWca/quake3-better-gibs-mod/issues/3.
+			//
+			// Note that we don't need to change `groundEntityNum` and stuff,
+			// because there is `PM_GroundTraceMissed()`
+			// right after `PM_CheckDuck()`.
+			pm->mins[2] = NEW_GIBBED_MINS_Z;
+			pm->maxs[2] = NEW_GIBBED_MAXS_Z;
+			// Also make them slimmer, because they're just a piece of meat now,
+			// and not an entire body.
+			pm->mins[0] = -PLAYER_WIDTH * 3 / 4;
+			pm->mins[1] = -PLAYER_WIDTH * 3 / 4;
+			pm->maxs[0] = PLAYER_WIDTH * 3 / 4;
+			pm->maxs[1] = PLAYER_WIDTH * 3 / 4;
+		} else {
+			pm->maxs[2] = DEAD_MAXS_Z;
+			pm->ps->viewheight = DEAD_VIEWHEIGHT;
+		}
+
 		return;
 	}
 

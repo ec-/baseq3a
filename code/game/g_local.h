@@ -231,6 +231,7 @@ typedef struct {
 	qboolean	localClient;		// true if "ip" info key is "localhost"
 	qboolean	initialSpawn;		// the first spawn should be at a cool location
 	qboolean	predictItemPickup;	// based on cg_predictItems userinfo
+	int			cg_gibsBetterCameraOnGib;
 	char		netname[MAX_NETNAME];
 	int			maxHealth;			// for handicapping
 	int			enterTime;			// level.time the client entered the game
@@ -303,6 +304,8 @@ struct gclient_s {
 	int			airOutTime;
 
 	int			lastKillTime;		// for multiple kill rewards
+
+	int			deathTime;			// 0 if alive
 
 	qboolean	fireHeld;			// used for hook
 	gentity_t	*hook;				// grapple hook if out
