@@ -1225,13 +1225,21 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 
 			// Apparently at this point `es->pos.trDelta` doesn't yet have
 			// the knockback from the damage that gibbed us,
-			// so we have to differentiate between self and non-self.
-			vec3_t *vel = es->number == cg.snap->ps.clientNum
+			// so we have to differentiate between self and non-self
+			// during regular (non-demo non-spectator) gameplay.
+			const qboolean usePredictedPs =
+				es->number == cg.snap->ps.clientNum &&
+				!cg.demoPlayback &&
+				!(cg.snap->ps.pm_flags & PMF_FOLLOW);
+			vec3_t *vel = usePredictedPs
 				? &cg.predictedPlayerState.velocity
 				: &es->pos.trDelta;
 
 			lerpFrame_t torsoAnimation = es->number == cg.snap->ps.clientNum
-				// `cent->pe.torso` appears to be not good for self.
+				// `cent->pe.torso` appears to be not good for self,
+				// unlike `cg.predictedPlayerEntity`,
+				// even during `demoPlayback` and `PMF_FOLLOW`,
+				// so we're not using `usePredictedPs` here.
 				? cg.predictedPlayerEntity.pe.torso
 				: cent->pe.torso;
 			vec3_t torsoAngles;
