@@ -758,6 +758,18 @@ void FinishSpawningItem( gentity_t *ent ) {
 		return;
 	}
 
+	// powerups don't spawn in for a while
+	if ( ent->item->giType == IT_POWERUP ) {
+		int	respawn;
+
+		respawn = SPAWN_POWERUP + crandom() * 15 * 1000;
+		ent->s.eFlags |= EF_NODRAW;
+		ent->r.contents = 0;
+		ent->nextthink = level.time + respawn;
+		ent->think = RespawnItem;
+		return;
+	}
+
 	trap_LinkEntity( ent );
 }
 
