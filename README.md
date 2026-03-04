@@ -23,6 +23,7 @@ Unofficial Quake III Arena gamecode patch
  * damage-based hitsounds
  * colored skins
  * high-quality proportional font renderer
+ * added `handicap` parameter to `addbot` command
  * single-line cvar declaration, improved cvar code readability and development efficiency
  * single-line event (EV_*) declaration
  * single-line mean of death (MOD_*) declaration
