@@ -58,13 +58,6 @@ void P_DamageFeedback( gentity_t *player ) {
 
 
 	client->ps.damageCount = count;
-
-	//
-	// clear totals
-	//
-	client->damage_blood = 0;
-	client->damage_armor = 0;
-	client->damage_knockback = 0;
 }
 
 
@@ -1216,6 +1209,13 @@ void ClientEndFrame( gentity_t *ent ) {
 		client->ps.persistant[PERS_HITS] -= client->damage.team;
 		client->damage.team = 0;
 	}
+
+	//
+	// clear damage totals
+	//
+	client->damage_blood = 0;
+	client->damage_armor = 0;
+	client->damage_knockback = 0;
 
 	// set the bit for the reachability area the client is currently in
 //	i = trap_AAS_PointReachabilityAreaIndex( ent->client->ps.origin );

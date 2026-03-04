@@ -42,7 +42,7 @@
 #define	MAX_STEP_CHANGE		32
 
 #define	MAX_VERTS_ON_POLY	10
-#define	MAX_MARK_POLYS		256
+#define	MAX_MARK_POLYS		1024
 
 #define STAT_MINUS			10	// num frame for '-' stats digit
 
@@ -1136,6 +1136,7 @@ typedef struct {
 	int				pmove_msec;
 
 	qboolean		synchronousClients;
+	int				g_gibsNewEvGibPlayerParmProtocol;
 
 	int				ospEnc;
 	qboolean		defrag;
@@ -1406,7 +1407,10 @@ void CG_LightningBoltBeam( vec3_t start, vec3_t end );
 #endif
 void CG_ScorePlum( int client, const vec3_t origin, int score );
 
-void CG_GibPlayer( const vec3_t playerOrigin );
+void CG_GibPlayer( const vec3_t playerOrigin, const vec3_t playerAngles,
+				const vec3_t playerVelocity, const int knockbackSpeed,
+				const lerpFrame_t *bodyAnimation, const int randSeed );
+void CG_GibPlayerOld( const vec3_t playerOrigin );
 void CG_BigExplode( vec3_t playerOrigin );
 
 void CG_Bleed( const vec3_t origin, int entityNum );
