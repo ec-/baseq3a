@@ -317,6 +317,11 @@ void CopyToBodyQue( gentity_t *ent ) {
 
 	trap_UnlinkEntity (ent);
 
+	// don't leave a corpse if already gibbed
+	if ( ent->s.eType == ET_INVISIBLE && ent->health <= GIB_HEALTH ) {
+		return;
+	}
+
 	// if client is in a nodrop area, don't leave the body
 	contents = trap_PointContents( ent->s.origin, -1 );
 	if ( contents & CONTENTS_NODROP ) {
@@ -397,12 +402,7 @@ void CopyToBodyQue( gentity_t *ent ) {
 
 	body->die = body_die;
 
-	// don't take more damage if already gibbed
-	if ( ent->health <= GIB_HEALTH ) {
-		body->takedamage = qfalse;
-	} else {
-		body->takedamage = qtrue;
-	}
+	body->takedamage = ent->takedamage;
 
 	VectorCopy ( body->s.pos.trBase, body->r.currentOrigin );
 	trap_LinkEntity( body );
