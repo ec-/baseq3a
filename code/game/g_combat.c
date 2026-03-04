@@ -1176,7 +1176,7 @@ qboolean CanDamage( gentity_t *targ, vec3_t origin )
 G_RadiusDamage
 ============
 */
-qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, float radius,
+qboolean G_RadiusDamage ( gentity_t *self, vec3_t origin, gentity_t *attacker, float damage, float radius,
 					 gentity_t *ignore, int mod) {
 	float		points, dist;
 	gentity_t	*ent;
@@ -1233,7 +1233,7 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 			// push the center of mass higher than the origin so players
 			// get knocked into the air more
 			dir[2] += 24;
-			G_Damage (ent, NULL, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
+			G_Damage (ent, self, attacker, dir, origin, (int)points, DAMAGE_RADIUS, mod);
 		}
 	}
 
