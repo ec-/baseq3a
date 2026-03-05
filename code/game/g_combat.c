@@ -202,17 +202,31 @@ LookAtKiller
 */
 void LookAtKiller( gentity_t *self, gentity_t *inflictor, gentity_t *attacker ) {
 	vec3_t		dir;
+	float		killerYaw = self->s.angles[YAW];
 
 	if ( attacker && attacker != self ) {
 		VectorSubtract (attacker->s.pos.trBase, self->s.pos.trBase, dir);
 	} else if ( inflictor && inflictor != self ) {
 		VectorSubtract (inflictor->s.pos.trBase, self->s.pos.trBase, dir);
 	} else {
-		self->client->ps.stats[STAT_DEAD_YAW] = self->s.angles[YAW];
+		if ( killerYaw > 255 ) {
+			self->client->ps.damageYaw = 255;
+			self->client->ps.damagePitch = (int)( killerYaw - 255 ); 
+		} else {
+			self->client->ps.damageYaw = (int)killerYaw;
+			self->client->ps.damagePitch = 0;
+		}
 		return;
 	}
 
-	self->client->ps.stats[STAT_DEAD_YAW] = vectoyaw ( dir );
+	killerYaw = vectoyaw ( dir );
+	if ( killerYaw > 255 ) {
+		self->client->ps.damageYaw = 255;
+		self->client->ps.damagePitch = (int)( killerYaw - 255 ); 
+	} else {
+		self->client->ps.damageYaw = (int)killerYaw;
+		self->client->ps.damagePitch = 0;
+	}
 }
 
 /*
