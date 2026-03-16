@@ -413,7 +413,7 @@ typedef struct {
 										// wait INTERMISSION_DELAY_TIME before
 										// actually going there so the last
 										// frag can be watched.  Disable future
-										// kills during this delay
+										// scores during this delay
 	int			intermissiontime;		// time the intermission was started
 	qboolean	readyToExit;			// at least one client wants to exit
 	int			exitTime;

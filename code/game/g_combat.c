@@ -37,10 +37,22 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 	if ( level.warmupTime ) {
 		return;
 	}
-	// show score plum
-	ScorePlum(ent, origin, score);
+
+	// Ensure that the score doesn't change after match end
+	// (when `level.intermissionQueued`).
+	// This check is not present in the original Quake III Arena.
+	// This fixes a perhaps funny bug where you could `\kill`
+	// right after winning and it would decrease your score.
 	//
-	ent->client->ps.persistant[PERS_SCORE] += score;
+	// Note that we do not early-return from this function.
+	// We'll do the same kind of check in `AddTeamScore()`.
+	if ( !level.intermissionQueued ) {
+		// show score plum
+		ScorePlum(ent, origin, score);
+		//
+		ent->client->ps.persistant[PERS_SCORE] += score;
+	}
+
 	if ( g_gametype.integer == GT_TEAM ) {
 		AddTeamScore( origin, ent->client->ps.persistant[PERS_TEAM], score );
 	}
