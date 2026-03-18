@@ -41,10 +41,12 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 	// Ensure that the score doesn't change after match end
 	// (when `level.intermissionQueued`).
 	// This check is not present in the original Quake III Arena.
-	// This fixes a perhaps funny bug where you could `\kill`
+	// It has been added mainly for `g_canDamageAfterMatchEnd`.
+	// This also fixes a perhaps funny bug where you could `\kill`
 	// right after winning and it would decrease your score.
 	//
-	// Note that we do not early-return from this function.
+	// Note that we do not early-return from this function,
+	// because we have to run `AddTeamScore()` in both cases.
 	// We'll do the same kind of check in `AddTeamScore()`.
 	if ( !level.intermissionQueued ) {
 		// show score plum
@@ -827,7 +829,17 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	// the intermission has allready been qualified for, so don't
 	// allow any extra scoring
-	if ( level.intermissionQueued ) {
+	//
+	// When `g_canDamageAfterMatchEnd 1`,
+	// we'll do the `level.intermissionQueued` check
+	// in `AddScore` and `AddTeamScore` instead of doing it here.
+	//
+	// Note that when `g_canDamageAfterMatchEnd 1`
+	// it would make sense to check `level.intermissiontime` instead,
+	// but that would be further from the original game,
+	// because `level.intermissionQueued` gets reset to 0
+	// when intermission starts.
+	if ( level.intermissionQueued && !g_canDamageAfterMatchEnd.integer ) {
 
 		// With a special exception for gibbing bodies.
 		// This was introduced in https://github.com/ec-/baseq3a/pull/50.
