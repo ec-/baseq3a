@@ -479,7 +479,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	self->enemy = attacker;
 
-	self->client->ps.persistant[PERS_KILLED]++;
+	// Check `level.intermissionQueued` so as to not ruin the "Perfect" award
+	// if the player got killed after the match has already ended.
+	if ( !level.intermissionQueued ) {
+		self->client->ps.persistant[PERS_KILLED]++;
+	}
 
 	if (attacker && attacker->client) {
 		attacker->client->lastkilled_client = self->s.number;
