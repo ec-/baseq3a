@@ -385,6 +385,19 @@ int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
 //======================================================================
 
 /*
+============
+G_ItemDisabled
+============
+*/
+int G_ItemDisabled( gitem_t *item ) {
+
+	char name[128];
+
+	Com_sprintf(name, sizeof(name), "disable_%s", item->classname);
+	return trap_Cvar_VariableIntegerValue( name );
+}
+
+/*
 ===============
 RespawnItem
 ===============
@@ -398,6 +411,7 @@ void RespawnItem( gentity_t *ent ) {
 	// randomly select from teamed entities
 	if ( ent->team ) {
 		gentity_t *master;
+		gitem_t *item;
 		int	count;
 		int choice;
 
@@ -407,15 +421,37 @@ void RespawnItem( gentity_t *ent ) {
 
 		master = ent->teammaster;
 
-		for ( count = 0, ent = master; ent; ent = ent->teamchain, count++ ) {
+		for ( count = 0, ent = master; ent; ent = ent->teamchain ) {
+			item = ent->item;
+
 			// reset spawn timers on all teamed entities
 			ent->nextthink = 0;
+
+			// Some items could be disabled due to server settings
+			if ( !item || G_ItemDisabled(item) ) {
+				continue;
+			}
+
+			count++;
+		}
+
+		// No valid items to spawn
+		if ( count == 0 ) {
+			return;
 		}
 
 		choice = rand() % count;
 
-		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain, count++ )
-			;
+		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain ) {
+			item = ent->item;
+
+			// Skip prohibited items
+			if ( !item || G_ItemDisabled(item) ) {
+				continue;
+			}
+
+			count++;
+		}
 	}
 
 	if ( !ent ) {
@@ -912,19 +948,6 @@ void SaveRegisteredItems( void ) {
 
 /*
 ============
-G_ItemDisabled
-============
-*/
-int G_ItemDisabled( gitem_t *item ) {
-
-	char name[128];
-
-	Com_sprintf(name, sizeof(name), "disable_%s", item->classname);
-	return trap_Cvar_VariableIntegerValue( name );
-}
-
-/*
-============
 G_SpawnItem
 
 Sets the clipping size and plants the object on the floor.
@@ -940,12 +963,14 @@ void G_SpawnItem( gentity_t *ent, gitem_t *item ) {
 
 	RegisterItem( item );
 
+	// Should not be nullish if item is disabled
+	ent->item = item;
+
 	if ( G_ItemDisabled( item ) ) {
 		ent->tag = TAG_DONTSPAWN;
 		return;
 	}
 
-	ent->item = item;
 	// some movers spawn on the second frame, so delay item
 	// spawns until the third frame so they can ride trains
 	ent->nextthink = level.time + FRAMETIME * 2;
