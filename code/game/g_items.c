@@ -411,7 +411,6 @@ void RespawnItem( gentity_t *ent ) {
 	// randomly select from teamed entities
 	if ( ent->team ) {
 		gentity_t *master;
-		gitem_t *item;
 		int	count;
 		int choice;
 
@@ -422,15 +421,13 @@ void RespawnItem( gentity_t *ent ) {
 		master = ent->teammaster;
 
 		for ( count = 0, ent = master; ent; ent = ent->teamchain ) {
-			item = ent->item;
+			// Skip disabled items
+			if ( ent->tag == TAG_DONTSPAWN ) {
+				continue;
+			}
 
 			// reset spawn timers on all teamed entities
 			ent->nextthink = 0;
-
-			// Some items could be disabled due to server settings
-			if ( !item || G_ItemDisabled(item) ) {
-				continue;
-			}
 
 			count++;
 		}
@@ -443,10 +440,8 @@ void RespawnItem( gentity_t *ent ) {
 		choice = rand() % count;
 
 		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain ) {
-			item = ent->item;
-
-			// Skip prohibited items
-			if ( !item || G_ItemDisabled(item) ) {
+			// Skip disabled items
+			if ( ent->tag == TAG_DONTSPAWN ) {
 				continue;
 			}
 
@@ -454,7 +449,7 @@ void RespawnItem( gentity_t *ent ) {
 		}
 	}
 
-	if ( !ent ) {
+	if ( !ent || ent->tag == TAG_DONTSPAWN ) {
 		return;
 	}
 
@@ -963,14 +958,12 @@ void G_SpawnItem( gentity_t *ent, gitem_t *item ) {
 
 	RegisterItem( item );
 
-	// Should not be nullish if item is disabled
-	ent->item = item;
-
 	if ( G_ItemDisabled( item ) ) {
 		ent->tag = TAG_DONTSPAWN;
 		return;
 	}
 
+	ent->item = item;
 	// some movers spawn on the second frame, so delay item
 	// spawns until the third frame so they can ride trains
 	ent->nextthink = level.time + FRAMETIME * 2;
