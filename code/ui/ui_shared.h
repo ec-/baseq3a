@@ -59,7 +59,7 @@
 #define MAX_SCRIPT_ARGS 12
 #define MAX_EDITFIELD 256
 
-#define ART_FX_BASE			"menu/art/fx_base"
+#define ART_FX_BASE			"menu/art/fx_base1"
 #define ART_FX_BLUE			"menu/art/fx_blue"
 #define ART_FX_CYAN			"menu/art/fx_cyan"
 #define ART_FX_GREEN		"menu/art/fx_grn"
