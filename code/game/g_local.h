@@ -343,8 +343,8 @@ struct gclient_s {
 #define	MAX_SPAWN_VARS			64
 #define	MAX_SPAWN_VARS_CHARS	4096
 
-#define NUM_SPAWN_SPOTS MAX_GENTITIES
-#define SPAWN_SPOT_INTERMISSION NUM_SPAWN_SPOTS-1
+#define NUM_SPAWN_SPOTS			(MAX_GENTITIES - MAX_CLIENTS)
+#define SPAWN_SPOT_INTERMISSION	(NUM_SPAWN_SPOTS - 1)
 
 typedef struct {
 	struct gclient_s	*clients;		// [maxclients]

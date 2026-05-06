@@ -25,6 +25,7 @@
 #define	SPAWN_HOLDABLE		2500
 #define	SPAWN_MEGAHEALTH	10000
 #define	SPAWN_POWERUP		45000
+#define	SPAWN_POWERUP_RND	15000
 
 // periodic respawn times
 // g_weaponRespawn.integer || g_weaponTeamRespawn.integer
@@ -64,7 +65,9 @@ int SpawnTime( gentity_t *ent, qboolean firstSpawn )
 			return firstSpawn ? SPAWN_HEALTH : RESPAWN_HEALTH;
 
 	case IT_POWERUP:
-		return firstSpawn ? SPAWN_POWERUP : RESPAWN_POWERUP;
+		if ( !firstSpawn )
+			return RESPAWN_POWERUP;
+		return SPAWN_POWERUP + crandom() * SPAWN_POWERUP_RND;
 
 #ifdef MISSIONPACK
 	case IT_PERSISTANT_POWERUP:
@@ -407,18 +410,33 @@ void RespawnItem( gentity_t *ent ) {
 
 		master = ent->teammaster;
 
-		for ( count = 0, ent = master; ent; ent = ent->teamchain, count++ ) {
+		for ( count = 0, ent = master; ent; ent = ent->teamchain ) {
+			// Skip disabled items
+			if ( ent->tag == TAG_DONTSPAWN ) {
+				continue;
+			}
 			// reset spawn timers on all teamed entities
 			ent->nextthink = 0;
+			count++;
+		}
+
+		// No valid items to spawn
+		if ( count == 0 ) {
+			return;
 		}
 
 		choice = rand() % count;
 
-		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain, count++ )
-			;
+		for ( count = 0, ent = master; ent && count < choice; ent = ent->teamchain ) {
+			// Skip disabled items
+			if ( ent->tag == TAG_DONTSPAWN ) {
+				continue;
+			}
+			count++;
+		}
 	}
 
-	if ( !ent ) {
+	if ( !ent || ent->tag == TAG_DONTSPAWN ) {
 		return;
 	}
 
@@ -740,7 +758,7 @@ void FinishSpawningItem( gentity_t *ent ) {
 		VectorSet( dest, ent->s.origin[0], ent->s.origin[1], ent->s.origin[2] - 4096 );
 		trap_Trace( &tr, ent->s.origin, ent->r.mins, ent->r.maxs, dest, ent->s.number, MASK_SOLID );
 		if ( tr.startsolid ) {
-			G_Printf ("FinishSpawningItem: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
+			G_Printf( "FinishSpawningItem: %s startsolid at %s\n", ent->classname, vtos( ent->s.origin ) );
 			G_FreeEntity( ent );
 			return;
 		}
@@ -756,6 +774,17 @@ void FinishSpawningItem( gentity_t *ent ) {
 		ent->s.eFlags |= EF_NODRAW;
 		ent->r.contents = 0;
 		return;
+	}
+
+	if ( g_warmup.integer == 0 ) {
+		// powerups don't spawn in for a while
+		if ( ent->item->giType == IT_POWERUP ) {
+			ent->s.eFlags |= EF_NODRAW;
+			ent->r.contents = 0;
+			ent->nextthink = level.time + SpawnTime( ent, qtrue );
+			ent->think = RespawnItem;
+			return;
+		}
 	}
 
 	trap_LinkEntity( ent );
@@ -955,7 +984,7 @@ void G_SpawnItem( gentity_t *ent, gitem_t *item ) {
 
 	if ( item->giType == IT_POWERUP ) {
 		G_SoundIndex( "sound/items/poweruprespawn.wav" );
-		G_SpawnFloat( "noglobalsound", "0", &ent->speed);
+		G_SpawnFloat( "noglobalsound", "0", &ent->speed );
 	}
 
 #ifdef MISSIONPACK
