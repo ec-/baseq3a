@@ -31,10 +31,22 @@
 
 #define	DROPPED_TIME		30000   // 30 seconds before removing  dropped items
 
+#define PLAYER_WIDTH		15
 #define	MINS_Z				-24
+#define MAXS_Z				32
 #define	DEFAULT_VIEWHEIGHT	26
+#define CROUCH_MAXS_Z		16
 #define CROUCH_VIEWHEIGHT	12
+#define DEAD_MAXS_Z			-8
 #define	DEAD_VIEWHEIGHT		-16
+// Make sure to keep `mins[2]` negative so that player origin doesn't sink
+// into the ground, to guard against weird behavior
+// like sounds not being played (because they're "behind the wall")
+// or something.
+#define	NEW_GIBBED_MINS_Z		-2
+#define NEW_GIBBED_HEIGHT_DIFF	NEW_GIBBED_MINS_Z - MINS_Z
+#define	NEW_GIBBED_MAXS_Z		DEAD_MAXS_Z + NEW_GIBBED_HEIGHT_DIFF
+#define	NEW_GIBBED_VIEWHEIGHT	DEAD_VIEWHEIGHT + NEW_GIBBED_HEIGHT_DIFF
 
 #define	PM_STEP_HEIGHT		18
 
@@ -184,6 +196,13 @@ void PM_UpdateViewAngles( playerState_t *ps, const usercmd_t *cmd );
 void Pmove (pmove_t *pmove);
 
 //===================================================================================
+
+#define COMBAT_PLAYER_MASS 200
+// A divisor of knockback speed, to fit it into one byte.
+// By dividing by 8 we can represent a speed of up to (255 * 8) = 2040.
+// For comparison, with `g_knockback` of 1000 and `MAX_KNOCKBACK` of 200
+// the max knockback speed in most situations is 1000.
+#define COMBAT_EV_GIB_PLAYER_ARG_DIVISOR 8
 
 
 // player_state->stats[] indexes
