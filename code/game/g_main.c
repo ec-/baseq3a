@@ -1125,6 +1125,142 @@ void QDECL G_LogPrintf( const char *fmt, ... ) {
 }
 
 
+#ifndef NO_HOLYSHIT_MOD
+static void PlayGlobalHolyshitSound( void ) {
+	// Note that there is another way to play this sound,
+	// i.e. with `PLAYEREVENT_HOLYSHIT`,
+	// but that is per-player and not global.
+	gentity_t *te = G_TempEntity( vec3_origin, EV_GLOBAL_SOUND );
+	te->s.eventParm = G_SoundIndex( "sound/feedback/voc_holyshit.wav" );
+	te->r.svFlags |= SVF_BROADCAST;
+}
+
+/*
+=============
+ClearHolyshit
+
+Sync imaginary scores to real scores
+and clear all other holy-shit-related values.
+
+This should be called at match end, to ensure that the relevant fields
+don't keep values from the previous match or something,
+such as after `ExitLevel()`.
+=============
+*/
+static void ClearHolyshit( void ) {
+	int			i;
+
+	// assert( sizeof( level.teamImaginaryScores ) == sizeof( level.teamScores ) );
+	memcpy( level.teamImaginaryScores, level.teamScores, sizeof( level.teamImaginaryScores ) );
+	memset( level.teamNeedsHolyshitCheck, 0, sizeof( level.teamNeedsHolyshitCheck ) );
+	// Setting to `MAX_QINT` basically ensures that nobody can reach this score.
+	// However we expect to never read `winnerScore` when it has this value.
+	// This is just to be defensive.
+	level.winnerScore = MAX_QINT;
+
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
+		gclient_t *cl = level.clients + i;
+
+		// Not checking `connected` and `sessionTeam` as in `CheckExitRules`,
+		// just copy scores for all players as is.
+
+		cl->pers.imaginaryScore = cl->ps.persistant[PERS_SCORE];
+		cl->pers.needsHolyshitCheck = qfalse;
+	}
+}
+static void InitHolyshit( void ) {
+	ClearHolyshit();
+
+	if ( g_gametype.integer >= GT_TEAM ) {
+		level.winnerScore = level.teamScores[TEAM_RED] > level.teamScores[TEAM_BLUE]
+			? level.teamScores[TEAM_RED]
+			: level.teamScores[TEAM_BLUE];
+		level.teamNeedsHolyshitCheck[TEAM_RED] =
+			level.teamScores[TEAM_RED] < level.winnerScore;
+		level.teamNeedsHolyshitCheck[TEAM_BLUE] =
+			level.teamScores[TEAM_BLUE] < level.winnerScore;
+	} else {
+		int i;
+		const gclient_t *winner;
+
+		if ( level.numPlayingClients < 1 ) {
+			// This shouldn't happen, but let's still gracefully handle.
+			// In this case nobody will have `needsHolyshitCheck == qtrue`.
+			return;
+		}
+		// Assuming `CalculateRanks()` has already been called.
+		winner = &level.clients[ level.sortedClients[0] ];
+
+		level.winnerScore = winner->ps.persistant[PERS_SCORE];
+
+		for ( i = 0; i < level.numPlayingClients; i++ ) {
+			gclient_t *cl = &level.clients[ level.sortedClients[i] ];
+			if ( cl->ps.persistant[PERS_SCORE] < level.winnerScore ) {
+				cl->pers.needsHolyshitCheck = qtrue;
+			}
+		}
+	}
+}
+/*
+=============
+CheckHolyshit
+
+After match end but before intermission (when `level.intermissionQueued`),
+check if someone else would have reached the winning score
+if the match hadn't ended, and say the line if so.
+This includes:
+- Hitting the fraglimit after someone else has already hit it.
+  (`g_canDamageAfterMatchEnd 1` is required for this).
+- Tying score after the timelimit has been hit.
+- Tying score after sudden death.
+- Bringing the cubes after the opponent has brought them.
+=============
+*/
+static void CheckHolyshit( void ) {
+	int i;
+
+	if ( !level.intermissionQueued ) {
+		// This function should not be called when `!level.intermissionQueued`.
+		return;
+	}
+
+	if ( level.teamNeedsHolyshitCheck[TEAM_RED] &&
+		level.teamImaginaryScores[TEAM_RED] >= level.winnerScore )
+	{
+		PlayGlobalHolyshitSound();
+		G_BroadcastServerCommand( -1,
+			"print \"Red " S_COLOR_YELLOW "almost" S_COLOR_WHITE " didn't lose.\n\"" );
+		level.teamNeedsHolyshitCheck[TEAM_RED] = qfalse;
+	}
+	if ( level.teamNeedsHolyshitCheck[TEAM_BLUE] &&
+		level.teamImaginaryScores[TEAM_BLUE] >= level.winnerScore )
+	{
+		PlayGlobalHolyshitSound();
+		G_BroadcastServerCommand( -1,
+			"print \"Blue " S_COLOR_YELLOW "almost" S_COLOR_WHITE " didn't lose.\n\"" );
+		level.teamNeedsHolyshitCheck[TEAM_BLUE] = qfalse;
+	}
+
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
+		gclient_t *cl = level.clients + i;
+		if ( cl->pers.connected != CON_CONNECTED ) {
+			continue;
+		}
+
+		if ( cl->pers.needsHolyshitCheck &&
+			cl->pers.imaginaryScore >= level.winnerScore )
+		{
+			PlayGlobalHolyshitSound();
+			G_BroadcastServerCommand( -1, va(
+				"print \"%s" S_COLOR_YELLOW " almost" S_COLOR_WHITE " didn't lose.\n\"",
+				cl->pers.netname ) );
+			cl->pers.needsHolyshitCheck = qfalse;
+		}
+	}
+}
+#endif
+
+
 /*
 ================
 LogExit
@@ -1145,6 +1281,15 @@ void LogExit( const char *string ) {
 	// this will keep the clients from playing any voice sounds
 	// that will get cut off when the queued intermission starts
 	trap_SetConfigstring( CS_INTERMISSION, "1" );
+
+#ifndef NO_HOLYSHIT_MOD
+	InitHolyshit();
+	// We don't expect a player (or team) to win and another player
+	// to almost win at the very same instant,
+	// so we don't need to also `CheckHolyshit()` here.
+	// Even if that were to happen, let's wait until another `CheckExitRules()`,
+	// hoping that this situation resolves by then.
+#endif
 
 	// don't send more than 32 scores (FIXME?)
 	numSorted = level.numConnectedClients;
@@ -1331,6 +1476,10 @@ static void CheckExitRules( void ) {
 	}
 
 	if ( level.intermissionQueued ) {
+#ifndef NO_HOLYSHIT_MOD
+		CheckHolyshit();
+#endif
+
 #ifdef MISSIONPACK
 		int time = (g_singlePlayer.integer) ? SP_INTERMISSION_DELAY_TIME : INTERMISSION_DELAY_TIME;
 		if ( level.time - level.intermissionQueued >= time ) {

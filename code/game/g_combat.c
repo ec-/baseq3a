@@ -54,6 +54,9 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 		//
 		ent->client->ps.persistant[PERS_SCORE] += score;
 	}
+#ifndef NO_HOLYSHIT_MOD
+	ent->client->pers.imaginaryScore += score;
+#endif
 
 	if ( g_gametype.integer == GT_TEAM ) {
 		AddTeamScore( origin, ent->client->ps.persistant[PERS_TEAM], score );
