@@ -1134,6 +1134,18 @@ static void PlayGlobalHolyshitSound( void ) {
 	te->s.eventParm = G_SoundIndex( "sound/feedback/voc_holyshit.wav" );
 	te->r.svFlags |= SVF_BROADCAST;
 }
+static char* FormatHolyshitMsg( const char* name ) {
+	const int diffMs = level.time - level.intermissionQueued;
+	return va( "print \"%s" S_COLOR_WHITE " was %s away from not losing\n\"",
+		name,
+		diffMs == 0
+			? "one moment"
+			: diffMs < 500
+				// Don't convert to float to avoid precision loss.
+				? va( "%i.%03is", diffMs / 1000, diffMs % 1000 )
+				: va( "%i.%01is", diffMs / 1000, (diffMs % 1000)/100 )
+	);
+}
 
 /*
 =============
@@ -1228,16 +1240,14 @@ static void CheckHolyshit( void ) {
 		level.teamImaginaryScores[TEAM_RED] >= level.winnerScore )
 	{
 		PlayGlobalHolyshitSound();
-		G_BroadcastServerCommand( -1,
-			"print \"Red " S_COLOR_YELLOW "almost" S_COLOR_WHITE " didn't lose.\n\"" );
+		G_BroadcastServerCommand( -1, FormatHolyshitMsg( "Red" ) );
 		level.teamNeedsHolyshitCheck[TEAM_RED] = qfalse;
 	}
 	if ( level.teamNeedsHolyshitCheck[TEAM_BLUE] &&
 		level.teamImaginaryScores[TEAM_BLUE] >= level.winnerScore )
 	{
 		PlayGlobalHolyshitSound();
-		G_BroadcastServerCommand( -1,
-			"print \"Blue " S_COLOR_YELLOW "almost" S_COLOR_WHITE " didn't lose.\n\"" );
+		G_BroadcastServerCommand( -1, FormatHolyshitMsg( "Blue" ) );
 		level.teamNeedsHolyshitCheck[TEAM_BLUE] = qfalse;
 	}
 
@@ -1251,9 +1261,7 @@ static void CheckHolyshit( void ) {
 			cl->pers.imaginaryScore >= level.winnerScore )
 		{
 			PlayGlobalHolyshitSound();
-			G_BroadcastServerCommand( -1, va(
-				"print \"%s" S_COLOR_YELLOW " almost" S_COLOR_WHITE " didn't lose.\n\"",
-				cl->pers.netname ) );
+			G_BroadcastServerCommand( -1, FormatHolyshitMsg( cl->pers.netname ) );
 			cl->pers.needsHolyshitCheck = qfalse;
 		}
 	}
