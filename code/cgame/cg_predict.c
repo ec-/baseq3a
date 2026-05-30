@@ -618,6 +618,10 @@ static void CG_CheckTimers( void ) {
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 )
 		return;
 
+	// no prediction during intermission
+	if ( cg.snap->ps.pm_type == PM_INTERMISSION )
+		return;
+
 	// periodic tasks
 	if ( cg.timeResidual && cg.predictedPlayerState.commandTime >= cg.timeResidual && !cg.thisFrameTeleport ) {
 		cg.timeResidual += 1000;

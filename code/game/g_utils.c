@@ -508,33 +508,62 @@ Kill box
 
 /*
 =================
+G_EntitiesInBox
+=================
+*/
+int G_EntitiesInBox( vec3_t mins, vec3_t maxs, int *touch, int maxents ) {
+	const gentity_t *ent;
+	int i, count;
+
+	count = 0;
+	ent = g_entities;
+
+	for ( i = 0; i < maxents; i++, ent++ ) {
+		if ( !ent->r.linked || !ent->inuse ) {
+			continue;
+		}
+		if ( ent->r.absmin[0] > maxs[0] ||
+			ent->r.absmin[1] > maxs[1] ||
+			ent->r.absmin[2] > maxs[2] ||
+			ent->r.absmax[0] < mins[0] ||
+			ent->r.absmax[1] < mins[1] ||
+			ent->r.absmax[2] < mins[2] ) {
+			continue;
+		}
+		touch[ count ] = i;
+		count++;
+	}
+
+	return count;
+}
+
+/*
+=================
 G_KillBox
 
 Kills all entities that would touch the proposed new positioning
 of ent.  Ent should be unlinked before calling this!
 =================
 */
-void G_KillBox (gentity_t *ent) {
+void G_KillBox( gentity_t *ent ) {
 	int			i, num;
-	int			touch[MAX_GENTITIES];
+	int			touch[MAX_CLIENTS];
 	gentity_t	*hit;
 	vec3_t		mins, maxs;
 
 	VectorAdd( ent->client->ps.origin, ent->r.mins, mins );
 	VectorAdd( ent->client->ps.origin, ent->r.maxs, maxs );
-	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+	num = G_EntitiesInBox( mins, maxs, touch, level.maxclients );
 
-	for (i=0 ; i<num ; i++) {
+	for ( i = 0; i < num; i++ ) {
 		hit = &g_entities[touch[i]];
 		if ( !hit->client ) {
 			continue;
 		}
 
 		// nail it
-		G_Damage ( hit, ent, ent, NULL, NULL,
-			100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
+		G_Damage( hit, ent, ent, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
 	}
-
 }
 
 //==============================================================================

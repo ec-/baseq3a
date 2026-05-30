@@ -254,6 +254,8 @@ body_die
 ==================
 */
 void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int meansOfDeath ) {
+	int killer;
+
 	if ( self->health > GIB_HEALTH ) {
 		return;
 	}
@@ -262,7 +264,13 @@ void body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int d
 		return;
 	}
 
-	GibEntity( self, 0 );
+	if ( attacker && attacker->client ) {
+		killer = attacker->s.number;
+	} else {
+		killer = ENTITYNUM_WORLD;
+	}
+
+	GibEntity( self, killer );
 }
 
 
@@ -833,9 +841,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 			targ->health = targ->health - damage;
 			if ( targ->health <= 0 ) {
-				// `body_die` doesn't use any of its arguments (except `targ`),
+				// `body_die` doesn't use any of its arguments (except `targ` and 'attacker'),
 				// so it's fine if they're `NULL`.
-				targ->die (targ, inflictor, attacker, damage, mod);
+				targ->die( targ, inflictor, attacker, damage, mod );
 			}
 		}
 
@@ -1024,11 +1032,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 	// the total will be turned into screen blends and view angle kicks
 	// at the end of the frame
 	if ( client ) {
-		if ( attacker ) { // FIXME: always true?
-			client->ps.persistant[PERS_ATTACKER] = attacker->s.number;
-		} else {
-			client->ps.persistant[PERS_ATTACKER] = ENTITYNUM_WORLD;
-		}
+		client->ps.persistant[PERS_ATTACKER] = attacker->s.number;
 		client->damage_armor += asave;
 		client->damage_blood += take;
 		client->damage_knockback += knockback;

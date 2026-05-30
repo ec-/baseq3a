@@ -625,7 +625,7 @@ void BotInterbreedEndMatch(void) {
 		bot_interbreedmatchcount = 0;
 		//
 		trap_Cvar_Update(&bot_interbreedwrite);
-		if (strlen(bot_interbreedwrite.string)) {
+		if (bot_interbreedwrite.string[0] != '\0') {
 			BotWriteInterbreeded(bot_interbreedwrite.string);
 			trap_Cvar_Set("bot_interbreedwrite", "");
 		}

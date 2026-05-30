@@ -339,7 +339,12 @@ static void G_UpdateCvars( void ) {
 
 static void G_LocateSpawnSpots( void ) 
 {
-	gentity_t			*ent;
+	static const vec3_t playerMins = { -12, -12, -24 };
+	static const vec3_t playerMaxs = { 12,  12,  32 };
+	vec3_t spawn_origin;
+	vec3_t spawn_ground;
+	gentity_t *ent;
+	trace_t tr;
 	int i, n;
 
 	level.spawnSpots[ SPAWN_SPOT_INTERMISSION ] = NULL;
@@ -405,6 +410,27 @@ static void G_LocateSpawnSpots( void )
 		}
 	}
 	level.numSpawnSpots = n;
+
+	// try to lower spawn spots if possible to minimize nasty bouncing
+	for ( i = 0; i < level.numSpawnSpots; i++ ) {
+		ent = level.spawnSpots[i];
+		
+		n = trap_PointContents( ent->s.origin, ent->s.number ) & ~(CONTENTS_FOG | CONTENTS_TRANSLUCENT);
+		if ( n != 0 ) {
+			continue;
+		}
+
+		VectorCopy( ent->s.origin, spawn_origin );
+		VectorCopy( ent->s.origin, spawn_ground );
+		spawn_ground[2] -= 32.0f;
+		trap_Trace( &tr, spawn_origin, playerMins, playerMaxs, spawn_ground, ent->s.number, CONTENTS_SOLID | CONTENTS_PLAYERCLIP );
+		if ( tr.fraction != 1.0f && tr.entityNum == ENTITYNUM_WORLD ) {
+			ent->s.origin[2] = (int) (tr.endpos[2] + 0.999f);
+			ent->s.groundEntityNum = tr.entityNum;
+		} else {
+			ent->s.groundEntityNum = ENTITYNUM_NONE;
+		}
+	}
 }
 
 

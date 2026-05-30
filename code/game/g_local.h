@@ -162,6 +162,7 @@ struct gentity_s {
 	tag_t		tag;
 };
 
+#define SPAWN_HEIGHT 0.0f
 
 typedef enum {
 	CON_DISCONNECTED,
@@ -501,6 +502,7 @@ void SaveRegisteredItems( void );
 int		G_ModelIndex( const char *name );
 int		G_SoundIndex( const char *name );
 void	G_TeamCommand( team_t team, const char *cmd );
+int		G_EntitiesInBox( vec3_t mins, vec3_t maxs, int *touch, int maxents );
 void	G_KillBox (gentity_t *ent);
 gentity_t *G_Find (gentity_t *from, int fieldofs, const char *match);
 gentity_t *G_PickTarget (const char *targetname);

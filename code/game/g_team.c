@@ -1057,7 +1057,7 @@ gentity_t *SelectCTFSpawnPoint( gentity_t *ent, team_t team, int teamstate, vec3
 
 	VectorCopy( spot->s.origin, origin );
 	VectorCopy( spot->s.angles, angles );
-	origin[2] += 9.0f;
+	origin[2] += SPAWN_HEIGHT;
 
 	return spot;
 }

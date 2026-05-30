@@ -788,7 +788,7 @@ voiceChatList_t *CG_VoiceChatListForClient( int clientNum ) {
 	for (k = 0; k < 2; k++) {
 		// just pick the first with the right gender
 		for ( i = 0; i < MAX_VOICEFILES; i++ ) {
-			if (strlen(voiceChatLists[i].name)) {
+			if (voiceChatLists[i].name[0] != '\0') {
 				if (voiceChatLists[i].gender == gender) {
 					// store this head model with voice chat for future reference
 					for ( j = 0; j < MAX_HEADMODELS; j++ ) {

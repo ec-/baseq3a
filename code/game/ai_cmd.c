@@ -389,7 +389,7 @@ int BotAddressedToBot(bot_state_t *bs, bot_match_t *match) {
 			}
 			else if (addresseematch.type == MSG_MULTIPLENAMES) {
 				trap_BotMatchVariable(&addresseematch, TEAMMATE, name, sizeof(name));
-				if (strlen(name)) {
+				if (name[0] != '\0') {
 					if (stristr(botname, name)) return qtrue;
 					if (stristr(bs->subteam, name)) return qtrue;
 				}
@@ -397,7 +397,7 @@ int BotAddressedToBot(bot_state_t *bs, bot_match_t *match) {
 			}
 			else {
 				trap_BotMatchVariable(&addresseematch, TEAMMATE, name, MAX_MESSAGE_SIZE);
-				if (strlen(name)) {
+				if (name[0] != '\0') {
 					if (stristr(botname, name)) return qtrue;
 					if (stristr(bs->subteam, name)) return qtrue;
 				}
@@ -1119,7 +1119,7 @@ void BotMatch_LeaveSubteam(bot_state_t *bs, bot_match_t *match) {
 	//if not addressed to this bot
 	if (!BotAddressedToBot(bs, match)) return;
 	//
-	if (strlen(bs->subteam))
+	if (bs->subteam[0] != '\0')
 	{
 		BotAI_BotInitialChat(bs, "leftteam", bs->subteam, NULL);
 		trap_BotMatchVariable(match, NETNAME, netname, sizeof(netname));
@@ -1139,7 +1139,7 @@ void BotMatch_WhichTeam(bot_state_t *bs, bot_match_t *match) {
 	//if not addressed to this bot
 	if (!BotAddressedToBot(bs, match)) return;
 	//
-	if (strlen(bs->subteam)) {
+	if (bs->subteam[0] != '\0') {
 		BotAI_BotInitialChat(bs, "inteam", bs->subteam, NULL);
 	}
 	else {

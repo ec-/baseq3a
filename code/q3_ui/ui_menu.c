@@ -191,7 +191,7 @@ static void Main_MenuDraw( void ) {
 
 	trap_R_RenderScene( &refdef );
 	
-	if (strlen(s_errorMessage.errorMessage))
+	if (s_errorMessage.errorMessage[0] != '\0')
 	{
 		UI_DrawProportionalString_AutoWrapped( 320, 192, 600, 20, s_errorMessage.errorMessage, UI_CENTER|UI_SMALLFONT|UI_DROPSHADOW, menu_text_color );
 	}
