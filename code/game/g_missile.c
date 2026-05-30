@@ -298,8 +298,11 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace ) {
 			if ( VectorLength( velocity ) == 0 ) {
 				velocity[2] = 1;	// stepped on a grenade
 			}
+			// Originally we used `ent->s.origin` instead of `trace->endpos`,
+			// but the latter is more accurate.
+			// We also already use it below for `G_RadiusDamage`.
 			G_Damage (other, ent, &g_entities[ent->r.ownerNum], velocity,
-				ent->s.origin, ent->damage, 
+				trace->endpos, ent->damage,
 				0, ent->methodOfDeath);
 		}
 	}

@@ -159,6 +159,8 @@ void CG_ParseSysteminfo( void ) {
 	}
 
 	cgs.synchronousClients = ( atoi( Info_ValueForKey( info, "g_synchronousClients" ) ) ) ? qtrue : qfalse;
+	cgs.g_gibsNewEvGibPlayerParmProtocol =
+		atoi( Info_ValueForKey( info, "g_gibsNewEvGibPlayerParmProtocol" ) );
 }
 
 
