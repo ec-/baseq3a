@@ -39,6 +39,9 @@ static void G_InitGame( int levelTime, int randomSeed, int restart );
 static void G_RunFrame( int levelTime );
 static void G_ShutdownGame( int restart );
 static void CheckExitRules( void );
+#ifndef OLD_CHECK_EXIT_RULES
+static void CheckExitRulesLater( void );
+#endif
 static void SendScoreboardMessageToAllClients( void );
 
 // extension interface
@@ -59,40 +62,92 @@ This must be the very first function compiled into the .q3vm file
 ================
 */
 DLLEXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2 ) {
+	int ret;
+
 	switch ( command ) {
 	case GAME_INIT:
 		G_InitGame( arg0, arg1, arg2 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_SHUTDOWN:
 		G_ShutdownGame( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CLIENT_CONNECT:
-		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
+		ret = (intptr_t)ClientConnect( arg0, arg1, arg2 );
+		break;
 	case GAME_CLIENT_THINK:
 		ClientThink( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CLIENT_USERINFO_CHANGED:
 		ClientUserinfoChanged( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CLIENT_DISCONNECT:
 		ClientDisconnect( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CLIENT_BEGIN:
 		ClientBegin( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CLIENT_COMMAND:
 		ClientCommand( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_RUN_FRAME:
 		G_RunFrame( arg0 );
-		return 0;
+		ret = 0;
+		break;
 	case GAME_CONSOLE_COMMAND:
-		return ConsoleCommand();
+		ret = ConsoleCommand();
+		break;
 	case BOTAI_START_FRAME:
-		return BotAIStartFrame( arg0 );
+		ret = BotAIStartFrame( arg0 );
+		break;
+	default:
+		ret = -1;
 	}
 
-	return -1;
+#ifndef OLD_CHECK_EXIT_RULES
+	// In vanilla we did `CheckExitRules()` after each frag,
+	// which there can be multiple of when dealing with e.g. splash damage.
+	// And the order in which players get killed is not well-defined:
+	// e.g. for `G_RadiusDamage` and telefrag, kills get performed
+	// in the order returned from `trap_EntitiesInBox`;
+	// for the shotgun each pellet deals damage by itself,
+	// and the order is random;
+	// for the railgun the closest enemy gets damaged first.
+	// That resulted in inconsistent rules when there is one frag left
+	// and someone frags both a enemy and themself (or a teammate):
+	// if the enemy is processed first then the attacker wins.
+	// If a teammate is processed first then the game continues.
+	// Let's fix this by only doing `CheckExitRules()`
+	// when we're done processing the command.
+	//
+	// Note that this new behavior can result in e.g. two players
+	// hitting the frag limit at the same time.
+	// This can happen with missiles, which we run in `G_RunFrame()`.
+	// In such a case `ScoreIsTied()` will kick in, and the game will continue
+	// until the score gets untied, so this new behavior doesn't introduce
+	// a "multiple winners" situation.
+	//
+	// One might argue that in case of two missiles exploding on the same frame,
+	// the old behavoir is more fair, because `G_RunMissile()` is run
+	// in the order in which the missiles were created,
+	// so whoever shot first should win.
+	// However, this isn't entirely obviously fair,
+	// because two missiles can explode on the same frame
+	// even if they were shot a long time apart.
+	// For example, grenade launcher vs rocket launcher.
+	// In this case let's just tie the score.
+	if ( level.needToCheckExitRules ) {
+		CheckExitRules();
+	}
+#endif
+
+	return ret;
 }
 
 
@@ -856,7 +911,11 @@ void CalculateRanks( void ) {
 	}
 
 	// see if it is time to end the level
+#ifndef OLD_CHECK_EXIT_RULES
+	CheckExitRulesLater();
+#else
 	CheckExitRules();
+#endif
 
 	// if we are at the intermission, send the new info to everyone
 	if ( level.intermissiontime ) {
@@ -1323,6 +1382,10 @@ static void CheckExitRules( void ) {
  	int			i;
 	gclient_t	*cl;
 
+#ifndef OLD_CHECK_EXIT_RULES
+	level.needToCheckExitRules = qfalse;
+#endif
+
 	// if at the intermission, wait for all non-bots to
 	// signal ready, then go to next level
 	if ( level.intermissiontime ) {
@@ -1410,6 +1473,11 @@ static void CheckExitRules( void ) {
 		}
 	}
 }
+#ifndef OLD_CHECK_EXIT_RULES
+static void CheckExitRulesLater( void ) {
+	level.needToCheckExitRules = qtrue;
+}
+#endif
 
 
 static void ClearBodyQue( void ) {

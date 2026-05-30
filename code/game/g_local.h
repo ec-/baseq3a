@@ -408,6 +408,12 @@ typedef struct {
 	int			numSpawnVarChars;
 	char		spawnVarChars[MAX_SPAWN_VARS_CHARS];
 
+#ifndef OLD_CHECK_EXIT_RULES
+	// `CheckExitRulesLater()` has been called, and we'll need to
+	// `CheckExitRules()` when we're done doing stuff.
+	qboolean	needToCheckExitRules;
+#endif
+
 	// intermission state
 	int			intermissionQueued;		// intermission was qualified, but
 										// wait INTERMISSION_DELAY_TIME before
