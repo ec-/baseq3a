@@ -1,11 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "cgame.vcproj", "{FF0DC79F-C1D1-4DE3-BBD0-91B6146FD69C}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cgame", "cgame.vcxproj", "{FF0DC79F-C1D1-4DE3-BBD0-91B6146FD69C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game.vcproj", "{25F3B624-E060-4DAD-93D6-479AB6CD782F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "game", "game.vcxproj", "{25F3B624-E060-4DAD-93D6-479AB6CD782F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "q3_ui", "q3_ui.vcproj", "{96D17D51-0760-4732-89C1-26DFD5B581BF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "q3_ui", "q3_ui.vcxproj", "{96D17D51-0760-4732-89C1-26DFD5B581BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,5 +44,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C55EC9F-CEA6-492E-8CBD-D086B4777FAF}
 	EndGlobalSection
 EndGlobal
