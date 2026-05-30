@@ -37,10 +37,27 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 	if ( level.warmupTime ) {
 		return;
 	}
-	// show score plum
-	ScorePlum(ent, origin, score);
+
+	// Ensure that the score doesn't change after match end
+	// (when `level.intermissionQueued`).
+	// This check is not present in the original Quake III Arena.
+	// It has been added mainly for `g_canDamageAfterMatchEnd`.
+	// This also fixes a perhaps funny bug where you could `\kill`
+	// right after winning and it would decrease your score.
 	//
-	ent->client->ps.persistant[PERS_SCORE] += score;
+	// Note that we do not early-return from this function,
+	// because we have to run `AddTeamScore()` in both cases.
+	// We'll do the same kind of check in `AddTeamScore()`.
+	if ( !level.intermissionQueued ) {
+		// show score plum
+		ScorePlum(ent, origin, score);
+		//
+		ent->client->ps.persistant[PERS_SCORE] += score;
+	}
+#ifndef NO_HOLYSHIT_MOD
+	ent->client->pers.imaginaryScore += score;
+#endif
+
 	if ( g_gametype.integer == GT_TEAM ) {
 		AddTeamScore( origin, ent->client->ps.persistant[PERS_TEAM], score );
 	}
@@ -465,7 +482,11 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 
 	self->enemy = attacker;
 
-	self->client->ps.persistant[PERS_KILLED]++;
+	// Check `level.intermissionQueued` so as to not ruin the "Perfect" award
+	// if the player got killed after the match has already ended.
+	if ( !level.intermissionQueued ) {
+		self->client->ps.persistant[PERS_KILLED]++;
+	}
 
 	if (attacker && attacker->client) {
 		attacker->client->lastkilled_client = self->s.number;
@@ -815,7 +836,17 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 
 	// the intermission has allready been qualified for, so don't
 	// allow any extra scoring
-	if ( level.intermissionQueued ) {
+	//
+	// When `g_canDamageAfterMatchEnd 1`,
+	// we'll do the `level.intermissionQueued` check
+	// in `AddScore` and `AddTeamScore` instead of doing it here.
+	//
+	// Note that when `g_canDamageAfterMatchEnd 1`
+	// it would make sense to check `level.intermissiontime` instead,
+	// but that would be further from the original game,
+	// because `level.intermissionQueued` gets reset to 0
+	// when intermission starts.
+	if ( level.intermissionQueued && !g_canDamageAfterMatchEnd.integer ) {
 
 		// With a special exception for gibbing bodies.
 		// This was introduced in https://github.com/ec-/baseq3a/pull/50.

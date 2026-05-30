@@ -239,6 +239,20 @@ typedef struct {
 	int			voted;
 	int			teamVoted;
 
+#ifndef NO_HOLYSHIT_MOD
+	// These are only valid after match end, when `intermissionQueued`.
+
+	// Like `ps.persistant[PERS_SCORE]`, but this can also change
+	// after match end, i.e. when `level.intermissionQueued`.
+	int			imaginaryScore;
+	// Whether to play the "Holy shit!" sound if this player's `imaginaryScore`
+	// reaches `level.winnerScore`.
+	// This will be `qfalse` for the winner, disconnected and spectator players,
+	// in team games, and for the players
+	// for whom we've already played the sound.
+	qboolean	needsHolyshitCheck;
+#endif
+
 	qboolean	inGame;
 } clientPersistant_t;
 
@@ -368,6 +382,18 @@ typedef struct {
 	int			msec;					// current frame duration
 
 	int			teamScores[TEAM_NUM_TEAMS];
+#ifndef NO_HOLYSHIT_MOD
+	// These are only valid after match end, when `intermissionQueued`.
+
+	// The score of the winning player or team when the match ended
+	// (when `intermissionQueued` became non-zero).
+	int			winnerScore;
+	// See `clientPersistant_t.imaginaryScore`.
+	int			teamImaginaryScores[TEAM_NUM_TEAMS];
+	// See `clientPersistant_t.needsHolyshitCheck`.
+	qboolean	teamNeedsHolyshitCheck[TEAM_NUM_TEAMS];
+#endif
+
 	int			lastTeamLocationTime;		// last time of client team location update
 
 	qboolean	newSession;				// don't use any old session data, because
@@ -419,7 +445,7 @@ typedef struct {
 										// wait INTERMISSION_DELAY_TIME before
 										// actually going there so the last
 										// frag can be watched.  Disable future
-										// kills during this delay
+										// scores during this delay
 	int			intermissiontime;		// time the intermission was started
 	qboolean	readyToExit;			// at least one client wants to exit
 	int			exitTime;
