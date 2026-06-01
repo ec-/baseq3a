@@ -63,9 +63,11 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->angles.trType = TR_LINEAR;
 	le->angles.trTime = cg.time;
-	le->angles.trBase[0] = rand()&31;
-	le->angles.trBase[1] = rand()&31;
-	le->angles.trBase[2] = rand()&31;
+	VectorCopy ( cent->lerpAngles, le->angles.trBase );
+	le->angles.trBase[PITCH] += 90;
+	le->angles.trBase[0] += (rand()&31) - 15;
+	le->angles.trBase[1] += (rand()&31) - 15;
+	le->angles.trBase[2] += (rand()&31) - 15;
 	le->angles.trDelta[0] = 2;
 	le->angles.trDelta[1] = 1;
 	le->angles.trDelta[2] = 0;
@@ -139,9 +141,11 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 
 		le->angles.trType = TR_LINEAR;
 		le->angles.trTime = cg.time;
-		le->angles.trBase[0] = rand()&31;
-		le->angles.trBase[1] = rand()&31;
-		le->angles.trBase[2] = rand()&31;
+		VectorCopy( cent->lerpAngles, le->angles.trBase );
+		le->angles.trBase[PITCH] += 90;
+		le->angles.trBase[0] += (rand()&31) - 15;
+		le->angles.trBase[1] += (rand()&31) - 15;
+		le->angles.trBase[2] += (rand()&31) - 15;
 		le->angles.trDelta[0] = 1;
 		le->angles.trDelta[1] = 0.5;
 		le->angles.trDelta[2] = 0;
