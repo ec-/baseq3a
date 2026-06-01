@@ -292,6 +292,25 @@ static void CG_AddFragment( localEntity_t *le ) {
 	// reflect the velocity on the trace plane
 	CG_ReflectVelocity( le, &trace );
 
+	// stop pitch spin so that when it settles it lies flat on the ground
+	if ( le->leBounceSoundType == LEBS_BRASS
+		&& fabs( le->pos.trDelta[2] ) < 150 )
+	{
+
+		// save current as base
+		BG_EvaluateTrajectory( &le->angles, cg.time, le->angles.trBase );
+		le->angles.trTime = cg.time;
+
+		// "fall over" to nearest horizontal orientation
+		//
+		// FIXME: handle non-horizontal surfaces (see `trace.plane.normal`)
+		// (YAW would need to be taken into account then)
+		le->angles.trBase[PITCH] = 90 + 180 * floor( le->angles.trBase[PITCH] / 180 );
+		le->angles.trDelta[PITCH] = 0;
+
+		AnglesToAxis( le->angles.trBase, le->refEntity.axis );
+	}
+
 	trap_R_AddRefEntityToScene( &le->refEntity );
 }
 
