@@ -68,9 +68,9 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 	le->angles.trBase[0] += (rand()&31) - 15;
 	le->angles.trBase[1] += (rand()&31) - 15;
 	le->angles.trBase[2] += (rand()&31) - 15;
-	le->angles.trDelta[0] = 2;
-	le->angles.trDelta[1] = 1;
-	le->angles.trDelta[2] = 0;
+	le->angles.trDelta[PITCH] = 1024 + (rand()&511);
+	le->angles.trDelta[YAW] = le->angles.trDelta[PITCH] / 2 * ((rand()&1)*2 - 1);
+	le->angles.trDelta[ROLL] = 0;
 
 	le->leFlags = LEF_TUMBLE;
 	le->leBounceSoundType = LEBS_BRASS;
@@ -146,9 +146,9 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 		le->angles.trBase[0] += (rand()&31) - 15;
 		le->angles.trBase[1] += (rand()&31) - 15;
 		le->angles.trBase[2] += (rand()&31) - 15;
-		le->angles.trDelta[0] = 1;
-		le->angles.trDelta[1] = 0.5;
-		le->angles.trDelta[2] = 0;
+		le->angles.trDelta[PITCH] = 256 + (rand()&255);
+		le->angles.trDelta[YAW] = le->angles.trDelta[PITCH] / 2 * ((rand()&1)*2 - 1);
+		le->angles.trDelta[ROLL] = 0;
 
 		le->leFlags = LEF_TUMBLE;
 		le->leBounceSoundType = LEBS_BRASS;
