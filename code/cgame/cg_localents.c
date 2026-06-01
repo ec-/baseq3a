@@ -217,6 +217,24 @@ void CG_ReflectVelocity( localEntity_t *le, trace_t *trace ) {
 	}
 }
 
+static void GetFragmentMinsMaxs( const localEntity_t *le, vec3_t mins, vec3_t maxs ) {
+	VectorCopy( vec3_origin, mins );
+	VectorCopy( vec3_origin, maxs );
+
+	// can't use `le->leBounceSoundType` because for brass it gets unset
+	// after first impact
+	if ( le->refEntity.hModel == cgs.media.machinegunBrassModel ) {
+		// The primary point of this is to ensure
+		// that they don't half-sink into the the ground.
+		// Same for shotgun.
+		VectorSet(mins, -1, -1, -0.2);
+		VectorSet(maxs, 1, 1, 0.2);
+	} else if ( le->refEntity.hModel == cgs.media.shotgunBrassModel ) {
+		VectorSet(mins, -1, -1, -0.5);
+		VectorSet(maxs, 1, 1, 0.5);
+	}
+}
+
 /*
 ================
 CG_AddFragment
@@ -225,6 +243,11 @@ CG_AddFragment
 static void CG_AddFragment( localEntity_t *le ) {
 	vec3_t	newOrigin;
 	trace_t	trace;
+	vec3_t	mins;
+	vec3_t	maxs;
+
+	VectorCopy( vec3_origin, mins );
+	VectorCopy( vec3_origin, maxs );
 
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
@@ -252,8 +275,9 @@ static void CG_AddFragment( localEntity_t *le ) {
 	// calculate new position
 	BG_EvaluateTrajectory( &le->pos, cg.time, newOrigin );
 
+	GetFragmentMinsMaxs( le, mins, maxs );
 	// trace a line from previous position to new position
-	CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, -1, CONTENTS_SOLID );
+	CG_Trace( &trace, le->refEntity.origin, mins, maxs, newOrigin, -1, CONTENTS_SOLID );
 	if ( trace.fraction == 1.0 ) {
 		// still in free fall
 		VectorCopy( newOrigin, le->refEntity.origin );
