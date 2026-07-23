@@ -772,3 +772,7 @@ int trap_PC_SourceFileAndLine( int handle, char *filename, int *line ) {
 qboolean trap_GetValue( char *value, int valueSize, const char *key ) {
 	return syscall( dll_com_trapGetValue, value, valueSize, key );
 }
+
+void trap_Cvar_SetDescription( const char *var_name, const char *var_description ) {
+	syscall( dll_trap_Cvar_SetDescription, var_name, var_description );
+}

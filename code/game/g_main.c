@@ -13,6 +13,7 @@ typedef struct {
 	int			modificationCount;	// for tracking changes
 	qboolean	trackChange;		// track this variable, and announce if changed
 	qboolean	teamShader;			// track and if changed, update shader state
+	const char	*description;
 } cvarTable_t;
 
 gentity_t		g_entities[MAX_GENTITIES];
@@ -45,10 +46,14 @@ static void CheckExitRulesLater( void );
 static void SendScoreboardMessageToAllClients( void );
 
 // extension interface
+qboolean can_trap_Cvar_SetDescription = qfalse;
+
 #ifdef Q3_VM
 qboolean (*trap_GetValue)( char *value, int valueSize, const char *key );
+void (*trap_Cvar_SetDescription)( const char *var_name, const char *var_description );
 #else
 int dll_com_trapGetValue;
+int dll_trap_Cvar_SetDescription;
 #endif
 
 int	svf_self_portal2;
@@ -275,6 +280,9 @@ void G_RegisterCvars( void ) {
 	for ( i = 0, cv = gameCvarTable ; i < ARRAY_LEN( gameCvarTable ) ; i++, cv++ ) {
 		trap_Cvar_Register( cv->vmCvar, cv->cvarName,
 			cv->defaultString, cv->cvarFlags );
+		if ( can_trap_Cvar_SetDescription && cv->description ) {
+			trap_Cvar_SetDescription( cv->cvarName, cv->description );
+		}
 		if ( cv->vmCvar )
 			cv->modificationCount = cv->vmCvar->modificationCount;
 
@@ -460,6 +468,14 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 			svf_self_portal2 = atoi( value );
 		} else {
 			svf_self_portal2 = 0;
+		}
+		if ( trap_GetValue( value, sizeof( value ), "trap_Cvar_SetDescription_Q3E" ) ) {
+#ifdef Q3_VM
+			trap_Cvar_SetDescription = (void*)~atoi( value );
+#else
+			dll_trap_Cvar_SetDescription = atoi( value );
+#endif
+			can_trap_Cvar_SetDescription = qtrue;
 		}
 	}
 
