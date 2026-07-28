@@ -123,6 +123,18 @@ void AddTeamScore( vec3_t origin, team_t team, int score ) {
 		return;
 	}
 
+#ifndef NO_HOLYSHIT_MOD
+	level.teamImaginaryScores[ team ] += score;
+#endif
+	// See the same check in `AddScore()`.
+	// This has effect in flag-like game modes such as Harvest
+	// where it's possible for both teams to capture at the same time.
+	// And also with `g_canDamageAfterMatchEnd 1` with `GT_TEAM` game type,
+	// and maybe more.
+	if ( level.intermissionQueued ) {
+		return;
+	}
+
 	eventParm = -1;
 	otherTeam = OtherTeam( team );
 
