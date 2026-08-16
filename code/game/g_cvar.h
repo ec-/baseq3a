@@ -55,6 +55,10 @@ G_CVAR( g_knockback, "g_knockback", "1000", 0, 0, qtrue, qfalse )
 G_CVAR( g_quadfactor, "g_quadfactor", "3", 0, 0, qtrue, qfalse )
 G_CVAR( g_weaponRespawn, "g_weaponrespawn", "5", 0, 0, qtrue, qfalse )
 G_CVAR( g_weaponTeamRespawn, "g_weaponTeamRespawn", "30", 0, 0, qtrue, qfalse )
+// `CVAR_SERVERINFO`, but it's not read by clients as of writing.
+// But could be useful to them,
+// e.g. if a mod wants to display a "respawn in 1.321..." timer.
+G_CVAR( g_respawnDelay, "g_respawnDelay", "1700", CVAR_SERVERINFO, 0, qtrue, qfalse )
 G_CVAR( g_forcerespawn, "g_forcerespawn", "20", 0, 0, qtrue, qfalse )
 G_CVAR( g_inactivity, "g_inactivity", "0", 0, 0, qtrue, qfalse )
 G_CVAR( g_debugMove, "g_debugMove", "0", 0, 0, qfalse, qfalse )
