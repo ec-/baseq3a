@@ -1205,13 +1205,14 @@ qboolean G_RadiusDamage ( gentity_t *self, vec3_t origin, gentity_t *attacker, f
 
 	// Put the attacker and their team members at the beginning of the list
 	// so that we damage them first, to make for more deterministic behavior.
-	// Otherwise if 1 frag left for the attacker and they both frag and suicide
-	// with this missile then they may or may not win,
-	// depending on the order returned from `trap_EntitiesInBox`,
+	// Otherwise the order returned from `trap_EntitiesInBox` is used,
 	// which is not defined (or at least is not relevant to us here).
 	//
-	// Note, however, that during sudden death this situation will result
-	// in the attacker's team losing.
+	// The order in which players get killed used to affect who wins
+	// if this explosion kills both an enemy and self,
+	// but now we have `CheckExitRulesLater()`,
+	// so the order here is no longer relevant in that regard.
+	// However, having consistency is still nice, so let's keep this code.
 	//
 	// An alternative would be to sort by distance,
 	// which is what e.g. ETLegacy does:
