@@ -325,8 +325,8 @@ void InGame_MenuInit( void ) {
 	Menu_AddItem( &s_ingame.menu, &s_ingame.teamorders );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.setup );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.server );
-	Menu_AddItem( &s_ingame.menu, &s_ingame.restart );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.startnew );
+	Menu_AddItem( &s_ingame.menu, &s_ingame.restart );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.resume );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.leave );
 	Menu_AddItem( &s_ingame.menu, &s_ingame.quit );
