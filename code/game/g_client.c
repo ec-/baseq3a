@@ -387,6 +387,14 @@ void CopyToBodyQue( gentity_t *ent ) {
 		break;
 	}
 
+	// Reset unused fields to 0 to save bandwidth (don't send their deltas).
+	// See `CG_PlayerAngles`.
+	body->s.eventParm = 0;
+	// Apos is not gonna change, so it's OK not to `TR_INTERPOLATE`.
+	body->s.apos.trType = TR_STATIONARY;
+	VectorClear( body->s.angles );
+	VectorClear( body->s.angles2 );
+
 	body->r.svFlags = ent->r.svFlags;
 	VectorCopy (ent->r.mins, body->r.mins);
 	VectorCopy (ent->r.maxs, body->r.maxs);
