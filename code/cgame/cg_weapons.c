@@ -51,10 +51,12 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 		waterScale = 0.10f;
 	}
 
+	// don't inherit the full velocity, to emulate air resistance
+	VectorScale( cent->currentState.pos.trDelta, 0.75, le->pos.trDelta );
 	xvelocity[0] = velocity[0] * v[0][0] + velocity[1] * v[1][0] + velocity[2] * v[2][0];
 	xvelocity[1] = velocity[0] * v[0][1] + velocity[1] * v[1][1] + velocity[2] * v[2][1];
 	xvelocity[2] = velocity[0] * v[0][2] + velocity[1] * v[1][2] + velocity[2] * v[2][2];
-	VectorScale( xvelocity, waterScale, le->pos.trDelta );
+	VectorMA( le->pos.trDelta, waterScale, xvelocity, le->pos.trDelta );
 
 	AxisCopy( axisDefault, re->axis );
 	re->hModel = cgs.media.machinegunBrassModel;
@@ -63,12 +65,14 @@ static void CG_MachineGunEjectBrass( centity_t *cent ) {
 
 	le->angles.trType = TR_LINEAR;
 	le->angles.trTime = cg.time;
-	le->angles.trBase[0] = rand()&31;
-	le->angles.trBase[1] = rand()&31;
-	le->angles.trBase[2] = rand()&31;
-	le->angles.trDelta[0] = 2;
-	le->angles.trDelta[1] = 1;
-	le->angles.trDelta[2] = 0;
+	VectorCopy ( cent->lerpAngles, le->angles.trBase );
+	le->angles.trBase[PITCH] += 90;
+	le->angles.trBase[0] += (rand()&31) - 15;
+	le->angles.trBase[1] += (rand()&31) - 15;
+	le->angles.trBase[2] += (rand()&31) - 15;
+	le->angles.trDelta[PITCH] = 1024 + (rand()&511);
+	le->angles.trDelta[YAW] = le->angles.trDelta[PITCH] / 2 * ((rand()&1)*2 - 1);
+	le->angles.trDelta[ROLL] = 0;
 
 	le->leFlags = LEF_TUMBLE;
 	le->leBounceSoundType = LEBS_BRASS;
@@ -128,10 +132,12 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 			waterScale = 0.10f;
 		}
 
+		// don't inherit the full velocity, to emulate air resistance
+		VectorScale( cent->currentState.pos.trDelta, 0.675, le->pos.trDelta );
 		xvelocity[0] = velocity[0] * v[0][0] + velocity[1] * v[1][0] + velocity[2] * v[2][0];
 		xvelocity[1] = velocity[0] * v[0][1] + velocity[1] * v[1][1] + velocity[2] * v[2][1];
 		xvelocity[2] = velocity[0] * v[0][2] + velocity[1] * v[1][2] + velocity[2] * v[2][2];
-		VectorScale( xvelocity, waterScale, le->pos.trDelta );
+		VectorMA( le->pos.trDelta, waterScale, xvelocity, le->pos.trDelta );
 
 		AxisCopy( axisDefault, re->axis );
 		re->hModel = cgs.media.shotgunBrassModel;
@@ -139,12 +145,14 @@ static void CG_ShotgunEjectBrass( centity_t *cent ) {
 
 		le->angles.trType = TR_LINEAR;
 		le->angles.trTime = cg.time;
-		le->angles.trBase[0] = rand()&31;
-		le->angles.trBase[1] = rand()&31;
-		le->angles.trBase[2] = rand()&31;
-		le->angles.trDelta[0] = 1;
-		le->angles.trDelta[1] = 0.5;
-		le->angles.trDelta[2] = 0;
+		VectorCopy( cent->lerpAngles, le->angles.trBase );
+		le->angles.trBase[PITCH] += 90;
+		le->angles.trBase[0] += (rand()&31) - 15;
+		le->angles.trBase[1] += (rand()&31) - 15;
+		le->angles.trBase[2] += (rand()&31) - 15;
+		le->angles.trDelta[PITCH] = 256 + (rand()&255);
+		le->angles.trDelta[YAW] = le->angles.trDelta[PITCH] / 2 * ((rand()&1)*2 - 1);
+		le->angles.trDelta[ROLL] = 0;
 
 		le->leFlags = LEF_TUMBLE;
 		le->leBounceSoundType = LEBS_BRASS;
