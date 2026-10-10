@@ -583,12 +583,9 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 	self->s.powerups = 0;
 	self->r.contents = CONTENTS_CORPSE;
 
-	self->s.angles[0] = 0;
-	self->s.angles[2] = 0;
 	LookAtKiller (self, inflictor, attacker);
 	self->client->ps.viewangles[PITCH] = 0;
 	self->client->ps.viewangles[ROLL] = 0;
-	// VectorCopy( self->s.angles, self->client->ps.viewangles );
 
 	self->s.loopSound = 0;
 
