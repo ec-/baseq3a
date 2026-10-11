@@ -1406,6 +1406,7 @@ int BotAIStartFrame(int time) {
 	trap_Cvar_Update(&bot_fastchat);
 	trap_Cvar_Update(&bot_nochat);
 	trap_Cvar_Update(&bot_testrchat);
+	trap_Cvar_Update(&bot_oldlogic);
 	trap_Cvar_Update(&bot_thinktime);
 	trap_Cvar_Update(&bot_memorydump);
 	trap_Cvar_Update(&bot_saveroutingcache);
