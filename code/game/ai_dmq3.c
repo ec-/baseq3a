@@ -63,6 +63,8 @@ vmCvar_t bot_nochat;
 vmCvar_t bot_testrchat;
 vmCvar_t bot_challenge;
 vmCvar_t bot_predictobstacles;
+//when 1, disable post-vanilla improvements
+vmCvar_t bot_oldlogic;
 vmCvar_t g_spSkill;
 
 extern vmCvar_t bot_developer;
@@ -3452,7 +3454,14 @@ void BotAimAtEnemy(bot_state_t *bs) {
 			}
 		}
 		//if the projectile does radial damage
-		if (aim_skill > 0.6 && wi.proj.damagetype & DAMAGETYPE_RADIAL) {
+		if (aim_skill > 0.6 && wi.proj.damagetype & DAMAGETYPE_RADIAL &&
+			//if the radius is big enough (Plasmagun has 20).
+			//this fixes bots holding you up in the air
+			//with Plasmagun sometimes, not letting you properly move,
+			//which is more annoying than practical.
+			//this also affects Prox Launcher because its radius is not set (0).
+			(wi.proj.radius >= 40 || bot_oldlogic.integer) )
+		{
 			//if the enemy isn't standing significantly higher than the bot
 			if (entinfo.origin[2] < bs->origin[2] + 16) {
 				//try to aim at the ground in front of the enemy
@@ -5418,6 +5427,7 @@ void BotSetupDeathmatchAI(void) {
 	trap_Cvar_Register(&bot_testrchat, "bot_testrchat", "0", 0);
 	trap_Cvar_Register(&bot_challenge, "bot_challenge", "0", 0);
 	trap_Cvar_Register(&bot_predictobstacles, "bot_predictobstacles", "1", 0);
+	trap_Cvar_Register(&bot_oldlogic, "bot_oldlogic", "0", 0);
 	trap_Cvar_Register(&g_spSkill, "g_spSkill", "2", 0);
 	//
 	if (gametype == GT_CTF) {
