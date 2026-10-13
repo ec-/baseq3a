@@ -551,6 +551,12 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 
 	G_LocateSpawnSpots();
 
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+	G_Printf( "setting %i client entities' baseline state for better delta compression\n",
+		level.maxclients );
+	ClientsSetBaselineState();
+#endif
+
 	G_Printf ("-----------------------------------\n");
 
 	if( g_gametype.integer == GT_SINGLE_PLAYER || trap_Cvar_VariableIntegerValue( "com_buildScript" ) ) {

@@ -376,6 +376,9 @@ typedef struct {
 
 	qboolean	restarted;				// waiting for a map_restart to fire
 
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+	qboolean	mustUnlinkAllClientEnts;	// only qtrue during game init
+#endif
 	int			numConnectedClients;
 	int			numNonSpectatorClients;	// includes connecting clients
 	int			numPlayingClients;		// connected, non-spectators
@@ -658,6 +661,9 @@ void G_BroadcastServerCommand( int ignoreClient, const char *command );
 //
 // g_client.c
 //
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+void ClientsSetBaselineState();
+#endif
 const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot );
 qboolean ClientUserinfoChanged( int clientNum );
 void ClientDisconnect( int clientNum );

@@ -276,6 +276,34 @@ void InitBodyQue (void) {
 		ent = G_Spawn();
 		ent->classname = "bodyque";
 		ent->neverFree = qtrue;
+
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+		// Set likely baseline state, for better delta compression.
+		// Same as in `ClientsSetBaselineState`.
+		ent->s.eType = ET_PLAYER;
+		ent->s.eFlags = EF_DEAD;
+		// Likely but not guaranteed.
+		ent->s.groundEntityNum = ENTITYNUM_WORLD;
+		// This is true 1 times out of 3.
+		ent->s.torsoAnim = BOTH_DEAD1;
+		ent->s.legsAnim = BOTH_DEAD1;
+
+		// But ensure that this doesn't affect gameplay,
+		// i.e. not solid and not shootable and stuff. See also `GibEntity`.
+		ent->r.contents = 0;
+
+		// FIXME: maybe also set `r.currentOrigin`,
+		// as in `ClientsSetBaselineState`.
+
+		trap_LinkEntity( ent );
+		// It's probably fine not to unlink
+		// because these entities don't affect gameplay,
+		// and will eventually get linked anyway as `CopyToBodyQue` gets called.
+
+		// Will be cleared by `CopyToBodyQue`.
+		ent->r.svFlags = SVF_NOCLIENT;
+#endif
+
 		level.bodyQue[i] = ent;
 	}
 }
@@ -564,6 +592,88 @@ team_t PickTeam( int ignoreClientNum ) {
 }
 
 
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+/*
+===========
+ClientSetBaselineState
+
+Called by `G_InitGame`, i.e. right before `SV_CreateBaseline`,
+when there are no clients (`ClientConnect` has not been called).
+Should be called after `G_LocateSpawnSpots`, otherwise might have no effect.
+
+Sets likely baseline state, for better network delta compression.
+So that every time a player appears in another player's sight,
+we only have to send the fields that are different from what we set here.
+
+One can test the effect of this with `cl_shownet 3` (or `-3`),
+paying attention to the "baseline" entries,
+specifically to how many fields get sent.
+============
+*/
+void ClientsSetBaselineState( ) {
+	int			i;
+	qboolean	warningPrinted = qfalse;
+
+	for ( i = 0 ; i < level.maxclients ; i++ ) {
+		gentity_t	*ent = &g_entities[ i ];
+
+		// Note that the more fields are non-zero
+		// the bigger the initial `svc_gamestate` message will be.
+
+		// See `BG_PlayerStateToEntityState`
+		ent->s.number = i;
+		ent->s.clientNum = i;
+		ent->s.eType = ET_PLAYER;
+		ent->s.pos.trType = TR_INTERPOLATE;
+		ent->s.apos.trType = TR_INTERPOLATE;
+		ent->s.torsoAnim = TORSO_STAND;
+		ent->s.legsAnim = LEGS_RUN;
+		ent->s.groundEntityNum = ENTITYNUM_WORLD;
+		ent->s.weapon = WP_MACHINEGUN;
+
+		// `SV_LinkEntity` sets `s.solid` based on these values.
+		ent->r.contents = CONTENTS_BODY;
+		VectorCopy( playerMins, ent->r.mins );
+		VectorCopy( playerMaxs, ent->r.maxs );
+
+		// It seems that in `SV_LinkEntity` there is a check
+		// for whether the entity is "inside the world".
+		// If not then it leaves `r.linked == qfalse`.
+		// So we ensure that the origin is indeed inside the world.
+		//
+		// Note, however, that this seems to be unnecessary,
+		// at least with the vanilla engine and vanilla maps.
+		// Setting origin to even 99999999999+ still results
+		// in the entity getting linked.
+		if ( level.spawnSpots[0] ) {
+			VectorCopy( level.spawnSpots[0]->s.origin, ent->r.currentOrigin );
+		}
+
+		// Linking is required because `SV_CreateBaseline`
+		// will just skip this entity otherwise, at least on the vanilla engine.
+		trap_LinkEntity( ent );
+		if ( !ent->r.linked && !warningPrinted ) {
+			G_Printf( S_COLOR_YELLOW "WARNING: ClientsSetBaselineState did not actually link the entity, delta compression will be less efficient\n" );
+			warningPrinted = qtrue;
+		}
+
+		// Now that `s.solid` has been set (see comment above),
+		// we can mark the entity as non-solid,
+		// to minimize effect on gameplay
+		// (but we're still gonna unlink the entity soon).
+		ent->r.contents = 0;
+
+		// We've linked the entity, but let's not send it to clients.
+		ent->r.svFlags = SVF_NOCLIENT;
+	}
+
+	// Let's unlink the entities ASAP,
+	// to ensure that they don't affect gameplay.
+	level.mustUnlinkAllClientEnts = qtrue;
+}
+#endif
+
+
 /*
 ===========
 ClientUserInfoChanged
@@ -744,6 +854,26 @@ const char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	char		userinfo[MAX_INFO_STRING];
 	gentity_t	*ent;
 	qboolean	isAdmin;
+	int 		i;
+
+#ifndef NO_OPTIMIZED_BASELINE_ENTITY_STATE
+	// Unfortunately we don't have a better place to run this.
+	// The idea is to run right this once after `SV_CreateBaseline`,
+	//
+	// Technically it doesn't seem entirely necessary to unlink,
+	// as long as we simply have `r.contents = 0` and `SVF_NOCLIENT`,
+	// but let's still do things properly.
+	if ( level.mustUnlinkAllClientEnts ) {
+		G_Printf( "client entities' baseline state set, now unlinking them all\n" );
+		for ( i = 0 ; i < level.maxclients ; i++ ) {
+			gentity_t	*ent = &g_entities[ i ];
+			trap_UnlinkEntity( ent );
+			// This was also set in `ClientsSetBaselineState`, so clear it.
+			ent->r.svFlags &= ~SVF_NOCLIENT;
+		}
+		level.mustUnlinkAllClientEnts = qfalse;
+	}
+#endif
 
 	if ( clientNum >= level.maxclients ) {
 		return "Bad connection slot.";
