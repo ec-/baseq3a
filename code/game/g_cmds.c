@@ -220,20 +220,46 @@ Cmd_Give_f
 Give items to a client
 ==================
 */
-void Cmd_Give_f( gentity_t *ent )
+void Cmd_Give_f( gentity_t *caller )
 {
+	char		arg[MAX_TOKEN_CHARS];
+	int			arg1;
 	char		*name;
+	gentity_t	*target = caller;
 	gitem_t		*it;
 	int			i;
 	qboolean	give_all;
 	gentity_t	*it_ent;
 	trace_t		trace;
 
-	if ( !CheatsOk( ent ) ) {
+	if ( !CheatsOk( caller ) ) {
 		return;
 	}
 
-	name = ConcatArgs( 1 );
+	if ( trap_Argc() < 2 ) {
+		trap_SendServerCommand( caller-g_entities, "print \"usage: give [target_number] <item name>\nTo see player numbers, run \\status\"");
+		return;
+	}
+
+	// If a target is specified
+	trap_Argv( 1, arg, sizeof( arg ) );
+	arg1 = atoi( arg );
+	if ( trap_Argc() > 2
+		// arg1 is a number
+		&& ( arg1 != 0 || !strcmp( arg, "0") )
+		&& arg1 >= 0 && arg1 < MAX_GENTITIES )
+	{
+		target = &g_entities[arg1];
+		name = ConcatArgs( 2 );
+	} else {
+		name = ConcatArgs( 1 );
+	}
+
+	if ( target->health <= 0 ) {
+		// Otherwise a dead bot becomes unshootable.
+		trap_SendServerCommand( caller-g_entities, "print \"Target must be alive for this command to work.\n\"");
+		return;
+	}
 
 	if (Q_stricmp(name, "all") == 0)
 		give_all = qtrue;
@@ -242,14 +268,14 @@ void Cmd_Give_f( gentity_t *ent )
 
 	if (give_all || Q_stricmp( name, "health") == 0)
 	{
-		ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
+		target->health = target->client->ps.stats[STAT_MAX_HEALTH];
 		if (!give_all)
 			return;
 	}
 
 	if (give_all || Q_stricmp(name, "weapons") == 0)
 	{
-		ent->client->ps.stats[STAT_WEAPONS] = (1 << WP_NUM_WEAPONS) - 1 - 
+		target->client->ps.stats[STAT_WEAPONS] = (1 << WP_NUM_WEAPONS) - 1 - 
 			( 1 << WP_GRAPPLING_HOOK ) - ( 1 << WP_NONE );
 		if (!give_all)
 			return;
@@ -258,7 +284,7 @@ void Cmd_Give_f( gentity_t *ent )
 	if (give_all || Q_stricmp(name, "ammo") == 0)
 	{
 		for ( i = 0 ; i < MAX_WEAPONS ; i++ ) {
-			ent->client->ps.ammo[i] = 999;
+			target->client->ps.ammo[i] = 999;
 		}
 		if (!give_all)
 			return;
@@ -266,30 +292,30 @@ void Cmd_Give_f( gentity_t *ent )
 
 	if (give_all || Q_stricmp(name, "armor") == 0)
 	{
-		ent->client->ps.stats[STAT_ARMOR] = 200;
+		target->client->ps.stats[STAT_ARMOR] = 200;
 
 		if (!give_all)
 			return;
 	}
 
 	if (Q_stricmp(name, "excellent") == 0) {
-		ent->client->ps.persistant[PERS_EXCELLENT_COUNT]++;
+		target->client->ps.persistant[PERS_EXCELLENT_COUNT]++;
 		return;
 	}
 	if (Q_stricmp(name, "impressive") == 0) {
-		ent->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
+		target->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
 		return;
 	}
 	if (Q_stricmp(name, "gauntletaward") == 0) {
-		ent->client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT]++;
+		target->client->ps.persistant[PERS_GAUNTLET_FRAG_COUNT]++;
 		return;
 	}
 	if (Q_stricmp(name, "defend") == 0) {
-		ent->client->ps.persistant[PERS_DEFEND_COUNT]++;
+		target->client->ps.persistant[PERS_DEFEND_COUNT]++;
 		return;
 	}
 	if (Q_stricmp(name, "assist") == 0) {
-		ent->client->ps.persistant[PERS_ASSIST_COUNT]++;
+		target->client->ps.persistant[PERS_ASSIST_COUNT]++;
 		return;
 	}
 
@@ -301,12 +327,12 @@ void Cmd_Give_f( gentity_t *ent )
 		}
 
 		it_ent = G_Spawn();
-		VectorCopy( ent->r.currentOrigin, it_ent->s.origin );
+		VectorCopy( target->r.currentOrigin, it_ent->s.origin );
 		it_ent->classname = it->classname;
 		G_SpawnItem (it_ent, it);
 		FinishSpawningItem(it_ent );
 		memset( &trace, 0, sizeof( trace ) );
-		Touch_Item (it_ent, ent, &trace);
+		Touch_Item (it_ent, target, &trace);
 		if (it_ent->inuse) {
 			G_FreeEntity( it_ent );
 		}
