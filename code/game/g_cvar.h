@@ -33,6 +33,8 @@ G_CVAR( g_synchronousClients, "g_synchronousClients", "0", CVAR_SYSTEMINFO, 0, q
 
 G_CVAR( g_friendlyFire, "g_friendlyFire", "0", CVAR_ARCHIVE, 0, qtrue, qfalse )
 
+G_CVAR( g_canDamageAfterMatchEnd, "g_canDamageAfterMatchEnd", "1", CVAR_ARCHIVE, 0, qtrue, qfalse )
+
 G_CVAR( g_autoJoin, "g_autoJoin", "1", CVAR_ARCHIVE, 0, qfalse, qfalse )
 G_CVAR( g_teamForceBalance, "g_teamForceBalance", "0", CVAR_ARCHIVE, 0, qfalse, qfalse )
 
