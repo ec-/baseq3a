@@ -975,12 +975,15 @@ int		trap_GeneticParentsAndChildSelection(int numranks, float *ranks, int *paren
 void	trap_SnapVector( float *v );
 
 // extension interface
+extern  qboolean can_trap_Cvar_SetDescription;
 
 #ifdef Q3_VM
-//
+extern void	(*trap_Cvar_SetDescription)( const char *var_name, const char *var_description );
 #else
 qboolean trap_GetValue( char *value, int valueSize, const char *key );
 extern int dll_com_trapGetValue;
+void trap_Cvar_SetDescription( const char *var_name, const char *var_description );
+extern int dll_trap_Cvar_SetDescription;
 #endif
 
 extern	int svf_self_portal2;
