@@ -424,19 +424,27 @@ static void CG_OffsetFirstPersonView( void ) {
 //======================================================================
 
 void CG_ZoomDown_f( void ) { 
+	int zoomProgress = cg.time - cg.zoomTime;
+	if ( zoomProgress > ZOOM_TIME ) {
+		zoomProgress = ZOOM_TIME;
+	}
 	if ( cg.zoomed ) {
 		return;
 	}
 	cg.zoomed = qtrue;
-	cg.zoomTime = cg.time;
+	cg.zoomTime = cg.time - ( ZOOM_TIME - zoomProgress );
 }
 
 void CG_ZoomUp_f( void ) { 
+	int zoomProgress = cg.time - cg.zoomTime;
+	if ( zoomProgress > ZOOM_TIME ) {
+		zoomProgress = ZOOM_TIME;
+	}
 	if ( !cg.zoomed ) {
 		return;
 	}
 	cg.zoomed = qfalse;
-	cg.zoomTime = cg.time;
+	cg.zoomTime = cg.time - ( ZOOM_TIME - zoomProgress );
 }
 
 
@@ -484,6 +492,7 @@ static int CG_CalcFov( void ) {
 
 		if ( cg.zoomed ) {
 			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_TIME;
+
 			if ( f > 1.0 ) {
 				fov_x = zoomFov;
 			} else {
