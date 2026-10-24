@@ -369,14 +369,17 @@ static void weapon_supershotgun_fire( gentity_t *ent ) {
 	gentity_t		*tent;
 
 	// send shotgun blast
-	tent = G_TempEntity( muzzle, EV_SHOTGUN );
+	tent = G_TempEntity( muzzle_origin, EV_SHOTGUN );
 	VectorScale( forward, 4096.0, tent->s.origin2 );
 
 	SnapVector( tent->s.origin2 );
 	tent->s.eventParm = rand() & 255;		// seed for spread pattern
 	tent->s.otherEntityNum = ent->s.number;
 
-	ShotgunPattern( muzzle_origin, tent->s.origin2, tent->s.eventParm, ent );
+	// Use the non-snapped origin and direction for damage calculation.
+	// This results in a mismatch with the visual `EV_SHOTGUN`,
+	// but accurately preserves the actual aiming direction and origin.
+	ShotgunPattern( muzzle_origin, forward, tent->s.eventParm, ent );
 }
 
 
