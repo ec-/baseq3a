@@ -831,7 +831,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	CG_PredictPlayerState();
 
 	// decide on third person view
-	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
+	cg.renderingThirdPerson = cg_thirdPerson.integer ||
+		// We could have instead simply used `cg.predictedPlayerState`,
+		// which is based on `cg.nextSnap` and not `cg.snap`,
+		// but the difference is that `cg.nextSnap` is authoritative
+		// whereas `predictedPlayerState` could mispredict e.g. fall damage.
+		(cg.nextSnap
+			? cg.nextSnap->ps.stats[STAT_HEALTH] <= 0
+			: cg.snap->ps.stats[STAT_HEALTH] <= 0);
 
 	CG_TrackClientTeamChange();
 
